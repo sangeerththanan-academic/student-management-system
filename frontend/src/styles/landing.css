@@ -1,0 +1,438 @@
+/* =========================================================
+   Landing Page
+   ========================================================= */
+
+.landing-page {
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #ffffff;
+}
+
+
+/* =========================================================
+   Hero
+   ========================================================= */
+
+.hero-section {
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff 0%,
+            #ffffff 55%,
+            #dbeafe 100%
+        );
+
+    padding: 100px 0;
+}
+
+.hero-container {
+    width: 90%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+
+    align-items: center;
+
+    gap: 70px;
+}
+
+.hero-content {
+    max-width: 650px;
+}
+
+.hero-badge {
+    display: inline-block;
+
+    padding: 7px 12px;
+
+    background: #dbeafe;
+    color: #1d4ed8;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    margin-bottom: 20px;
+}
+
+.hero-content h1 {
+    color: #0f172a;
+
+    font-size: clamp(42px, 6vw, 68px);
+
+    line-height: 1.05;
+
+    margin: 0 0 25px;
+}
+
+.hero-content h1 span {
+    color: #2563eb;
+}
+
+.hero-content > p {
+    max-width: 600px;
+
+    color: #64748b;
+
+    font-size: 18px;
+
+    line-height: 1.7;
+
+    margin: 0 0 32px;
+}
+
+.hero-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 13px 20px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+.primary-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.primary-button:hover {
+    background: #1d4ed8;
+
+    transform: translateY(-2px);
+}
+
+.secondary-button {
+    background: #ffffff;
+
+    color: #2563eb;
+
+    border: 1px solid #bfdbfe;
+}
+
+.secondary-button:hover {
+    background: #eff6ff;
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   Hero Card
+   ========================================================= */
+
+.hero-card {
+    background: #ffffff;
+
+    padding: 40px;
+
+    border-radius: 20px;
+
+    border: 1px solid #dbeafe;
+
+    box-shadow:
+        0 25px 60px rgba(37, 99, 235, 0.12);
+}
+
+.hero-card-icon {
+    width: 70px;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 18px;
+
+    font-size: 35px;
+
+    margin-bottom: 25px;
+}
+
+.hero-card h2 {
+    color: #0f172a;
+
+    font-size: 25px;
+
+    margin: 0 0 12px;
+}
+
+.hero-card > p {
+    color: #64748b;
+
+    line-height: 1.7;
+
+    margin: 0 0 30px;
+}
+
+.hero-card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+}
+
+.hero-card-stats > div {
+    padding: 15px;
+
+    background: #f8fafc;
+
+    border-radius: 10px;
+
+    border: 1px solid #e2e8f0;
+}
+
+.hero-card-stats strong,
+.hero-card-stats span {
+    display: block;
+}
+
+.hero-card-stats strong {
+    color: #2563eb;
+
+    margin-bottom: 3px;
+}
+
+.hero-card-stats span {
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   Sections
+   ========================================================= */
+
+.about-section,
+.features-section {
+    padding: 90px 0;
+}
+
+.about-section {
+    background: #ffffff;
+}
+
+.features-section {
+    background: #f8fafc;
+}
+
+.section-container {
+    width: 90%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+}
+
+.section-heading {
+    max-width: 750px;
+
+    margin: 0 auto 45px;
+
+    text-align: center;
+}
+
+.section-label {
+    display: inline-block;
+
+    color: #2563eb;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+
+    margin-bottom: 10px;
+}
+
+.section-heading h2 {
+    color: #0f172a;
+
+    font-size: 36px;
+
+    line-height: 1.2;
+
+    margin: 0 0 15px;
+}
+
+.section-heading p {
+    color: #64748b;
+
+    font-size: 16px;
+
+    line-height: 1.7;
+
+    margin: 0;
+}
+
+
+/* =========================================================
+   Features
+   ========================================================= */
+
+.features-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 25px;
+}
+
+.feature-card {
+    background: #ffffff;
+
+    padding: 30px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 15px 35px rgba(15, 23, 42, 0.08);
+}
+
+.feature-icon {
+    width: 55px;
+    height: 55px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eff6ff;
+
+    border-radius: 14px;
+
+    font-size: 26px;
+
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    color: #0f172a;
+
+    font-size: 19px;
+
+    margin: 0 0 10px;
+}
+
+.feature-card p {
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+    margin: 0;
+}
+
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .hero-container {
+        grid-template-columns: 1fr;
+
+        gap: 45px;
+    }
+
+    .hero-content {
+        text-align: center;
+
+        margin: 0 auto;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .navbar-container {
+        width: 92%;
+    }
+
+    .logo {
+        font-size: 15px;
+    }
+
+    .nav-links {
+        gap: 12px;
+    }
+
+    .nav-link {
+        display: none;
+    }
+
+    .hero-section {
+        padding: 70px 0;
+    }
+
+    .hero-content h1 {
+        font-size: 42px;
+    }
+
+    .hero-content > p {
+        font-size: 16px;
+    }
+
+    .hero-card {
+        padding: 25px;
+    }
+
+    .about-section,
+    .features-section {
+        padding: 65px 0;
+    }
+
+    .section-heading h2 {
+        font-size: 28px;
+    }
+}
