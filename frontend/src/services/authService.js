@@ -1,6 +1,10 @@
 import apiRequest from "./api";
 
-// Login
+
+// ==========================================
+// LOGIN
+// ==========================================
+
 export const login = async (username, password) => {
     const data = await apiRequest("/api/auth/login", {
         method: "POST",
@@ -10,29 +14,79 @@ export const login = async (username, password) => {
         })
     });
 
-    // Store JWT
     if (data.token) {
         localStorage.setItem("token", data.token);
     }
 
-    // Store user information
     if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem(
+            "user",
+            JSON.stringify(data.user)
+        );
     }
 
     return data;
 };
 
 
-// Get currently logged-in user
-export const getCurrentUser = async () => {
-    return await apiRequest("/api/auth/me", {
-        method: "GET"
-    });
+// ==========================================
+// FORGOT PASSWORD
+// ==========================================
+
+export const forgotPassword = async (email) => {
+    return await apiRequest(
+        "/api/auth/forgot-password",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email
+            })
+        }
+    );
 };
 
 
-// Get stored user
+// ==========================================
+// RESET PASSWORD
+// ==========================================
+
+export const resetPassword = async (
+    token,
+    password,
+    confirmPassword
+) => {
+    return await apiRequest(
+        "/api/auth/reset-password",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                token,
+                password,
+                confirmPassword
+            })
+        }
+    );
+};
+
+
+// ==========================================
+// GET CURRENT USER
+// ==========================================
+
+export const getCurrentUser = async () => {
+    return await apiRequest(
+        "/api/auth/me",
+        {
+            method: "GET"
+        }
+    );
+};
+
+
+// ==========================================
+// GET STORED USER
+// ==========================================
+
 export const getStoredUser = () => {
     const user = localStorage.getItem("user");
 
@@ -48,14 +102,22 @@ export const getStoredUser = () => {
 };
 
 
-// Logout
+// ==========================================
+// LOGOUT
+// ==========================================
+
 export const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 };
 
 
-// Check whether a token exists
+// ==========================================
+// AUTHENTICATION CHECK
+// ==========================================
+
 export const isAuthenticated = () => {
-    return Boolean(localStorage.getItem("token"));
+    return Boolean(
+        localStorage.getItem("token")
+    );
 };
