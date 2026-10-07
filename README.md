@@ -307,7 +307,6 @@ Change history is maintained in:
 ```text
 CHANGELOG.md
 ```
-
 ---
 
 ## 13. License
