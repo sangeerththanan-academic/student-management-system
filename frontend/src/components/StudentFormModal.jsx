@@ -21,6 +21,8 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [touched, setTouched] = useState({});
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -47,7 +49,74 @@ function StudentFormModal({
         }
 
         setFormError("");
+        setFieldErrors({});
+        setTouched({});
     }, [editingStudent, show]);
+
+
+    // ── Validation helpers (CR-004) ─────────────────────────────
+    const validateField = (name, value) => {
+        const v = (value || "").trim();
+
+        switch (name) {
+            case "registrationNo":
+                if (!v) return "Registration number is required.";
+                if (!/^[A-Za-z0-9_-]+$/.test(v))
+                    return "Only letters, numbers, hyphens, or underscores allowed.";
+                return null;
+
+            case "firstName":
+                if (!v) return "First name is required.";
+                if (v.length < 3) return "First name must be at least 3 characters.";
+                if (!/^[A-Za-z\s]+$/.test(v)) return "First name must contain letters only.";
+                return null;
+
+            case "lastName":
+                if (!v) return "Last name is required.";
+                if (v.length < 3) return "Last name must be at least 3 characters.";
+                if (!/^[A-Za-z\s]+$/.test(v)) return "Last name must contain letters only.";
+                return null;
+
+            case "email":
+                if (!v) return "Email address is required.";
+                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v))
+                    return "Enter a valid email address (e.g. user@example.com).";
+                return null;
+
+            case "phoneNumber":
+                if (!v) return "Phone number is required.";
+                if (!/^\d+$/.test(v)) return "Phone number must contain digits only.";
+                if (v.length !== 10) return "Phone number must be exactly 10 digits.";
+                return null;
+
+            case "password":
+                if (editingStudent) return null;
+                if (!value) return "Password is required.";
+                if (value.length < 8) return "Password must be at least 8 characters.";
+                if (!/[A-Z]/.test(value)) return "Password must include an uppercase letter.";
+                if (!/[a-z]/.test(value)) return "Password must include a lowercase letter.";
+                if (!/[0-9]/.test(value)) return "Password must include a number.";
+                if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value))
+                    return "Password must include a special character.";
+                return null;
+
+            default:
+                return null;
+        }
+    };
+
+    const validateAll = () => {
+        const fields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
+        if (!editingStudent) fields.push("password");
+
+        const errors = {};
+        fields.forEach((name) => {
+            const err = validateField(name, formData[name]);
+            if (err) errors[name] = err;
+        });
+        return errors;
+    };
+    // ────────────────────────────────────────────────────────────
 
 
     const handleInputChange = (event) => {
@@ -57,11 +126,25 @@ function StudentFormModal({
             ...previous,
             [name]: value
         }));
+
+        // Live-clear the error for the field being edited
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: null }));
+        }
+    };
+
+    const handleBlur = (event) => {
+        const { name, value } = event.target;
+        setTouched((prev) => ({ ...prev, [name]: true }));
+        const err = validateField(name, value);
+        setFieldErrors((prev) => ({ ...prev, [name]: err }));
     };
 
 
     const handleClose = () => {
         setFormError("");
+        setFieldErrors({});
+        setTouched({});
         onClose();
     };
 
@@ -71,20 +154,16 @@ function StudentFormModal({
 
         setFormError("");
 
-        if (
-            !formData.registrationNo.trim() ||
-            !formData.firstName.trim() ||
-            !formData.lastName.trim() ||
-            !formData.email.trim() ||
-            !formData.phoneNumber.trim()
-        ) {
-            setFormError("All student fields are required.");
-            return;
-        }
+        // Mark all fields touched & run full validation
+        const errors = validateAll();
+        const allFields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber", "password"];
+        const allTouched = {};
+        allFields.forEach((f) => { allTouched[f] = true; });
+        setTouched(allTouched);
+        setFieldErrors(errors);
 
-        // Password is required only when creating
-        if (!editingStudent && !formData.password) {
-            setFormError("Password is required for a new student.");
+        if (Object.keys(errors).length > 0) {
+            setFormError("Please fix the highlighted errors before submitting.");
             return;
         }
 
@@ -152,6 +231,41 @@ function StudentFormModal({
 
     if (!show) return null;
 
+    // Helper: render one form field with inline error
+    const renderField = (label, name, type = "text", hint = "") => (
+        <div
+            key={name}
+            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
+        >
+            <label htmlFor={`sf-${name}`}>
+                {label}
+            </label>
+
+            <input
+                id={`sf-${name}`}
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                disabled={formLoading}
+                autoComplete={type === "password" ? "new-password" : "off"}
+                aria-describedby={`sf-${name}-hint`}
+                aria-invalid={!!(touched[name] && fieldErrors[name])}
+            />
+
+            {touched[name] && fieldErrors[name] ? (
+                <span id={`sf-${name}-hint`} className="field-error-msg">
+                    {fieldErrors[name]}
+                </span>
+            ) : hint ? (
+                <span id={`sf-${name}-hint`} className="field-hint">
+                    {hint}
+                </span>
+            ) : null}
+        </div>
+    );
+
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
@@ -187,7 +301,7 @@ function StudentFormModal({
 
 
             {formError && (
-                <div className="dashboard-error">
+                <div className="dashboard-error" role="alert">
                     {formError}
                 </div>
             )}
@@ -196,103 +310,49 @@ function StudentFormModal({
             <form
                 className="student-form"
                 onSubmit={handleSubmit}
+                noValidate
             >
 
-                <div className="form-group">
-                    <label>
-                        Registration Number
-                    </label>
+                {renderField(
+                    "Registration Number",
+                    "registrationNo",
+                    "text",
+                    "Letters, numbers, hyphens, or underscores only."
+                )}
 
-                    <input
-                        type="text"
-                        name="registrationNo"
-                        value={formData.registrationNo}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
+                {renderField(
+                    "First Name",
+                    "firstName",
+                    "text",
+                    "Min 3 characters, letters only."
+                )}
 
+                {renderField(
+                    "Last Name",
+                    "lastName",
+                    "text",
+                    "Min 3 characters, letters only."
+                )}
 
-                <div className="form-group">
-                    <label>
-                        First Name
-                    </label>
+                {renderField(
+                    "Email",
+                    "email",
+                    "email",
+                    "e.g. student@example.com"
+                )}
 
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
+                {renderField(
+                    "Phone Number",
+                    "phoneNumber",
+                    "text",
+                    "Exactly 10 digits, numbers only."
+                )}
 
-
-                <div className="form-group">
-                    <label>
-                        Last Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Phone Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                {!editingStudent && (
-                    <div className="form-group">
-                        <label>
-                            Password
-                        </label>
-
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-                    </div>
+                {!editingStudent && renderField(
+                    "Password",
+                    "password",
+                    "password",
+                    "Min 8 chars with uppercase, lowercase, number & special character."
                 )}
 
 
