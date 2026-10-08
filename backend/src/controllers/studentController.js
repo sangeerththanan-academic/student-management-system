@@ -535,6 +535,11 @@ const editStudent = async (req, res) => {
             lastName.trim(),
             email.trim(),
             phoneNumber.trim()
+            registrationNo.trim(),
+            firstName.trim(),
+            lastName.trim(),
+            email.trim(),
+            phoneNumber.trim()
         );
 
 
@@ -549,6 +554,14 @@ const editStudent = async (req, res) => {
         });
 
     } catch (error) {
+
+        if (error.code === "ER_DUP_ENTRY") {
+            const isEmail = error.message && error.message.toLowerCase().includes("email");
+            return res.status(409).json({
+                success: false,
+                message: isEmail ? "Email address is already registered" : "Registration number is already registered"
+            });
+        }
 
         console.error("Update student error:", error);
 
