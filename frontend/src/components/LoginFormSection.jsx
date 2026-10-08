@@ -1,13 +1,20 @@
 import { useState } from "react";
+import { Eye, EyeOff } from 'lucide-react';
 
 function LoginFormSection({ onSubmit, loading, error }) {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
         onSubmit(username.trim(), password);
+    };
+
+    // Toggles the visibility state
+    const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev);
     };
 
     return (
@@ -72,18 +79,28 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             Password
                         </label>
 
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                            disabled={loading}
-                            required
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
+                                placeholder="Enter your password"
+                                autoComplete="current-password"
+                                disabled={loading}
+                                required
+                            />
+
+                            <button
+                                type="button"
+                                className="password-toggle-button"
+                                onClick={togglePasswordVisibility}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                disabled={loading}
+                            >
+                                {showPassword ? <Eye size={20} /> : <EyeOff size={20} /> }
+                            </button>
+                        </div>
 
                     </div>
 

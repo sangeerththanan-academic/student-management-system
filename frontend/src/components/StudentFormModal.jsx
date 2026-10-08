@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from 'lucide-react';
 
 import apiRequest from "../services/api";
+import "../styles/login.css";
 
 function StudentFormModal({
     show,
@@ -21,6 +23,12 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Toggles the visibility state
+    const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev);
+    };
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -284,16 +292,29 @@ function StudentFormModal({
                             Password
                         </label>
 
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-                    </div>
-                )}
+                            <div className="password-input-wrapper">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    disabled={formLoading}
+                                    required
+                                />
+
+                                <button
+                                    type="button"
+                                    className="password-toggle-button"
+                                    onClick={togglePasswordVisibility}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    disabled={formLoading}
+                                >
+                                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                                </button>
+                            </div>
+
+                        </div>
+                    )}
 
 
                 <div className="form-actions">
