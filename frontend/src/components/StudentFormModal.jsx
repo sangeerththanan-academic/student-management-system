@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import apiRequest from "../services/api";
@@ -9,7 +10,6 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-
     const [formData, setFormData] = useState({
         registrationNo: "",
         firstName: "",
@@ -21,8 +21,8 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
 
-    // Reset form when editingStudent changes or modal opens
     useEffect(() => {
         if (!show) return;
 
@@ -47,8 +47,8 @@ function StudentFormModal({
         }
 
         setFormError("");
+        setFieldErrors({});
     }, [editingStudent, show]);
-
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -57,34 +57,119 @@ function StudentFormModal({
             ...previous,
             [name]: value
         }));
+
+        setFieldErrors((previous) => ({
+            ...previous,
+            [name]: ""
+        }));
+
+        setFormError("");
     };
 
+    const validateForm = () => {
+        const errors = {};
+
+        const registrationNo = formData.registrationNo.trim();
+        const firstName = formData.firstName.trim();
+        const lastName = formData.lastName.trim();
+        const email = formData.email.trim();
+        const phoneNumber = formData.phoneNumber.trim();
+        const password = formData.password;
+
+        // Registration Number
+        if (!registrationNo) {
+            errors.registrationNo = "Registration number is required.";
+        } else if (!/^[A-Za-z0-9/-]+$/.test(registrationNo)) {
+            errors.registrationNo =
+                "Registration number can contain only letters, numbers, hyphens, and slashes.";
+        }
+
+        // First Name
+        if (!firstName) {
+            errors.firstName = "First name is required.";
+        } else if (firstName.length < 3) {
+            errors.firstName =
+                "First name must contain at least 3 characters.";
+        } else if (!/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/.test(firstName)) {
+            errors.firstName =
+                "First name can contain only alphabetic characters.";
+        }
+
+        // Last Name
+        if (!lastName) {
+            errors.lastName = "Last name is required.";
+        } else if (lastName.length < 3) {
+            errors.lastName =
+                "Last name must contain at least 3 characters.";
+        } else if (!/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/.test(lastName)) {
+            errors.lastName =
+                "Last name can contain only alphabetic characters.";
+        }
+
+        // Email
+        if (!email) {
+            errors.email = "Email address is required.";
+        } else if (
+            !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)
+        ) {
+            errors.email = "Please enter a valid email address.";
+        }
+
+        // Phone Number
+        if (!phoneNumber) {
+            errors.phoneNumber = "Phone number is required.";
+        } else if (!/^\d+$/.test(phoneNumber)) {
+            errors.phoneNumber =
+                "Phone number must contain numeric characters only.";
+        } else if (phoneNumber.length !== 10) {
+            errors.phoneNumber =
+                "Phone number must contain exactly 10 digits.";
+        }
+
+        // Password - only required for new students
+        if (!editingStudent) {
+            if (!password) {
+                errors.password =
+                    "Password is required for a new student.";
+            } else if (password.length < 8) {
+                errors.password =
+                    "Password must contain at least 8 characters.";
+            } else if (!/[A-Z]/.test(password)) {
+                errors.password =
+                    "Password must contain at least one uppercase letter.";
+            } else if (!/[a-z]/.test(password)) {
+                errors.password =
+                    "Password must contain at least one lowercase letter.";
+            } else if (!/[0-9]/.test(password)) {
+                errors.password =
+                    "Password must contain at least one number.";
+            } else if (!/[^A-Za-z0-9]/.test(password)) {
+                errors.password =
+                    "Password must contain at least one special character.";
+            }
+        }
+
+        setFieldErrors(errors);
+
+        return Object.keys(errors).length === 0;
+    };
 
     const handleClose = () => {
         setFormError("");
+        setFieldErrors({});
         onClose();
     };
-
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setFormError("");
 
-        if (
-            !formData.registrationNo.trim() ||
-            !formData.firstName.trim() ||
-            !formData.lastName.trim() ||
-            !formData.email.trim() ||
-            !formData.phoneNumber.trim()
-        ) {
-            setFormError("All student fields are required.");
-            return;
-        }
+        const isValid = validateForm();
 
-        // Password is required only when creating
-        if (!editingStudent && !formData.password) {
-            setFormError("Password is required for a new student.");
+        // Do not show a duplicate generic error.
+        // The specific field error is displayed below the field.
+        if (!isValid) {
             return;
         }
 
@@ -143,190 +228,210 @@ function StudentFormModal({
             setFormError(
                 error.message || "Failed to save student."
             );
-
         } finally {
             setFormLoading(false);
         }
     };
 
-
     if (!show) return null;
-
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
-        <div className="modal-content student-form-card" onClick={(e) => e.stopPropagation()}>
-
-            <div className="form-card-header">
-
-                <div>
-                    <h3>
-                        {editingStudent
-                            ? "Edit Student"
-                            : "Add New Student"
-                        }
-                    </h3>
-
-                    <p>
-                        {editingStudent
-                            ? "Update student information."
-                            : "Create a new student account."
-                        }
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    className="close-form-button"
-                    onClick={handleClose}
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            {formError && (
-                <div className="dashboard-error">
-                    {formError}
-                </div>
-            )}
-
-
-            <form
-                className="student-form"
-                onSubmit={handleSubmit}
+            <div
+                className="modal-content student-form-card"
+                onClick={(e) => e.stopPropagation()}
             >
+                <div className="form-card-header">
+                    <div>
+                        <h3>
+                            {editingStudent
+                                ? "Edit Student"
+                                : "Add New Student"
+                            }
+                        </h3>
 
-                <div className="form-group">
-                    <label>
-                        Registration Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="registrationNo"
-                        value={formData.registrationNo}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        First Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Last Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Phone Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                {!editingStudent && (
-                    <div className="form-group">
-                        <label>
-                            Password
-                        </label>
-
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
+                        <p>
+                            {editingStudent
+                                ? "Update student information."
+                                : "Create a new student account."
+                            }
+                        </p>
                     </div>
-                )}
-
-
-                <div className="form-actions">
 
                     <button
                         type="button"
-                        className="cancel-button"
+                        className="close-form-button"
                         onClick={handleClose}
-                        disabled={formLoading}
                     >
-                        Cancel
+                        ×
                     </button>
-
-                    <button
-                        type="submit"
-                        className="save-button"
-                        disabled={formLoading}
-                    >
-                        {formLoading
-                            ? "Saving..."
-                            : editingStudent
-                                ? "Update Student"
-                                : "Create Student"
-                        }
-                    </button>
-
                 </div>
 
-            </form>
+                {formError && (
+                    <div className="dashboard-error">
+                        {formError}
+                    </div>
+                )}
 
-        </div>
+                <form
+                    className="student-form"
+                    onSubmit={handleSubmit}
+                    noValidate
+                >
+                    <div className="form-group">
+                        <label>Registration Number</label>
+
+                        <input
+                            type="text"
+                            name="registrationNo"
+                            value={formData.registrationNo}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                        />
+
+                        {fieldErrors.registrationNo && (
+                            <small className="form-error">
+                                {fieldErrors.registrationNo}
+                            </small>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label>First Name</label>
+
+                        <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                        />
+
+                        {fieldErrors.firstName && (
+                            <small className="form-error">
+                                {fieldErrors.firstName}
+                            </small>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Last Name</label>
+
+                        <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                        />
+
+                        {fieldErrors.lastName && (
+                            <small className="form-error">
+                                {fieldErrors.lastName}
+                            </small>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Email</label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                        />
+
+                        {fieldErrors.email && (
+                            <small className="form-error">
+                                {fieldErrors.email}
+                            </small>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Phone Number</label>
+
+                        <input
+                            type="text"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            inputMode="numeric"
+                            maxLength={10}
+                        />
+
+                        {fieldErrors.phoneNumber && (
+                            <small className="form-error">
+                                {fieldErrors.phoneNumber}
+                            </small>
+                        )}
+                    </div>
+
+                    {!editingStudent && (
+                        <div className="form-group">
+                            <label>Password</label>
+
+                            <input
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                disabled={formLoading}
+                            />
+
+                            {fieldErrors.password && (
+                                <small
+                                className="form-error"
+                                 style={{
+                                   display: "block",
+                                   marginTop: "5px",
+                                   color: "red",
+                                   fontSize: "13px",
+                                   fontWeight: "500"
+                                      }}
+>
+                              {fieldErrors.firstName}
+                              </small>
+                            )}
+
+                            <small className="form-help">
+                                Minimum 8 characters with uppercase,
+                                lowercase, number, and special character.
+                            </small>
+                        </div>
+                    )}
+
+                    <div className="form-actions">
+                        <button
+                            type="button"
+                            className="cancel-button"
+                            onClick={handleClose}
+                            disabled={formLoading}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="save-button"
+                            disabled={formLoading}
+                        >
+                            {formLoading
+                                ? "Saving..."
+                                : editingStudent
+                                    ? "Update Student"
+                                    : "Create Student"
+                            }
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
 
 export default StudentFormModal;
+
