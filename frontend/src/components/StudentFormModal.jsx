@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import apiRequest from "../services/api";
 
@@ -21,6 +22,7 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -71,21 +73,89 @@ function StudentFormModal({
 
         setFormError("");
 
-        if (
-            !formData.registrationNo.trim() ||
-            !formData.firstName.trim() ||
-            !formData.lastName.trim() ||
-            !formData.email.trim() ||
-            !formData.phoneNumber.trim()
-        ) {
-            setFormError("All student fields are required.");
+        if (!formData.registrationNo.trim()) {
+            setFormError("Registration Number is required.");
+            return;
+        }
+
+        if (!formData.firstName.trim()) {
+            setFormError("First Name is required.");
+            return;
+        }
+        if (formData.firstName.trim().length < 3) {
+            setFormError("First Name must contain at least 3 characters.");
+            return;
+        }
+        if (!/^[A-Za-z]+$/.test(formData.firstName.trim())) {
+            setFormError("First Name must contain valid alphabetic characters only.");
+            return;
+        }
+
+        if (!formData.lastName.trim()) {
+            setFormError("Last Name is required.");
+            return;
+        }
+        if (formData.lastName.trim().length < 3) {
+            setFormError("Last Name must contain at least 3 characters.");
+            return;
+        }
+        if (!/^[A-Za-z]+$/.test(formData.lastName.trim())) {
+            setFormError("Last Name must contain valid alphabetic characters only.");
+            return;
+        }
+
+        if (!formData.email.trim()) {
+            setFormError("Email is required.");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+            setFormError("Email must follow a valid email format.");
+            return;
+        }
+
+        if (!formData.phoneNumber.trim()) {
+            setFormError("Phone Number is required.");
+            return;
+        }
+        if (!/^\d+$/.test(formData.phoneNumber.trim())) {
+            setFormError("Phone Number must contain numeric characters only.");
+            return;
+        }
+        if (formData.phoneNumber.trim().length < 10) {
+            setFormError("Phone Number cannot contain fewer than 10 digits.");
+            return;
+        }
+        if (formData.phoneNumber.trim().length > 10) {
+            setFormError("Phone Number cannot contain more than 10 digits.");
             return;
         }
 
         // Password is required only when creating
-        if (!editingStudent && !formData.password) {
-            setFormError("Password is required for a new student.");
-            return;
+        if (!editingStudent) {
+            if (!formData.password) {
+                setFormError("Password is required for a new student.");
+                return;
+            }
+            if (formData.password.length < 8) {
+                setFormError("Password must contain at least 8 characters.");
+                return;
+            }
+            if (!/[A-Z]/.test(formData.password)) {
+                setFormError("Password must contain at least one uppercase letter.");
+                return;
+            }
+            if (!/[a-z]/.test(formData.password)) {
+                setFormError("Password must contain at least one lowercase letter.");
+                return;
+            }
+            if (!/[0-9]/.test(formData.password)) {
+                setFormError("Password must contain at least one number.");
+                return;
+            }
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+                setFormError("Password must contain at least one special character.");
+                return;
+            }
         }
 
         try {
@@ -284,14 +354,30 @@ function StudentFormModal({
                             Password
                         </label>
 
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                disabled={formLoading}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle-button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-pressed={showPassword}
+                                disabled={formLoading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={20} strokeWidth={2} />
+                                ) : (
+                                    <Eye size={20} strokeWidth={2} />
+                                )}
+                            </button>
+                        </div>
                     </div>
                 )}
 
