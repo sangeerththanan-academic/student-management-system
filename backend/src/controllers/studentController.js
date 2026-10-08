@@ -29,20 +29,30 @@ const addStudent = async (req, res) => {
     try {
 
         // Validate required fields
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber ||
-            !password
-        ) {
+        if (!registrationNo || !registrationNo.trim()) return res.status(400).json({ success: false, message: "Registration Number is required." });
+        
+        if (!firstName || !firstName.trim()) return res.status(400).json({ success: false, message: "First Name is required." });
+        if (firstName.trim().length < 3) return res.status(400).json({ success: false, message: "First Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(firstName.trim())) return res.status(400).json({ success: false, message: "First Name must contain valid alphabetic characters only." });
+        
+        if (!lastName || !lastName.trim()) return res.status(400).json({ success: false, message: "Last Name is required." });
+        if (lastName.trim().length < 3) return res.status(400).json({ success: false, message: "Last Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(lastName.trim())) return res.status(400).json({ success: false, message: "Last Name must contain valid alphabetic characters only." });
 
-            return res.status(400).json({
-                success: false,
-                message: "All student fields and password are required"
-            });
-        }
+        if (!email || !email.trim()) return res.status(400).json({ success: false, message: "Email is required." });
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ success: false, message: "Email must follow a valid email format." });
+
+        if (!phoneNumber || !phoneNumber.trim()) return res.status(400).json({ success: false, message: "Phone Number is required." });
+        if (!/^\d+$/.test(phoneNumber.trim())) return res.status(400).json({ success: false, message: "Phone Number must contain numeric characters only." });
+        if (phoneNumber.trim().length < 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain fewer than 10 digits." });
+        if (phoneNumber.trim().length > 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain more than 10 digits." });
+
+        if (!password) return res.status(400).json({ success: false, message: "Password is required for a new student." });
+        if (password.length < 8) return res.status(400).json({ success: false, message: "Password must contain at least 8 characters." });
+        if (!/[A-Z]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one uppercase letter." });
+        if (!/[a-z]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one lowercase letter." });
+        if (!/[0-9]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one number." });
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one special character." });
 
 
         // Get database connection
@@ -249,19 +259,23 @@ const editStudent = async (req, res) => {
 
 
         // Validate input
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber
-        ) {
+        if (!registrationNo || !registrationNo.trim()) return res.status(400).json({ success: false, message: "Registration Number is required." });
+        
+        if (!firstName || !firstName.trim()) return res.status(400).json({ success: false, message: "First Name is required." });
+        if (firstName.trim().length < 3) return res.status(400).json({ success: false, message: "First Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(firstName.trim())) return res.status(400).json({ success: false, message: "First Name must contain valid alphabetic characters only." });
+        
+        if (!lastName || !lastName.trim()) return res.status(400).json({ success: false, message: "Last Name is required." });
+        if (lastName.trim().length < 3) return res.status(400).json({ success: false, message: "Last Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(lastName.trim())) return res.status(400).json({ success: false, message: "Last Name must contain valid alphabetic characters only." });
 
-            return res.status(400).json({
-                success: false,
-                message: "All student fields are required"
-            });
-        }
+        if (!email || !email.trim()) return res.status(400).json({ success: false, message: "Email is required." });
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ success: false, message: "Email must follow a valid email format." });
+
+        if (!phoneNumber || !phoneNumber.trim()) return res.status(400).json({ success: false, message: "Phone Number is required." });
+        if (!/^\d+$/.test(phoneNumber.trim())) return res.status(400).json({ success: false, message: "Phone Number must contain numeric characters only." });
+        if (phoneNumber.trim().length < 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain fewer than 10 digits." });
+        if (phoneNumber.trim().length > 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain more than 10 digits." });
 
 
         // Check student exists
