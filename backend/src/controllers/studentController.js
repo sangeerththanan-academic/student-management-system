@@ -12,7 +12,179 @@ const {
 } = require("../models/studentModel");
 
 
+// =====================================================
+// VALIDATION HELPERS
+// =====================================================
+
+// Validate registration number
+const validateRegistrationNumber = (registrationNo) => {
+
+    if (!registrationNo) {
+        return "Registration number is required.";
+    }
+
+    if (registrationNo.length < 2) {
+        return "Registration number must contain at least 2 characters.";
+    }
+
+    // Allows letters, numbers, / and -
+    if (!/^[A-Za-z0-9/-]+$/.test(registrationNo)) {
+        return "Registration number contains invalid characters.";
+    }
+
+    return null;
+};
+
+
+// Validate first name / last name
+const validateName = (name, fieldName) => {
+
+    if (!name) {
+        return `${fieldName} is required.`;
+    }
+
+    if (name.length < 3) {
+        return `${fieldName} must contain at least 3 characters.`;
+    }
+
+    // Allows alphabetic names with spaces, apostrophe and hyphen
+    if (!/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/.test(name)) {
+        return `${fieldName} can contain alphabetic characters only.`;
+    }
+
+    return null;
+};
+
+
+// Validate email
+const validateEmail = (email) => {
+
+    if (!email) {
+        return "Email address is required.";
+    }
+
+    const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!emailRegex.test(email)) {
+        return "Please enter a valid email address.";
+    }
+
+    return null;
+};
+
+
+// Validate phone number
+const validatePhoneNumber = (phoneNumber) => {
+
+    if (!phoneNumber) {
+        return "Phone number is required.";
+    }
+
+    // Numeric characters only
+    if (!/^\d+$/.test(phoneNumber)) {
+        return "Phone number must contain numeric characters only.";
+    }
+
+    // Exactly 10 digits
+    if (phoneNumber.length !== 10) {
+        return "Phone number must contain exactly 10 digits.";
+    }
+
+    return null;
+};
+
+
+// Validate password
+const validatePassword = (password) => {
+
+    if (!password) {
+        return "Password is required for a new student.";
+    }
+
+    if (password.length < 8) {
+        return "Password must contain at least 8 characters.";
+    }
+
+    if (!/[A-Z]/.test(password)) {
+        return "Password must contain at least one uppercase letter.";
+    }
+
+    if (!/[a-z]/.test(password)) {
+        return "Password must contain at least one lowercase letter.";
+    }
+
+    if (!/[0-9]/.test(password)) {
+        return "Password must contain at least one number.";
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        return "Password must contain at least one special character.";
+    }
+
+    return null;
+};
+
+
+// Validate complete student data
+const validateStudentFields = ({
+    registrationNo,
+    firstName,
+    lastName,
+    email,
+    phoneNumber
+}) => {
+
+    const errors = {};
+
+    const registrationError =
+        validateRegistrationNumber(registrationNo);
+
+    if (registrationError) {
+        errors.registrationNo = registrationError;
+    }
+
+
+    const firstNameError =
+        validateName(firstName, "First name");
+
+    if (firstNameError) {
+        errors.firstName = firstNameError;
+    }
+
+
+    const lastNameError =
+        validateName(lastName, "Last name");
+
+    if (lastNameError) {
+        errors.lastName = lastNameError;
+    }
+
+
+    const emailError =
+        validateEmail(email);
+
+    if (emailError) {
+        errors.email = emailError;
+    }
+
+
+    const phoneError =
+        validatePhoneNumber(phoneNumber);
+
+    if (phoneError) {
+        errors.phoneNumber = phoneError;
+    }
+
+
+    return errors;
+};
+
+
+// =====================================================
 // CREATE STUDENT
+// =====================================================
+
 const addStudent = async (req, res) => {
 
     const {
@@ -28,24 +200,63 @@ const addStudent = async (req, res) => {
 
     try {
 
-        // Validate required fields
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber ||
-            !password
-        ) {
+        // Trim input values
+        const cleanRegistrationNo =
+            registrationNo ? registrationNo.trim() : "";
+
+        const cleanFirstName =
+            firstName ? firstName.trim() : "";
+
+        const cleanLastName =
+            lastName ? lastName.trim() : "";
+
+        const cleanEmail =
+            email ? email.trim() : "";
+
+        const cleanPhoneNumber =
+            phoneNumber ? phoneNumber.trim() : "";
+
+
+        // =================================================
+        // SERVER-SIDE STUDENT FIELD VALIDATION
+        // =================================================
+
+        const validationErrors = validateStudentFields({
+            registrationNo: cleanRegistrationNo,
+            firstName: cleanFirstName,
+            lastName: cleanLastName,
+            email: cleanEmail,
+            phoneNumber: cleanPhoneNumber
+        });
+
+
+        // =================================================
+        // PASSWORD VALIDATION
+        // =================================================
+
+        const passwordError =
+            validatePassword(password);
+
+        if (passwordError) {
+            validationErrors.password = passwordError;
+        }
+
+
+        // Return validation errors
+        if (Object.keys(validationErrors).length > 0) {
 
             return res.status(400).json({
                 success: false,
-                message: "All student fields and password are required"
+                message: "Please correct the validation errors.",
+                errors: validationErrors
             });
         }
 
 
-        // Get database connection
+        // =================================================
+        // GET DATABASE CONNECTION
+        // =================================================
+
         connection = await pool.getConnection();
 
 
@@ -53,14 +264,18 @@ const addStudent = async (req, res) => {
         await connection.beginTransaction();
 
 
-        // Check duplicate username
+        // =================================================
+        // CHECK DUPLICATE REGISTRATION NUMBER
+        // =================================================
+
         const [existingUser] = await connection.execute(
             `SELECT user_id
              FROM users
              WHERE username = ?
              LIMIT 1`,
-            [registrationNo]
+            [cleanRegistrationNo]
         );
+
 
         if (existingUser.length > 0) {
 
@@ -73,14 +288,18 @@ const addStudent = async (req, res) => {
         }
 
 
-        // Check duplicate email
+        // =================================================
+        // CHECK DUPLICATE EMAIL
+        // =================================================
+
         const [existingStudent] = await connection.execute(
             `SELECT student_id
              FROM students
              WHERE email = ?
              LIMIT 1`,
-            [email]
+            [cleanEmail]
         );
+
 
         if (existingStudent.length > 0) {
 
@@ -93,11 +312,18 @@ const addStudent = async (req, res) => {
         }
 
 
-        // Hash student password
-        const passwordHash = await bcrypt.hash(password, 10);
+        // =================================================
+        // HASH STUDENT PASSWORD
+        // =================================================
+
+        const passwordHash =
+            await bcrypt.hash(password, 10);
 
 
-        // Create user account
+        // =================================================
+        // CREATE USER ACCOUNT
+        // =================================================
+
         const [userResult] = await connection.execute(
             `INSERT INTO users
             (
@@ -107,42 +333,55 @@ const addStudent = async (req, res) => {
             )
             VALUES (?, ?, 'STUDENT')`,
             [
-                registrationNo,
+                cleanRegistrationNo,
                 passwordHash
             ]
         );
 
-        const userId = userResult.insertId;
+
+        const userId =
+            userResult.insertId;
 
 
-        // Create student profile
+        // =================================================
+        // CREATE STUDENT PROFILE
+        // =================================================
+
         const studentId = await createStudent(
             connection,
             userId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
+            cleanRegistrationNo,
+            cleanFirstName,
+            cleanLastName,
+            cleanEmail,
+            cleanPhoneNumber
         );
 
 
-        // Commit transaction
+        // =================================================
+        // COMMIT TRANSACTION
+        // =================================================
+
         await connection.commit();
 
 
-        // Success response
+        // =================================================
+        // SUCCESS RESPONSE
+        // =================================================
+
         return res.status(201).json({
             success: true,
-            message: "Student account and profile created successfully",
+            message:
+                "Student account and profile created successfully",
+
             student: {
                 studentId,
                 userId,
-                registrationNo,
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
+                registrationNo: cleanRegistrationNo,
+                firstName: cleanFirstName,
+                lastName: cleanLastName,
+                email: cleanEmail,
+                phoneNumber: cleanPhoneNumber,
                 role: "STUDENT"
             }
         });
@@ -171,7 +410,10 @@ const addStudent = async (req, res) => {
 };
 
 
+// =====================================================
 // GET ALL STUDENTS
+// =====================================================
+
 const getStudents = async (req, res) => {
 
     try {
@@ -196,15 +438,19 @@ const getStudents = async (req, res) => {
 };
 
 
+// =====================================================
 // GET STUDENT BY ID
-// GET /api/students/:id
+// =====================================================
+
 const getStudent = async (req, res) => {
 
     try {
 
         const studentId = req.params.id;
 
-        const student = await getStudentById(studentId);
+        const student =
+            await getStudentById(studentId);
+
 
         if (!student) {
 
@@ -213,6 +459,7 @@ const getStudent = async (req, res) => {
                 message: "Student not found"
             });
         }
+
 
         return res.status(200).json({
             success: true,
@@ -231,13 +478,16 @@ const getStudent = async (req, res) => {
 };
 
 
+// =====================================================
 // UPDATE STUDENT
-// PUT /api/students/:id
+// =====================================================
+
 const editStudent = async (req, res) => {
 
     try {
 
-        const studentId = req.params.id;
+        const studentId =
+            req.params.id;
 
         const {
             registrationNo,
@@ -248,24 +498,58 @@ const editStudent = async (req, res) => {
         } = req.body;
 
 
-        // Validate input
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber
-        ) {
+        // =================================================
+        // CLEAN INPUT
+        // =================================================
+
+        const cleanRegistrationNo =
+            registrationNo ? registrationNo.trim() : "";
+
+        const cleanFirstName =
+            firstName ? firstName.trim() : "";
+
+        const cleanLastName =
+            lastName ? lastName.trim() : "";
+
+        const cleanEmail =
+            email ? email.trim() : "";
+
+        const cleanPhoneNumber =
+            phoneNumber ? phoneNumber.trim() : "";
+
+
+        // =================================================
+        // SERVER-SIDE VALIDATION
+        // =================================================
+
+        const validationErrors =
+            validateStudentFields({
+                registrationNo: cleanRegistrationNo,
+                firstName: cleanFirstName,
+                lastName: cleanLastName,
+                email: cleanEmail,
+                phoneNumber: cleanPhoneNumber
+            });
+
+
+        if (Object.keys(validationErrors).length > 0) {
 
             return res.status(400).json({
                 success: false,
-                message: "All student fields are required"
+                message:
+                    "Please correct the validation errors.",
+                errors: validationErrors
             });
         }
 
 
-        // Check student exists
-        const existingStudent = await getStudentById(studentId);
+        // =================================================
+        // CHECK STUDENT EXISTS
+        // =================================================
+
+        const existingStudent =
+            await getStudentById(studentId);
+
 
         if (!existingStudent) {
 
@@ -276,21 +560,82 @@ const editStudent = async (req, res) => {
         }
 
 
-        // Update student
+        // =================================================
+        // CHECK DUPLICATE REGISTRATION NUMBER
+        // =================================================
+
+        const [existingUser] =
+            await pool.execute(
+                `SELECT user_id
+                 FROM users
+                 WHERE username = ?
+                 AND user_id != ?
+                 LIMIT 1`,
+                [
+                    cleanRegistrationNo,
+                    existingStudent.user_id
+                ]
+            );
+
+
+        if (existingUser.length > 0) {
+
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Registration number is already registered"
+            });
+        }
+
+
+        // =================================================
+        // CHECK DUPLICATE EMAIL
+        // =================================================
+
+        const [duplicateEmail] =
+            await pool.execute(
+                `SELECT student_id
+                 FROM students
+                 WHERE email = ?
+                 AND student_id != ?
+                 LIMIT 1`,
+                [
+                    cleanEmail,
+                    studentId
+                ]
+            );
+
+
+        if (duplicateEmail.length > 0) {
+
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Email address is already registered"
+            });
+        }
+
+
+        // =================================================
+        // UPDATE STUDENT
+        // =================================================
+
         const result = await updateStudent(
             studentId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
+            cleanRegistrationNo,
+            cleanFirstName,
+            cleanLastName,
+            cleanEmail,
+            cleanPhoneNumber
         );
 
 
         return res.status(200).json({
             success: true,
-            message: "Student updated successfully",
-            affectedRows: result.affectedRows
+            message:
+                "Student updated successfully",
+            affectedRows:
+                result.affectedRows
         });
 
     } catch (error) {
@@ -305,16 +650,22 @@ const editStudent = async (req, res) => {
 };
 
 
+// =====================================================
 // DELETE STUDENT
-// DELETE /api/students/:id
+// =====================================================
+
 const removeStudent = async (req, res) => {
 
     try {
 
-        const studentId = req.params.id;
+        const studentId =
+            req.params.id;
+
 
         // Check student exists
-        const student = await getStudentById(studentId);
+        const student =
+            await getStudentById(studentId);
+
 
         if (!student) {
 
@@ -326,12 +677,16 @@ const removeStudent = async (req, res) => {
 
 
         // Delete student
-        const result = await deleteStudent(studentId);
+        const result =
+            await deleteStudent(studentId);
+
 
         return res.status(200).json({
             success: true,
-            message: "Student deleted successfully",
-            affectedRows: result.affectedRows
+            message:
+                "Student deleted successfully",
+            affectedRows:
+                result.affectedRows
         });
 
     } catch (error) {
@@ -346,17 +701,29 @@ const removeStudent = async (req, res) => {
 };
 
 
+// =====================================================
 // GET CURRENT STUDENT'S OWN PROFILE
+// =====================================================
+
 const getMyProfile = async (req, res) => {
+
     try {
-        const student = await getStudentByUserId(req.user.userId);
+
+        const student =
+            await getStudentByUserId(
+                req.user.userId
+            );
+
 
         if (!student) {
+
             return res.status(404).json({
                 success: false,
-                message: "Student profile not found"
+                message:
+                    "Student profile not found"
             });
         }
+
 
         return res.status(200).json({
             success: true,
@@ -364,15 +731,24 @@ const getMyProfile = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Get my profile error:", error);
+
+        console.error(
+            "Get my profile error:",
+            error
+        );
 
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve profile"
+            message:
+                "Failed to retrieve profile"
         });
     }
 };
 
+
+// =====================================================
+// EXPORT CONTROLLERS
+// =====================================================
 
 module.exports = {
     addStudent,
