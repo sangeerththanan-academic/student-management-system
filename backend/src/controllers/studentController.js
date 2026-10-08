@@ -334,18 +334,13 @@ const editStudent = async (req, res) => {
         } = req.body;
 
 
-        // Validate input
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber
-        ) {
-
+        // Validate input data (CR-004)
+        const validation = validateStudentData(req.body, true);
+        if (!validation.isValid) {
             return res.status(400).json({
                 success: false,
-                message: "All student fields are required"
+                message: validation.firstError,
+                errors: validation.errors
             });
         }
 
@@ -365,11 +360,11 @@ const editStudent = async (req, res) => {
         // Update student
         const result = await updateStudent(
             studentId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
+            registrationNo.trim(),
+            firstName.trim(),
+            lastName.trim(),
+            email.trim(),
+            phoneNumber.trim()
         );
 
 
@@ -380,6 +375,14 @@ const editStudent = async (req, res) => {
         });
 
     } catch (error) {
+
+        if (error.code === "ER_DUP_ENTRY") {
+            const isEmail = error.message && error.message.toLowerCase().includes("email");
+            return res.status(409).json({
+                success: false,
+                message: isEmail ? "Email address is already registered" : "Registration number is already registered"
+            });
+        }
 
         console.error("Update student error:", error);
 
