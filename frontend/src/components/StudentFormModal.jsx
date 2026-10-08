@@ -58,6 +58,71 @@ function StudentFormModal({
     }, [editingStudent, show]);
 
 
+    // ── Validation helpers (CR-004) ─────────────────────────────
+    const validateField = (name, value) => {
+        const v = (value || "").trim();
+
+        switch (name) {
+            case "registrationNo":
+                if (!v) return "Registration number is required.";
+                if (!/^[A-Za-z0-9_-]+$/.test(v))
+                    return "Only letters, numbers, hyphens, or underscores allowed.";
+                return null;
+
+            case "firstName":
+                if (!v) return "First name is required.";
+                if (v.length < 3) return "First name must be at least 3 characters.";
+                if (!/^[A-Za-z\s]+$/.test(v)) return "First name must contain letters only.";
+                return null;
+
+            case "lastName":
+                if (!v) return "Last name is required.";
+                if (v.length < 3) return "Last name must be at least 3 characters.";
+                if (!/^[A-Za-z\s]+$/.test(v)) return "Last name must contain letters only.";
+                return null;
+
+            case "email":
+                if (!v) return "Email address is required.";
+                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v))
+                    return "Enter a valid email address (e.g. user@example.com).";
+                return null;
+
+            case "phoneNumber":
+                if (!v) return "Phone number is required.";
+                if (!/^\d+$/.test(v)) return "Phone number must contain digits only.";
+                if (v.length !== 10) return "Phone number must be exactly 10 digits.";
+                return null;
+
+            case "password":
+                if (editingStudent) return null;
+                if (!value) return "Password is required.";
+                if (value.length < 8) return "Password must be at least 8 characters.";
+                if (!/[A-Z]/.test(value)) return "Password must include an uppercase letter.";
+                if (!/[a-z]/.test(value)) return "Password must include a lowercase letter.";
+                if (!/[0-9]/.test(value)) return "Password must include a number.";
+                if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value))
+                    return "Password must include a special character.";
+                return null;
+
+            default:
+                return null;
+        }
+    };
+
+    const validateAll = () => {
+        const fields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
+        if (!editingStudent) fields.push("password");
+
+        const errors = {};
+        fields.forEach((name) => {
+            const err = validateField(name, formData[name]);
+            if (err) errors[name] = err;
+        });
+        return errors;
+    };
+    // ────────────────────────────────────────────────────────────
+
+
     // Handle input changes
     const handleInputChange = (event) => {
 
@@ -387,6 +452,41 @@ function StudentFormModal({
 
 
     if (!show) return null;
+
+    // Helper: render one form field with inline error
+    const renderField = (label, name, type = "text", hint = "") => (
+        <div
+            key={name}
+            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
+        >
+            <label htmlFor={`sf-${name}`}>
+                {label}
+            </label>
+
+            <input
+                id={`sf-${name}`}
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                disabled={formLoading}
+                autoComplete={type === "password" ? "new-password" : "off"}
+                aria-describedby={`sf-${name}-hint`}
+                aria-invalid={!!(touched[name] && fieldErrors[name])}
+            />
+
+            {touched[name] && fieldErrors[name] ? (
+                <span id={`sf-${name}-hint`} className="field-error-msg">
+                    {fieldErrors[name]}
+                </span>
+            ) : hint ? (
+                <span id={`sf-${name}-hint`} className="field-hint">
+                    {hint}
+                </span>
+            ) : null}
+        </div>
+    );
 
 
     return (
