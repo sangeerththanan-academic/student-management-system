@@ -323,3 +323,64 @@
         font-size: 25px;
     }
 }
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+    display: none;
+}
+
+.password-input-wrapper input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+}
+
+.password-toggle-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #666;
+}
+
+.password-toggle-button:hover {
+    color: #222;
+}
+
+.password-toggle-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.password-toggle-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
