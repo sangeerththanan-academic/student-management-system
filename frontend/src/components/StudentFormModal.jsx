@@ -21,6 +21,7 @@ function StudentFormModal({
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -48,7 +49,10 @@ function StudentFormModal({
 
         setFormError("");
         setFieldErrors({});
-    }, [editingStudent, show]);
+        setShowPassword(false);
+    }, 
+    [editingStudent, show]);
+    
 
 
     // Handle input changes
@@ -92,6 +96,7 @@ function StudentFormModal({
         const email = formData.email.trim();
         const phoneNumber = formData.phoneNumber.trim();
         const password = formData.password;
+        
 
 
         // Registration number
@@ -151,32 +156,31 @@ function StudentFormModal({
 
 
         // Password - only required when adding a new student
-        if (!editingStudent) {
-
-            if (!password) {
-                errors.password =
-                    "Password is required for a new student.";
-            } else if (password.length < 8) {
-                errors.password =
-                    "Password must contain at least 8 characters.";
-            } else if (!/[A-Z]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one uppercase letter.";
-            } else if (!/[a-z]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one lowercase letter.";
-            } else if (!/[0-9]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one number.";
-            } else if (!/[^A-Za-z0-9]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one special character.";
-            }
-        }
-
-        return errors;
+        {/* Password */}
+// Password - only required when adding a new student
+if (!editingStudent) {
+    if (!password) {
+        errors.password =
+            "Password is required for a new student.";
+    } else if (password.length < 8) {
+        errors.password =
+            "Password must contain at least 8 characters.";
+    } else if (!/[A-Z]/.test(password)) {
+        errors.password =
+            "Password must contain at least one uppercase letter.";
+    } else if (!/[a-z]/.test(password)) {
+        errors.password =
+            "Password must contain at least one lowercase letter.";
+    } else if (!/[0-9]/.test(password)) {
+        errors.password =
+            "Password must contain at least one number.";
+    } else if (!/[^A-Za-z0-9]/.test(password)) {
+        errors.password =
+            "Password must contain at least one special character.";
+    }
+}
+return errors;
     };
-
 
     const handleClose = () => {
         setFormError("");
@@ -525,66 +529,114 @@ function StudentFormModal({
                     </div>
 
 
-                    {/* Password */}
-                    {!editingStudent && (
-                        <div className="form-group">
+                   
+{/* Password */}
 
-                            <label>
-                                Password
-                            </label>
+{!editingStudent && (
+    <div className="form-group">
+        <label htmlFor="student-password">
+            Password
+        </label>
 
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                disabled={formLoading}
-                                required
-                            />
+        <div className="password-input-wrapper">
+            <input
+                id="student-password"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                disabled={formLoading}
+                required
+                autoComplete="new-password"
+                aria-describedby="student-password-hint"
+            />
 
-                            {fieldErrors.password && (
-                                <small className="form-error">
-                                    {fieldErrors.password}
-                                </small>
-                            )}
-
-                        </div>
-                    )}
-
-
-                    <div className="form-actions">
-
-                        <button
-                            type="button"
-                            className="cancel-button"
-                            onClick={handleClose}
-                            disabled={formLoading}
-                        >
-                            Cancel
-                        </button>
-
-
-                        <button
-                            type="submit"
-                            className="save-button"
-                            disabled={formLoading}
-                        >
-                            {formLoading
-                                ? "Saving..."
-                                : editingStudent
-                                    ? "Update Student"
-                                    : "Create Student"
-                            }
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
+            <button
+                type="button"
+                className="password-toggle-button"
+                onClick={() =>
+                    setShowPassword(
+                        (previous) => !previous
+                    )
+                }
+                disabled={formLoading}
+                aria-label={
+                    showPassword
+                        ? "Hide password"
+                        : "Show password"
+                }
+                aria-pressed={showPassword}
+            >
+                {showPassword ? (
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M3 3l18 18" />
+                        <path d="M10.58 10.58a2 2 0 0 0 2.83 2.83" />
+                        <path d="M9.88 5.09A9.77 9.77 0 0 1 12 4.75c5 0 8.5 5.25 8.5 5.25a16.6 16.6 0 0 1-3.09 3.46" />
+                        <path d="M6.61 6.61C4.13 8.24 3.5 10 3.5 10S7 15.25 12 15.25c1.06 0 2.04-.18 2.93-.49" />
+                    </svg>
+                ) : (
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                )}
+            </button>
         </div>
-    );
+
+        {fieldErrors.password && (
+    <small
+        id="student-password-hint"
+        className="form-error"
+    >
+        {fieldErrors.password}
+    </small>
+)}
+</div>
+)}
+
+<div className="form-actions">
+    <button
+        type="button"
+        className="cancel-button"
+        onClick={handleClose}
+        disabled={formLoading}
+    >
+        Cancel
+    </button>
+
+    <button
+        type="submit"
+        className="submit-button"
+        disabled={formLoading}
+    >
+        {formLoading
+            ? "Saving..."
+            : editingStudent
+            ? "Update Student"
+            : "Create Student"}
+    </button>
+</div>
+
+</form>
+</div>
+</div>
+);
 }
 
 export default StudentFormModal;
