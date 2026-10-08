@@ -1,12 +1,11 @@
+
 /* =========================================================
    Login Page
    ========================================================= */
 
 .login-page {
     min-height: 100vh;
-
     background: #f8fafc;
-
     display: flex;
     align-items: stretch;
 }
@@ -14,10 +13,10 @@
 .login-container {
     width: 100%;
     min-height: 100vh;
-
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
+
 
 /* =========================================================
    Login Information Side
@@ -35,14 +34,12 @@
         );
 
     color: #ffffff;
-
     padding: 40px;
 }
 
 .back-button {
     border: none;
     background: transparent;
-
     color: #ffffff;
 
     font-size: 14px;
@@ -51,6 +48,8 @@
     padding: 0;
 
     opacity: 0.9;
+
+    cursor: pointer;
 
     transition: opacity 0.2s ease;
 }
@@ -100,9 +99,9 @@
     color: #dbeafe;
 
     font-size: 17px;
-
     line-height: 1.7;
 }
+
 
 /* =========================================================
    Form Side
@@ -110,7 +109,6 @@
 
 .login-form-section {
     display: flex;
-
     align-items: center;
     justify-content: center;
 
@@ -131,7 +129,14 @@
 
     box-shadow:
         0 15px 40px rgba(15, 23, 42, 0.06);
+
+    box-sizing: border-box;
 }
+
+
+/* =========================================================
+   Login Heading
+   ========================================================= */
 
 .login-heading {
     margin-bottom: 30px;
@@ -156,7 +161,10 @@
     color: #64748b;
 
     font-size: 15px;
+
+    margin: 0;
 }
+
 
 /* =========================================================
    Error
@@ -177,6 +185,7 @@
 
     margin-bottom: 20px;
 }
+
 
 /* =========================================================
    Form
@@ -203,8 +212,15 @@
     font-weight: 600;
 }
 
+
+/* =========================================================
+   Normal Input
+   ========================================================= */
+
 .form-group input {
     width: 100%;
+
+    box-sizing: border-box;
 
     padding: 13px 14px;
 
@@ -217,6 +233,8 @@
     color: #0f172a;
 
     background: #ffffff;
+
+    font-size: 14px;
 
     transition:
         border-color 0.2s ease,
@@ -234,6 +252,105 @@
         0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
+
+/* =========================================================
+   Password Wrapper
+   ========================================================= */
+
+.password-wrapper {
+    position: relative;
+
+    width: 100%;
+}
+
+
+/* Password input only */
+
+.password-wrapper input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 13px 50px 13px 14px;
+}
+
+
+/* =========================================================
+   Password Toggle
+   ========================================================= */
+
+.password-toggle {
+    position: absolute;
+
+    top: 50%;
+    right: 8px;
+
+    transform: translateY(-50%);
+
+    width: 34px;
+    height: 34px;
+
+    padding: 0;
+    margin: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: #64748b;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    border-radius: 6px;
+
+    z-index: 10;
+
+    box-sizing: border-box;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.password-toggle:hover:not(:disabled) {
+    color: #2563eb;
+
+    background-color: #eff6ff;
+}
+
+.password-toggle:focus {
+    outline: none;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+
+    outline-offset: 2px;
+}
+
+.password-toggle:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.5;
+}
+
+.password-toggle svg {
+    width: 18px;
+    height: 18px;
+
+    display: block;
+
+    pointer-events: none;
+}
+
+
 /* =========================================================
    Submit Button
    ========================================================= */
@@ -241,9 +358,12 @@
 .login-submit-button {
     width: 100%;
 
+    box-sizing: border-box;
+
     border: none;
 
     background: #2563eb;
+
     color: #ffffff;
 
     padding: 14px;
@@ -251,12 +371,15 @@
     border-radius: 8px;
 
     font-size: 15px;
+
     font-weight: 700;
 
     margin-top: 5px;
 
+    cursor: pointer;
+
     transition:
-        background 0.2s ease,
+        background-color 0.2s ease,
         transform 0.2s ease;
 }
 
@@ -271,6 +394,7 @@
 
     opacity: 0.65;
 }
+
 
 /* =========================================================
    Responsive
@@ -305,6 +429,11 @@
     }
 }
 
+
+/* =========================================================
+   Small Mobile
+   ========================================================= */
+
 @media (max-width: 500px) {
 
     .login-info {
@@ -323,3 +452,4 @@
         font-size: 25px;
     }
 }
+

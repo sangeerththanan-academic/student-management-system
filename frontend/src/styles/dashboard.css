@@ -713,3 +713,73 @@
         max-height: 95vh;
     }
 }
+/* =========================================================
+   Student Password Visibility Toggle
+   ========================================================= */
+
+.student-password-wrapper {
+    position: relative;
+
+    width: 100%;
+}
+
+.student-password-wrapper input {
+    width: 100%;
+
+    padding-right: 45px;
+}
+
+.student-password-toggle {
+    position: absolute;
+
+    top: 50%;
+    right: 8px;
+
+    transform: translateY(-50%);
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    background: transparent;
+
+    color: #64748b;
+
+    padding: 0;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.student-password-toggle:hover:not(:disabled) {
+    color: #2563eb;
+
+    background: #eff6ff;
+}
+
+.student-password-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+
+    outline-offset: 2px;
+}
+
+.student-password-toggle:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.5;
+}
+
+.student-password-toggle svg {
+    width: 17px;
+    height: 17px;
+}
