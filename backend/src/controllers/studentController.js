@@ -12,6 +12,90 @@ const {
 } = require("../models/studentModel");
 
 
+// CR-004: Student input validation
+const validateStudentInput = ({
+    registrationNo,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    password,
+    isCreating
+}) => {
+    const errors = {};
+
+    // Registration number
+    if (!registrationNo || !registrationNo.trim()) {
+        errors.registrationNo = "Registration number is required.";
+    } else if (!/^REG\d{3}$/.test(registrationNo.trim())) {
+        errors.registrationNo =
+            "Registration number must be in the format REG001.";
+    }
+
+    // First name
+    if (!firstName || !firstName.trim()) {
+        errors.firstName = "First name is required.";
+    } else if (firstName.trim().length < 3) {
+        errors.firstName =
+            "First name must contain at least 3 characters.";
+    } else if (!/^[A-Za-z]+$/.test(firstName.trim())) {
+        errors.firstName =
+            "First name can contain only alphabetic characters.";
+    }
+
+    // Last name
+    if (!lastName || !lastName.trim()) {
+        errors.lastName = "Last name is required.";
+    } else if (lastName.trim().length < 3) {
+        errors.lastName =
+            "Last name must contain at least 3 characters.";
+    } else if (!/^[A-Za-z]+$/.test(lastName.trim())) {
+        errors.lastName =
+            "Last name can contain only alphabetic characters.";
+    }
+
+    // Email
+    if (!email || !email.trim()) {
+        errors.email = "Email address is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        errors.email = "Please enter a valid email address.";
+    }
+
+    // Phone number
+    if (!phoneNumber || !phoneNumber.trim()) {
+        errors.phoneNumber = "Phone number is required.";
+    } else if (!/^\d{10}$/.test(phoneNumber.trim())) {
+        errors.phoneNumber =
+            "Phone number must contain exactly 10 digits.";
+    }
+
+    // Password - only for Add Student
+    if (isCreating) {
+        if (!password) {
+            errors.password =
+                "Password is required for a new student.";
+        } else if (password.length < 8) {
+            errors.password =
+                "Password must contain at least 8 characters.";
+        } else if (!/[A-Z]/.test(password)) {
+            errors.password =
+                "Password must contain at least one uppercase letter.";
+        } else if (!/[a-z]/.test(password)) {
+            errors.password =
+                "Password must contain at least one lowercase letter.";
+        } else if (!/[0-9]/.test(password)) {
+            errors.password =
+                "Password must contain at least one number.";
+        } else if (!/[^A-Za-z0-9]/.test(password)) {
+            errors.password =
+                "Password must contain at least one special character.";
+        }
+    }
+
+    return errors;
+};
+
+
 // CREATE STUDENT
 const addStudent = async (req, res) => {
 
@@ -28,22 +112,24 @@ const addStudent = async (req, res) => {
 
     try {
 
-        // Validate required fields
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber ||
-            !password
-        ) {
+        // CR-004: Validate student input
+const validationErrors = validateStudentInput({
+    registrationNo,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    password,
+    isCreating: true
+});
 
-            return res.status(400).json({
-                success: false,
-                message: "All student fields and password are required"
-            });
-        }
-
+if (Object.keys(validationErrors).length > 0) {
+    return res.status(400).json({
+        success: false,
+        message: "Please correct the validation errors.",
+        errors: validationErrors
+    });
+}
 
         // Get database connection
         connection = await pool.getConnection();
