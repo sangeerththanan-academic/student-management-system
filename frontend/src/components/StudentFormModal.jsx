@@ -22,6 +22,7 @@ function StudentFormModal({
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -49,6 +50,7 @@ function StudentFormModal({
 
         setFormError("");
         setFieldErrors({});
+        setShowPassword(false);
     }, [editingStudent, show]);
 
 
@@ -66,13 +68,15 @@ function StudentFormModal({
             case "firstName":
                 if (!v) return "First name is required.";
                 if (v.length < 3) return "First name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v)) return "First name must contain letters only.";
+                if (!/^[A-Za-z\s]+$/.test(v))
+                    return "First name must contain letters only.";
                 return null;
 
             case "lastName":
                 if (!v) return "Last name is required.";
                 if (v.length < 3) return "Last name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v)) return "Last name must contain letters only.";
+                if (!/^[A-Za-z\s]+$/.test(v))
+                    return "Last name must contain letters only.";
                 return null;
 
             case "email":
@@ -83,17 +87,23 @@ function StudentFormModal({
 
             case "phoneNumber":
                 if (!v) return "Phone number is required.";
-                if (!/^\d+$/.test(v)) return "Phone number must contain digits only.";
-                if (v.length !== 10) return "Phone number must be exactly 10 digits.";
+                if (!/^\d+$/.test(v))
+                    return "Phone number must contain digits only.";
+                if (v.length !== 10)
+                    return "Phone number must be exactly 10 digits.";
                 return null;
 
             case "password":
                 if (editingStudent) return null;
                 if (!value) return "Password is required.";
-                if (value.length < 8) return "Password must be at least 8 characters.";
-                if (!/[A-Z]/.test(value)) return "Password must include an uppercase letter.";
-                if (!/[a-z]/.test(value)) return "Password must include a lowercase letter.";
-                if (!/[0-9]/.test(value)) return "Password must include a number.";
+                if (value.length < 8)
+                    return "Password must be at least 8 characters.";
+                if (!/[A-Z]/.test(value))
+                    return "Password must include an uppercase letter.";
+                if (!/[a-z]/.test(value))
+                    return "Password must include a lowercase letter.";
+                if (!/[0-9]/.test(value))
+                    return "Password must include a number.";
                 if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value))
                     return "Password must include a special character.";
                 return null;
@@ -104,17 +114,28 @@ function StudentFormModal({
     };
 
     const validateAll = () => {
-        const fields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
+        const fields = [
+            "registrationNo",
+            "firstName",
+            "lastName",
+            "email",
+            "phoneNumber"
+        ];
+
         if (!editingStudent) fields.push("password");
 
         const errors = {};
+
         fields.forEach((name) => {
             const err = validateField(name, formData[name]);
-            if (err) errors[name] = err;
+
+            if (err) {
+                errors[name] = err;
+            }
         });
+
         return errors;
     };
-    // ────────────────────────────────────────────────────────────
 
 
     const handleInputChange = (event) => {
@@ -125,7 +146,6 @@ function StudentFormModal({
             [name]: value
         }));
 
-        // Remove field error when user starts correcting the field
         setFieldErrors((previous) => ({
             ...previous,
             [name]: ""
@@ -145,9 +165,7 @@ function StudentFormModal({
         const phoneNumber = formData.phoneNumber.trim();
         const password = formData.password;
 
-        // -----------------------------------------
         // Registration Number Validation
-        // -----------------------------------------
         if (!registrationNo) {
             errors.registrationNo = "Registration number is required.";
         } else if (registrationNo.length < 2) {
@@ -158,9 +176,7 @@ function StudentFormModal({
                 "Registration number contains invalid characters.";
         }
 
-        // -----------------------------------------
         // First Name Validation
-        // -----------------------------------------
         if (!firstName) {
             errors.firstName = "First name is required.";
         } else if (firstName.length < 3) {
@@ -171,9 +187,7 @@ function StudentFormModal({
                 "First name can contain alphabetic characters only.";
         }
 
-        // -----------------------------------------
         // Last Name Validation
-        // -----------------------------------------
         if (!lastName) {
             errors.lastName = "Last name is required.";
         } else if (lastName.length < 3) {
@@ -184,9 +198,7 @@ function StudentFormModal({
                 "Last name can contain alphabetic characters only.";
         }
 
-        // -----------------------------------------
         // Email Validation
-        // -----------------------------------------
         const emailRegex =
             /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -197,9 +209,7 @@ function StudentFormModal({
                 "Please enter a valid email address.";
         }
 
-        // -----------------------------------------
         // Phone Number Validation
-        // -----------------------------------------
         if (!phoneNumber) {
             errors.phoneNumber =
                 "Phone number is required.";
@@ -214,10 +224,7 @@ function StudentFormModal({
                 "Phone number must contain exactly 10 digits.";
         }
 
-        // -----------------------------------------
         // Password Validation
-        // Only required when creating a new student
-        // -----------------------------------------
         if (!editingStudent) {
 
             if (!password) {
@@ -250,6 +257,7 @@ function StudentFormModal({
     const handleClose = () => {
         setFormError("");
         setFieldErrors({});
+        setShowPassword(false);
         onClose();
     };
 
@@ -259,7 +267,6 @@ function StudentFormModal({
 
         setFormError("");
 
-        // Validate all fields before sending API request
         const isValid = validateForm();
 
         if (!isValid) {
@@ -356,41 +363,6 @@ function StudentFormModal({
 
 
     if (!show) return null;
-
-    // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
-
-            <input
-                id={`sf-${name}`}
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
-                aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
-            />
-
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
 
 
     return (
@@ -582,21 +554,57 @@ function StudentFormModal({
                     {!editingStudent && (
                         <div className="form-group">
 
-                            <label>
+                            <label htmlFor="student-password">
                                 Password
                             </label>
 
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                disabled={formLoading}
-                                required
-                            />
+                            <div className="password-input-wrapper">
+
+                                <input
+                                    id="student-password"
+                                    type={
+                                        showPassword
+                                            ? "text"
+                                            : "password"
+                                    }
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    disabled={formLoading}
+                                    required
+                                    autoComplete="new-password"
+                                    aria-describedby="student-password-hint"
+                                    aria-invalid={
+                                        !!fieldErrors.password
+                                    }
+                                />
+
+                                <button
+                                    type="button"
+                                    className="password-toggle-button"
+                                    onClick={() =>
+                                        setShowPassword(
+                                            (previous) => !previous
+                                        )
+                                    }
+                                    aria-label={
+                                        showPassword
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                    aria-pressed={showPassword}
+                                    disabled={formLoading}
+                                >
+                                    {showPassword ? "🙈" : "👁️"}
+                                </button>
+
+                            </div>
 
                             {fieldErrors.password && (
-                                <small className="validation-error">
+                                <small
+                                    id="student-password-hint"
+                                    className="validation-error"
+                                >
                                     {fieldErrors.password}
                                 </small>
                             )}

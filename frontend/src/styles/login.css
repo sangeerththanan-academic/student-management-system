@@ -323,3 +323,80 @@
         font-size: 25px;
     }
 }
+
+
+/* ================================
+   Password Show / Hide
+   ================================ */
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+
+/* Password input spacing */
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 50px;
+    box-sizing: border-box;
+}
+
+
+/* Show / Hide password button */
+
+.password-toggle-button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    font-size: 18px;
+    line-height: 1;
+
+    cursor: pointer;
+    z-index: 2;
+}
+
+
+/* Hover effect */
+
+.password-toggle-button:hover {
+    opacity: 0.75;
+}
+
+
+/* Remove default focus outline */
+
+.password-toggle-button:focus {
+    outline: none;
+}
+
+
+/* Keyboard focus */
+
+.password-toggle-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+
+/* Disabled state */
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
