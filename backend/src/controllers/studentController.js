@@ -11,6 +11,8 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
+const { validateStudentData } = require("../utils/validation");
+
 
 // =====================================================
 // VALIDATION HELPERS
@@ -125,6 +127,7 @@ const addStudent = async (req, res) => {
 
     try {
 
+<<<<<<< HEAD
         // -------------------------------------------------
         // Required field validation
         // -------------------------------------------------
@@ -138,9 +141,15 @@ const addStudent = async (req, res) => {
             !password
         ) {
 
+=======
+        // Validate input data (CR-004)
+        const validation = validateStudentData(req.body, false);
+        if (!validation.isValid) {
+>>>>>>> origin/JFICT16/CR004
             return res.status(400).json({
                 success: false,
-                message: "All student fields and password are required"
+                message: validation.firstError,
+                errors: validation.errors
             });
         }
 
@@ -503,6 +512,7 @@ const editStudent = async (req, res) => {
         } = req.body;
 
 
+<<<<<<< HEAD
         // -------------------------------------------------
         // Required field validation
         // -------------------------------------------------
@@ -515,9 +525,15 @@ const editStudent = async (req, res) => {
             !phoneNumber
         ) {
 
+=======
+        // Validate input data (CR-004)
+        const validation = validateStudentData(req.body, true);
+        if (!validation.isValid) {
+>>>>>>> origin/JFICT16/CR004
             return res.status(400).json({
                 success: false,
-                message: "All student fields are required"
+                message: validation.firstError,
+                errors: validation.errors
             });
         }
 
@@ -650,10 +666,22 @@ const editStudent = async (req, res) => {
 
     } catch (error) {
 
+<<<<<<< HEAD
         console.error(
             "Update student error:",
             error
         );
+=======
+        if (error.code === "ER_DUP_ENTRY") {
+            const isEmail = error.message && error.message.toLowerCase().includes("email");
+            return res.status(409).json({
+                success: false,
+                message: isEmail ? "Email address is already registered" : "Registration number is already registered"
+            });
+        }
+
+        console.error("Update student error:", error);
+>>>>>>> origin/JFICT16/CR004
 
         return res.status(500).json({
             success: false,
