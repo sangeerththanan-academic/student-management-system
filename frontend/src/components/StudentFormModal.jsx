@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import apiRequest from "../services/api";
 
@@ -21,6 +22,7 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -352,14 +354,30 @@ function StudentFormModal({
                             Password
                         </label>
 
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                disabled={formLoading}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle-button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-pressed={showPassword}
+                                disabled={formLoading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={20} strokeWidth={2} />
+                                ) : (
+                                    <Eye size={20} strokeWidth={2} />
+                                )}
+                            </button>
+                        </div>
                     </div>
                 )}
 

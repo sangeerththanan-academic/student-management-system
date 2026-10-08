@@ -235,6 +235,50 @@
 }
 
 /* =========================================================
+   Password Visibility Toggle
+   ========================================================= */
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    padding-right: 45px;
+}
+
+.password-toggle-button {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-button:hover:not(:disabled) {
+    color: #475569;
+}
+
+.password-toggle-button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+    color: #2563eb;
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* =========================================================
    Submit Button
    ========================================================= */
 
