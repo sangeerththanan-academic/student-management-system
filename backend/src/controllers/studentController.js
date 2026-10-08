@@ -541,7 +541,7 @@ const editStudent = async (req, res) => {
             firstName.trim(),
             lastName.trim(),
             email.trim(),
-            phoneNumber.trim()
+            phoneNumber.trim(),
             registrationNo.trim(),
             firstName.trim(),
             lastName.trim(),
