@@ -1,9 +1,12 @@
 -- ============================================================
 -- Student Management System
--- Database Seed Data - Version 1.0
+-- Database Seed Data - Version 2.0
 -- Organization: ABC Institute
 -- Database: MySQL
+--
+-- Development/Test Data
 -- ============================================================
+
 
 USE student_management;
 
@@ -11,31 +14,36 @@ USE student_management;
 -- ============================================================
 -- 1. USERS
 -- ============================================================
--- password_hash values below are example bcrypt hashes.
--- These are development/test credentials only.
 --
 -- Test password for all sample users:
+--
 -- Password123!
+--
+-- These bcrypt hashes are for development/testing only.
 -- ============================================================
 
 INSERT INTO users (
     username,
+    email,
     password_hash,
     role
 )
 VALUES
 (
     'admin',
+    'admin@example.com',
     '$2b$10$RmFfhU3ibXGS.CjEFgA.OeDe3ba06x7K4Mx0PF8SArlhYO6Tvihiq',
     'ADMIN'
 ),
 (
     'REG001',
+    'john@example.com',
     '$2b$10$RmFfhU3ibXGS.CjEFgA.OeDe3ba06x7K4Mx0PF8SArlhYO6Tvihiq',
     'STUDENT'
 ),
 (
     'REG002',
+    'sarah@example.com',
     '$2b$10$RmFfhU3ibXGS.CjEFgA.OeDe3ba06x7K4Mx0PF8SArlhYO6Tvihiq',
     'STUDENT'
 );
@@ -43,8 +51,6 @@ VALUES
 
 -- ============================================================
 -- 2. STUDENTS
--- ============================================================
--- Each student is linked to a STUDENT user account.
 -- ============================================================
 
 INSERT INTO students (
@@ -75,20 +81,23 @@ VALUES
 
 
 -- ============================================================
--- 3. VERIFICATION QUERIES
+-- 3. VERIFICATION - USERS
 -- ============================================================
 
--- View users
 SELECT
     user_id,
     username,
+    email,
     role,
     created_at,
     updated_at
 FROM users;
 
 
--- View students
+-- ============================================================
+-- 4. VERIFICATION - STUDENTS
+-- ============================================================
+
 SELECT
     student_id,
     user_id,
@@ -102,22 +111,42 @@ SELECT
 FROM students;
 
 
--- View users with their student profiles
+-- ============================================================
+-- 5. VERIFICATION - USERS + STUDENTS
+-- ============================================================
+
 SELECT
     u.user_id,
     u.username,
+    u.email AS account_email,
     u.role,
     s.student_id,
     s.registration_no,
     s.first_name,
     s.last_name,
-    s.email,
+    s.email AS student_email,
     s.phone_number
+
 FROM users u
+
 LEFT JOIN students s
     ON u.user_id = s.user_id;
 
 
 -- ============================================================
--- DATABASE SEED DATA - VERSION 1.0 COMPLETE
+-- 6. VERIFY PASSWORD RESET TABLE
+-- ============================================================
+
+SELECT
+    id,
+    user_id,
+    token_hash,
+    expires_at,
+    used_at,
+    created_at
+FROM password_reset_tokens;
+
+
+-- ============================================================
+-- DATABASE SEED DATA - VERSION 2.0 COMPLETE
 -- ============================================================

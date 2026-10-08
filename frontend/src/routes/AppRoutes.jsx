@@ -8,6 +8,9 @@ import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import StudentDashboardPage from "../pages/StudentDashboardPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
+
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -27,6 +30,17 @@ function AppRoutes() {
                     path="/login"
                     element={<LoginPage />}
                 />
+
+                <Route
+    path="/forgot-password"
+    element={<ForgotPasswordPage />}
+/>
+
+<Route
+    path="/reset-password"
+    element={<ResetPasswordPage />}
+/>
+
 
                 <Route
                     path="/dashboard"

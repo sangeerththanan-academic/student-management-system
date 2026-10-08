@@ -1,13 +1,27 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function LoginFormSection({ onSubmit, loading, error }) {
+function LoginFormSection({
+    onSubmit,
+    loading,
+    error
+}) {
+    const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        onSubmit(username.trim(), password);
+
+        onSubmit(
+            username.trim(),
+            password
+        );
+    };
+
+    const handleForgotPassword = () => {
+        navigate("/forgot-password");
     };
 
     return (
@@ -55,7 +69,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(event.target.value)
+                                setUsername(
+                                    event.target.value
+                                )
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
@@ -77,7 +93,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             type="password"
                             value={password}
                             onChange={(event) =>
-                                setPassword(event.target.value)
+                                setPassword(
+                                    event.target.value
+                                )
                             }
                             placeholder="Enter your password"
                             autoComplete="current-password"
@@ -97,6 +115,16 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             ? "Signing in..."
                             : "Sign In"
                         }
+                    </button>
+
+
+                    <button
+                        type="button"
+                        className="forgot-password-button"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot Password?
                     </button>
 
                 </form>

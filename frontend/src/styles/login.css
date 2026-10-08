@@ -323,3 +323,69 @@
         font-size: 25px;
     }
 }
+
+.forgot-password-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.forgot-password-button:hover {
+    text-decoration: underline;
+}
+
+.forgot-password-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.login-success {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 6px;
+    background-color: #dcfce7;
+    color: #166534;
+    font-size: 14px;
+}
+
+.development-reset-token {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.development-reset-token p {
+    margin-top: 0;
+    font-weight: 600;
+}
+
+.development-reset-token code {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ffffff;
+    color: #111827;
+    word-break: break-all;
+    border-radius: 4px;
+}
+
+.development-reset-token button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+.development-reset-token button:hover {
+    background-color: #1d4ed8;
+}
