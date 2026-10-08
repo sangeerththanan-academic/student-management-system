@@ -53,6 +53,23 @@ function StudentFormModal({
     const handleInputChange = (event) => {
         const { name, value } = event.target;
 
+                if (name === "phoneNumber") {
+
+            const digitsOnly =
+                value.replace(/\D/g, "");
+
+           
+            if (digitsOnly.length <= 10) {
+
+                setFormData((previous) => ({
+                    ...previous,
+                    phoneNumber: digitsOnly
+                }));
+            }
+
+            return;
+        }
+
         setFormData((previous) => ({
             ...previous,
             [name]: value
@@ -65,26 +82,154 @@ function StudentFormModal({
         onClose();
     };
 
+     const validateForm = () => {
+
+        const registrationNo =
+            formData.registrationNo.trim();
+
+        const firstName =
+            formData.firstName.trim();
+
+        const lastName =
+            formData.lastName.trim();
+
+        const email =
+            formData.email.trim();
+
+        const phoneNumber =
+            formData.phoneNumber.trim();
+
+        const password =
+            formData.password;
+
+
+        
+
+        if (!registrationNo) {
+
+            return "Registration number is required.";
+        }
+
+
+
+
+        if (!firstName) {
+
+            return "First name is required.";
+        }
+
+        if (firstName.length < 3) {
+
+            return "First name must contain at least 3 characters.";
+        }
+
+        if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(firstName)) {
+
+            return "First name must contain only letters.";
+        }
+
+
+
+        if (!lastName) {
+
+            return "Last name is required.";
+        }
+
+        if (lastName.length < 3) {
+
+            return "Last name must contain at least 3 characters.";
+        }
+
+        if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(lastName)) {
+
+            return "Last name must contain only letters.";
+        }
+
+
+
+        if (!email) {
+
+            return "Email address is required.";
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+
+            return "Please enter a valid email address.";
+        }
+
+
+        
+
+        if (!phoneNumber) {
+
+            return "Phone number is required.";
+        }
+
+        if (!/^\d+$/.test(phoneNumber)) {
+
+            return "Phone number must contain only digits.";
+        }
+
+        if (phoneNumber.length !== 10) {
+
+            return "Phone number must contain exactly 10 digits.";
+        }
+
+
+      
+
+        // Password is required only for new student
+        if (!editingStudent) {
+
+            if (!password) {
+
+                return "Password is required for a new student.";
+            }
+
+            if (password.length < 8) {
+
+                return "Password must be at least 8 characters.";
+            }
+
+            if (!/[A-Z]/.test(password)) {
+
+                return "Password must contain at least one uppercase letter.";
+            }
+
+            if (!/[a-z]/.test(password)) {
+
+                return "Password must contain at least one lowercase letter.";
+            }
+
+            if (!/\d/.test(password)) {
+
+                return "Password must contain at least one number.";
+            }
+
+            if (!/[@$!%*?&]/.test(password)) {
+
+                return "Password must contain at least one special character.";
+            }
+        }
+
+
+        return null;
+    };
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setFormError("");
 
-        if (
-            !formData.registrationNo.trim() ||
-            !formData.firstName.trim() ||
-            !formData.lastName.trim() ||
-            !formData.email.trim() ||
-            !formData.phoneNumber.trim()
-        ) {
-            setFormError("All student fields are required.");
-            return;
-        }
+        
+        const validationError =
+            validateForm();
 
-        // Password is required only when creating
-        if (!editingStudent && !formData.password) {
-            setFormError("Password is required for a new student.");
+        if (validationError) {
+
+            setFormError(validationError);
+
             return;
         }
 
