@@ -95,11 +95,11 @@ const addStudent = async (req, res) => {
         const normalizedEmail = email.trim();
         const normalizedPhoneNumber = phoneNumber.trim();
 
-        const normalizedRegistrationNo = registrationNo.trim();
-        const normalizedFirstName = firstName.trim();
-        const normalizedLastName = lastName.trim();
-        const normalizedEmail = email.trim();
-        const normalizedPhoneNumber = phoneNumber.trim();
+        // const normalizedRegistrationNo = registrationNo.trim();
+        // const normalizedFirstName = firstName.trim();
+        // const normalizedLastName = lastName.trim();
+        // const normalizedEmail = email.trim();
+        // const normalizedPhoneNumber = phoneNumber.trim();
 
 
         // Get database connection
@@ -319,11 +319,11 @@ const editStudent = async (req, res) => {
         const normalizedEmail = email.trim();
         const normalizedPhoneNumber = phoneNumber.trim();
 
-        const normalizedRegistrationNo = registrationNo.trim();
-        const normalizedFirstName = firstName.trim();
-        const normalizedLastName = lastName.trim();
-        const normalizedEmail = email.trim();
-        const normalizedPhoneNumber = phoneNumber.trim();
+        // const normalizedRegistrationNo = registrationNo.trim();
+        // const normalizedFirstName = firstName.trim();
+        // const normalizedLastName = lastName.trim();
+        // const normalizedEmail = email.trim();
+        // const normalizedPhoneNumber = phoneNumber.trim();
 
 
         // Check student exists
