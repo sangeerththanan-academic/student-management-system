@@ -240,7 +240,8 @@ const editStudent = async (req, res) => {
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            password
         } = req.body;
 
 
@@ -276,6 +277,15 @@ const editStudent = async (req, res) => {
             email.trim(),
             phoneNumber.trim()
         );
+
+        // Update password if provided
+        if (password && typeof password === "string" && password.trim() !== "") {
+            const passwordHash = await bcrypt.hash(password, 10);
+            await pool.execute(
+                "UPDATE users SET password_hash = ? WHERE user_id = ?",
+                [passwordHash, existingStudent.user_id]
+            );
+        }
 
 
         return res.status(200).json({

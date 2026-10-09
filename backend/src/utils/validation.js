@@ -105,6 +105,9 @@ const validateStudentData = (data, isEdit = false) => {
     if (!isEdit) {
         const passwordError = validatePassword(password);
         if (passwordError) errors.password = passwordError;
+    } else if (password !== undefined && password !== null && password !== "") {
+        const passwordError = validatePassword(password);
+        if (passwordError) errors.password = passwordError;
     }
 
     const errorKeys = Object.keys(errors);

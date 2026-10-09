@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import apiRequest from "../services/api";
 
@@ -19,6 +20,7 @@ function StudentFormModal({
         password: ""
     });
 
+    const [showPassword, setShowPassword] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
@@ -48,6 +50,7 @@ function StudentFormModal({
             });
         }
 
+        setShowPassword(false);
         setFormError("");
         setFieldErrors({});
         setTouched({});
@@ -90,7 +93,7 @@ function StudentFormModal({
                 return null;
 
             case "password":
-                if (editingStudent) return null;
+                if (editingStudent && !value) return null;
                 if (!value) return "Password is required.";
                 if (value.length < 8) return "Password must be at least 8 characters.";
                 if (!/[A-Z]/.test(value)) return "Password must include an uppercase letter.";
@@ -107,7 +110,9 @@ function StudentFormModal({
 
     const validateAll = () => {
         const fields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
-        if (!editingStudent) fields.push("password");
+        if (!editingStudent || (formData.password && formData.password.trim() !== "")) {
+            fields.push("password");
+        }
 
         const errors = {};
         fields.forEach((name) => {
@@ -142,6 +147,7 @@ function StudentFormModal({
 
 
     const handleClose = () => {
+        setShowPassword(false);
         setFormError("");
         setFieldErrors({});
         setTouched({});
@@ -156,7 +162,10 @@ function StudentFormModal({
 
         // Mark all fields touched & run full validation
         const errors = validateAll();
-        const allFields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber", "password"];
+        const allFields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
+        if (!editingStudent || (formData.password && formData.password.trim() !== "")) {
+            allFields.push("password");
+        }
         const allTouched = {};
         allFields.forEach((f) => { allTouched[f] = true; });
         setTouched(allTouched);
@@ -171,17 +180,22 @@ function StudentFormModal({
             setFormLoading(true);
 
             if (editingStudent) {
+                const updatePayload = {
+                    registrationNo: formData.registrationNo.trim(),
+                    firstName: formData.firstName.trim(),
+                    lastName: formData.lastName.trim(),
+                    email: formData.email.trim(),
+                    phoneNumber: formData.phoneNumber.trim()
+                };
+                if (formData.password && formData.password.trim() !== "") {
+                    updatePayload.password = formData.password;
+                }
+
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim()
-                        })
+                        body: JSON.stringify(updatePayload)
                     }
                 );
             } else {
@@ -232,39 +246,76 @@ function StudentFormModal({
     if (!show) return null;
 
     // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
+    const renderField = (label, name, type = "text", hint = "") => {
+        const isPassword = type === "password" || name === "password";
+        const effectiveType = isPassword ? (showPassword ? "text" : "password") : type;
 
-            <input
-                id={`sf-${name}`}
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
-                aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
-            />
+        return (
+            <div
+                key={name}
+                className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
+            >
+                <label htmlFor={`sf-${name}`}>
+                    {label}
+                </label>
 
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
+                {isPassword ? (
+                    <div className="password-input-wrapper">
+                        <input
+                            id={`sf-${name}`}
+                            type={effectiveType}
+                            name={name}
+                            value={formData[name]}
+                            onChange={handleInputChange}
+                            onBlur={handleBlur}
+                            disabled={formLoading}
+                            autoComplete={editingStudent ? "new-password" : "new-password"}
+                            aria-describedby={`sf-${name}-hint`}
+                            aria-invalid={!!(touched[name] && fieldErrors[name])}
+                        />
+
+                        <button
+                            type="button"
+                            className="password-toggle-btn"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            aria-pressed={showPassword}
+                            disabled={formLoading}
+                        >
+                            {showPassword ? (
+                                <EyeOff size={18} className="eye-icon" aria-hidden="true" />
+                            ) : (
+                                <Eye size={18} className="eye-icon" aria-hidden="true" />
+                            )}
+                        </button>
+                    </div>
+                ) : (
+                    <input
+                        id={`sf-${name}`}
+                        type={type}
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        disabled={formLoading}
+                        autoComplete="off"
+                        aria-describedby={`sf-${name}-hint`}
+                        aria-invalid={!!(touched[name] && fieldErrors[name])}
+                    />
+                )}
+
+                {touched[name] && fieldErrors[name] ? (
+                    <span id={`sf-${name}-hint`} className="field-error-msg">
+                        {fieldErrors[name]}
+                    </span>
+                ) : hint ? (
+                    <span id={`sf-${name}-hint`} className="field-hint">
+                        {hint}
+                    </span>
+                ) : null}
+            </div>
+        );
+    };
 
 
     return (
@@ -348,7 +399,12 @@ function StudentFormModal({
                     "Exactly 10 digits, numbers only."
                 )}
 
-                {!editingStudent && renderField(
+                {editingStudent ? renderField(
+                    "Password (optional)",
+                    "password",
+                    "password",
+                    "Leave blank to keep existing password, or enter new password."
+                ) : renderField(
                     "Password",
                     "password",
                     "password",
