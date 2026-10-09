@@ -713,3 +713,185 @@
         max-height: 95vh;
     }
 }
+
+
+
+
+/* =========================================
+   CR-012: Global Theme - Admin Dashboard
+   ========================================= */
+
+.dashboard-page {
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text-primary);
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Dashboard header */
+.dashboard-page .dashboard-header {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-page .dashboard-header h1,
+.dashboard-page .dashboard-header h2,
+.dashboard-page .dashboard-header p {
+    color: var(--text-primary);
+}
+
+.dashboard-page .dashboard-header p {
+    color: var(--text-secondary);
+}
+
+/* User information */
+.dashboard-page .admin-info,
+.dashboard-page .admin-info strong,
+.dashboard-page .admin-info span {
+    color: var(--text-primary);
+}
+
+/* Main content */
+.dashboard-page .dashboard-content {
+    background: var(--page-bg);
+    color: var(--text-primary);
+}
+
+.dashboard-page .students-heading h2,
+.dashboard-page .students-heading p {
+    color: var(--text-primary);
+}
+
+.dashboard-page .students-heading p {
+    color: var(--text-secondary);
+}
+
+/* Search field */
+.dashboard-page .students-search-input {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--input-border);
+}
+
+.dashboard-page .students-search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.dashboard-page .students-search-input:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+}
+
+/* Result count */
+.dashboard-page .students-result-count {
+    color: var(--text-secondary);
+}
+
+/* Student card / table container */
+.dashboard-page .students-card {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+/* Loading and empty states */
+.dashboard-page .students-loading,
+.dashboard-page .students-empty {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
+
+.dashboard-page .students-empty h3 {
+    color: var(--text-primary);
+}
+
+.dashboard-page .students-empty p {
+    color: var(--text-secondary);
+}
+
+/* Student table */
+.dashboard-page .students-table {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.dashboard-page .students-table thead th {
+    background: var(--table-header-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.dashboard-page .students-table tbody td {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.dashboard-page .students-table tbody tr:hover td {
+    background: var(--table-row-hover);
+}
+
+/* Error message */
+.dashboard-page .dashboard-error {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Buttons */
+.dashboard-page .students-search-clear {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.dashboard-page .students-search-clear:hover {
+    background: var(--table-row-hover);
+}
+
+/* Theme transitions */
+.dashboard-page .dashboard-header,
+.dashboard-page .dashboard-content,
+.dashboard-page .students-card,
+.dashboard-page .students-table th,
+.dashboard-page .students-table td,
+.dashboard-page .students-search-input {
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.dashboard-page {
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text-primary);
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+.dashboard-page .students-search-input:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+}
+
+.dashboard-page .students-table tbody tr:hover td {
+    background: var(--table-row-hover);
+}
+
+
+/* CR-012: Fix Registration Number Text in Dark Mode */
+
+:root[data-theme="dark"] .dashboard-page .students-table td,
+:root[data-theme="dark"] .dashboard-page .students-table td strong {
+    color: var(--text-primary);
+}
+
+/* Keep all student table text readable */
+:root[data-theme="dark"] .dashboard-page .students-table tbody td {
+    color: #f8fafc;
+}
+
+

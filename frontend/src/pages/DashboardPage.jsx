@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 import {
     getStoredUser,
@@ -271,24 +272,29 @@ function DashboardPage() {
 
                 <div className="dashboard-header-actions">
 
-                    <div className="admin-info">
-                        <strong>
-                            {user?.username}
-                        </strong>
+                
+                <div className="admin-info">
+                    <strong>
+                        {user?.username}
+                    </strong>
 
-                        <span>
-                            {user?.role}
-                        </span>
-                    </div>
+                    <span>
+                        {user?.role}
+                    </span>
+                </div>
 
-                    <button
-                        onClick={handleLogout}
-                        className="logout-button"
-                    >
-                        Logout
-                    </button>
+                <ThemeToggle />
+
+                <button
+                    onClick={handleLogout}
+                    className="logout-button"
+                >
+                    Logout
+                </button>
+                
 
                 </div>
+
 
             </header>
 

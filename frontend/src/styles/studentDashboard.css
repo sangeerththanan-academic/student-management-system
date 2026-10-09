@@ -183,3 +183,125 @@
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+
+
+/* =========================================
+   CR-012: Global Theme - Student Dashboard
+   ========================================= */
+
+.student-dashboard-page {
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text-primary);
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Student header */
+.student-dashboard-page .student-dashboard-header {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.student-dashboard-page .student-dashboard-header h1 {
+    color: var(--text-primary);
+}
+
+.student-dashboard-page .student-dashboard-header p {
+    color: var(--text-secondary);
+}
+
+/* Main content */
+.student-dashboard-page .student-dashboard-main {
+    background: var(--page-bg);
+    color: var(--text-primary);
+}
+
+.student-dashboard-page .section-title {
+    color: var(--text-primary);
+}
+
+/* Student role badge */
+.student-dashboard-page .role-badge {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Profile card */
+.student-dashboard-page .profile-card {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+/* Profile heading */
+.student-dashboard-page .profile-header {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.student-dashboard-page .profile-name h3 {
+    color: var(--text-primary);
+}
+
+.student-dashboard-page .profile-name p {
+    color: var(--text-secondary);
+}
+
+/* Profile avatar */
+.student-dashboard-page .profile-avatar {
+    background: var(--primary-color);
+    color: var(--primary-text);
+}
+
+/* Profile details */
+.student-dashboard-page .profile-details {
+    background: var(--surface-bg);
+}
+
+.student-dashboard-page .detail-row {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.student-dashboard-page .detail-label {
+    color: var(--text-secondary);
+}
+
+.student-dashboard-page .detail-value {
+    color: var(--text-primary);
+}
+
+/* Loading state */
+.student-dashboard-page .student-loading {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Error message */
+.student-dashboard-page .student-error {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Input/button transitions */
+.student-dashboard-page button {
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+

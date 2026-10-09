@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 import { login } from "../services/authService";
 import "../styles/login.css";
@@ -47,6 +48,10 @@ function LoginPage() {
 
     return (
         <div className="login-page">
+
+            <div className="login-theme-toggle">
+                <ThemeToggle />
+            </div>
 
             <div className="login-container">
 

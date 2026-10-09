@@ -323,3 +323,119 @@
         font-size: 25px;
     }
 }
+
+
+
+
+/* Global theme support for Login Page */
+
+.login-page {
+    background: var(--page-bg);
+    color: var(--text-primary);
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Theme toggle position */
+.login-theme-toggle {
+    position: fixed;
+    top: 18px;
+    right: 22px;
+    z-index: 200;
+}
+
+/* Login form card */
+.login-card {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    box-shadow: 0 15px 40px var(--shadow-color);
+}
+
+/* Headings and descriptions */
+.login-heading h2 {
+    color: var(--text-primary);
+}
+
+.login-heading p {
+    color: var(--text-secondary);
+}
+
+.form-group label {
+    color: var(--text-primary);
+}
+
+/* Login inputs */
+.form-group input {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+
+.form-group input::placeholder {
+    color: var(--text-secondary);
+}
+
+/* Login information panel */
+:root[data-theme="dark"] .login-info {
+    background: linear-gradient(
+        135deg,
+        #0f172a,
+        #1e293b,
+        #334155
+    );
+}
+
+/* Responsive toggle position */
+@media (max-width: 500px) {
+    .login-theme-toggle {
+        top: 12px;
+        right: 12px;
+    }
+}
+
+
+
+/* CR-012: Complete Login Page Dark Theme */
+
+:root[data-theme="dark"] .login-page {
+    background: var(--page-bg);
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .login-form-section {
+    background: var(--page-bg);
+}
+
+:root[data-theme="dark"] .login-card {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .login-heading h2 {
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .login-heading p {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .form-group label {
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .form-group input {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+
+:root[data-theme="dark"] .form-group input::placeholder {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .login-error {
+    background: #451a1a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
