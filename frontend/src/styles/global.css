@@ -182,3 +182,131 @@ button,
         color 0.2s ease,
         transform 0.2s ease;
 }
+
+
+/* CR-012: Global theme variables */
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --theme-bg: #f8fafc;
+  --theme-surface: #ffffff;
+  --theme-text: #0f172a;
+  --theme-muted: #64748b;
+  --theme-border: #e2e8f0;
+  --theme-input: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --theme-bg: #0f172a;
+  --theme-surface: #1e293b;
+  --theme-text: #f1f5f9;
+  --theme-muted: #cbd5e1;
+  --theme-border: #334155;
+  --theme-input: #111827;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: #3b82f6;
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.login-page {
+  position: relative;
+}
+
+.login-theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+/* Shared surfaces */
+:root[data-theme="dark"] .dashboard-page,
+:root[data-theme="dark"] .student-dashboard-page,
+:root[data-theme="dark"] .landing-page,
+:root[data-theme="dark"] .login-page,
+:root[data-theme="dark"] .dashboard-main,
+:root[data-theme="dark"] .student-dashboard-main {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+:root[data-theme="dark"] .dashboard-header,
+:root[data-theme="dark"] .student-dashboard-header,
+:root[data-theme="dark"] .navbar,
+:root[data-theme="dark"] .profile-card,
+:root[data-theme="dark"] .form-modal,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .student-table {
+  background-color: var(--theme-surface);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background-color: var(--theme-input);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder {
+  color: var(--theme-muted);
+}
+
+:root[data-theme="dark"] .dashboard-header h1,
+:root[data-theme="dark"] .student-dashboard-header h1,
+:root[data-theme="dark"] .section-title,
+:root[data-theme="dark"] .profile-name h3,
+:root[data-theme="dark"] .detail-value,
+:root[data-theme="dark"] .logo,
+:root[data-theme="dark"] .nav-link {
+  color: var(--theme-text);
+}
+
+@media (max-width: 700px) {
+  .theme-toggle {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .dashboard-header-actions,
+  .student-header-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}

@@ -323,3 +323,13 @@
         font-size: 25px;
     }
 }
+.login-page {
+  position: relative;
+}
+
+.login-theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}

@@ -673,3 +673,72 @@
         max-height: 95vh;
     }
 }
+
+
+
+/* Main dashboard */
+:root[data-theme="dark"] .dashboard-page {
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .dashboard-content {
+    color: #f1f5f9;
+}
+
+/* Headings and descriptions */
+:root[data-theme="dark"] .students-heading h2,
+:root[data-theme="dark"] .students-heading p,
+:root[data-theme="dark"] .students-result-count {
+    color: #e2e8f0;
+}
+
+/* Students card */
+:root[data-theme="dark"] .students-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+/* Table */
+:root[data-theme="dark"] .students-table {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .students-table thead,
+:root[data-theme="dark"] .students-table thead tr,
+:root[data-theme="dark"] .students-table th {
+    background: #263449;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-table tbody tr,
+:root[data-theme="dark"] .students-table td {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-table tbody tr:hover td {
+    background: #29384d;
+}
+
+/* Search field */
+:root[data-theme="dark"] .students-search-input {
+    background: #111827;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-search-input::placeholder {
+    color: #94a3b8;
+}
+
+/* Empty and loading states */
+:root[data-theme="dark"] .students-loading,
+:root[data-theme="dark"] .students-empty {
+    background: #1e293b;
+    color: #e2e8f0;
+}

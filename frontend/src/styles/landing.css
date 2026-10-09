@@ -436,3 +436,55 @@
         font-size: 28px;
     }
 }
+
+.landing-theme-toggle {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 5%;
+}
+
+/* CR-012: Landing Page Dark Mode */
+
+:root[data-theme="dark"] .landing-page {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .hero-section {
+    background: linear-gradient(135deg, #0f172a, #172554);
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .hero-content h1,
+:root[data-theme="dark"] .hero-content p,
+:root[data-theme="dark"] .section-heading h2,
+:root[data-theme="dark"] .section-heading p,
+:root[data-theme="dark"] .feature-card h3,
+:root[data-theme="dark"] .feature-card p,
+:root[data-theme="dark"] .hero-card h2,
+:root[data-theme="dark"] .hero-card p {
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .hero-card,
+:root[data-theme="dark"] .feature-card {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .about-section,
+:root[data-theme="dark"] .features-section {
+    background-color: #111827;
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .hero-card-stats > div {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .hero-card-stats strong,
+:root[data-theme="dark"] .hero-card-stats span {
+    color: #e2e8f0;
+}
