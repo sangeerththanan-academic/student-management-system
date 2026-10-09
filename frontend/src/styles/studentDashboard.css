@@ -4,7 +4,9 @@
 
 .student-dashboard-page {
     min-height: 100vh;
-    background: #f8fafc;
+    background: var(--bg-primary);
+
+    transition: background var(--theme-transition);
 }
 
 
@@ -15,24 +17,32 @@
 .student-dashboard-header {
     min-height: 80px;
     padding: 18px 5%;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 30px;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .student-dashboard-header h1 {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 22px;
     margin: 0 0 3px;
+
+    transition: color var(--theme-transition);
 }
 
 .student-dashboard-header p {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 13px;
     margin: 0;
+
+    transition: color var(--theme-transition);
 }
 
 .student-header-actions {
@@ -42,29 +52,36 @@
 }
 
 .role-badge {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: var(--accent-bg);
+    color: var(--brand-text);
     font-size: 12px;
     font-weight: 600;
     padding: 5px 14px;
     border-radius: 20px;
     letter-spacing: 0.5px;
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .logout-button {
-    background: #ef4444;
-    color: #ffffff;
+    background: var(--danger-bg);
+    color: var(--danger-text);
     border: none;
     padding: 9px 22px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .logout-button:hover {
-    background: #dc2626;
+    background: var(--danger-bg-hover);
 }
 
 
@@ -79,9 +96,11 @@
 }
 
 .section-title {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 20px;
     margin: 0 0 20px;
+
+    transition: color var(--theme-transition);
 }
 
 
@@ -90,10 +109,14 @@
    ========================================================= */
 
 .profile-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: 12px;
     overflow: hidden;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .profile-header {
@@ -102,6 +125,10 @@
     gap: 18px;
     padding: 28px;
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+[data-theme="dark"] .profile-header {
+    background: #1d4ed8;
 }
 
 .profile-avatar {
@@ -143,7 +170,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 0;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--table-border);
+
+    transition: border-color var(--theme-transition);
 }
 
 .detail-row:last-child {
@@ -151,15 +180,19 @@
 }
 
 .detail-label {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 14px;
     font-weight: 500;
+
+    transition: color var(--theme-transition);
 }
 
 .detail-value {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 600;
+
+    transition: color var(--theme-transition);
 }
 
 
@@ -170,16 +203,23 @@
 .student-loading {
     text-align: center;
     padding: 50px 20px;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 15px;
+
+    transition: color var(--theme-transition);
 }
 
 .student-error {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: var(--error-bg);
+    color: var(--error-text);
     padding: 14px 18px;
     border-radius: 8px;
     margin-bottom: 20px;
     font-size: 14px;
-    border: 1px solid #fecaca;
+    border: 1px solid var(--error-border);
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition),
+        color var(--theme-transition);
 }

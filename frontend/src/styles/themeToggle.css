@@ -1,0 +1,41 @@
+/* =========================================================
+   Theme Toggle Button
+   ========================================================= */
+
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--toggle-bg);
+    color: var(--toggle-color);
+
+    border: 1px solid var(--toggle-border);
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease,
+        transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--toggle-bg-hover);
+
+    transform: translateY(-1px);
+}
+
+.theme-toggle svg {
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover svg {
+    transform: rotate(15deg);
+}

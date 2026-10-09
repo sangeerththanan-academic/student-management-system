@@ -5,7 +5,9 @@
 .dashboard-page {
     min-height: 100vh;
 
-    background: #f8fafc;
+    background: var(--bg-primary);
+
+    transition: background var(--theme-transition);
 }
 
 
@@ -18,9 +20,9 @@
 
     padding: 18px 5%;
 
-    background: #ffffff;
+    background: var(--bg-secondary);
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-primary);
 
     display: flex;
 
@@ -28,22 +30,30 @@
     justify-content: space-between;
 
     gap: 30px;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .dashboard-header h1 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 22px;
 
     margin: 0 0 3px;
+
+    transition: color var(--theme-transition);
 }
 
 .dashboard-header p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 13px;
 
     margin: 0;
+
+    transition: color var(--theme-transition);
 }
 
 .dashboard-header-actions {
@@ -63,13 +73,15 @@
 }
 
 .admin-info strong {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 14px;
+
+    transition: color var(--theme-transition);
 }
 
 .admin-info span {
-    color: #2563eb;
+    color: var(--brand-primary);
 
     font-size: 11px;
     font-weight: 800;
@@ -80,8 +92,8 @@
 .logout-button {
     border: none;
 
-    background: #fee2e2;
-    color: #b91c1c;
+    background: var(--danger-bg);
+    color: var(--danger-text);
 
     padding: 10px 16px;
 
@@ -89,10 +101,14 @@
 
     font-size: 13px;
     font-weight: 700;
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .logout-button:hover {
-    background: #fecaca;
+    background: var(--danger-bg-hover);
 }
 
 
@@ -121,25 +137,29 @@
 }
 
 .students-heading h2 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 30px;
 
     margin: 0 0 5px;
+
+    transition: color var(--theme-transition);
 }
 
 .students-heading p {
-    color: #64748b;
+    color: var(--text-muted);
 
     margin: 0;
 
     font-size: 14px;
+
+    transition: color var(--theme-transition);
 }
 
 .add-student-button {
     border: none;
 
-    background: #2563eb;
+    background: var(--brand-primary);
     color: #ffffff;
 
     padding: 12px 18px;
@@ -151,7 +171,7 @@
 }
 
 .add-student-button:hover {
-    background: #1d4ed8;
+    background: var(--brand-primary-hover);
 }
 
 
@@ -160,11 +180,11 @@
    ========================================================= */
 
 .dashboard-error {
-    background: #fef2f2;
+    background: var(--error-bg);
 
-    border: 1px solid #fecaca;
+    border: 1px solid var(--error-border);
 
-    color: #b91c1c;
+    color: var(--error-text);
 
     padding: 12px 15px;
 
@@ -173,6 +193,11 @@
     font-size: 14px;
 
     margin-bottom: 20px;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition),
+        color var(--theme-transition);
 }
 
 
@@ -184,7 +209,7 @@
     position: fixed;
     inset: 0;
 
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--overlay-bg);
 
     display: flex;
     align-items: center;
@@ -211,14 +236,18 @@
    ========================================================= */
 
 .student-form-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-primary);
 
     padding: 25px;
 
     box-shadow:
-        0 8px 25px rgba(15, 23, 42, 0.05);
+        0 8px 25px var(--shadow-sm);
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .form-card-header {
@@ -234,19 +263,23 @@
 }
 
 .form-card-header h3 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 20px;
 
     margin: 0 0 5px;
+
+    transition: color var(--theme-transition);
 }
 
 .form-card-header p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 13px;
 
     margin: 0;
+
+    transition: color var(--theme-transition);
 }
 
 .close-form-button {
@@ -255,19 +288,23 @@
 
     border: none;
 
-    background: #f1f5f9;
+    background: var(--bg-tertiary);
 
-    color: #475569;
+    color: var(--text-secondary);
 
     border-radius: 7px;
 
     font-size: 22px;
 
     line-height: 1;
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .close-form-button:hover {
-    background: #e2e8f0;
+    background: var(--border-primary);
 }
 
 .student-form {
@@ -288,10 +325,12 @@
 }
 
 .student-form .form-group label {
-    color: #334155;
+    color: var(--text-secondary);
 
     font-size: 13px;
     font-weight: 700;
+
+    transition: color var(--theme-transition);
 }
 
 .student-form .form-group input {
@@ -299,22 +338,28 @@
 
     padding: 11px 12px;
 
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--input-border);
 
     border-radius: 7px;
 
     outline: none;
 
-    color: #0f172a;
+    color: var(--input-text);
 
-    background: #ffffff;
+    background: var(--input-bg);
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .student-form .form-group input:focus {
-    border-color: #2563eb;
+    border-color: var(--brand-primary);
 
     box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
+        0 0 0 3px var(--focus-ring);
 }
 
 .form-actions {
@@ -342,23 +387,27 @@
 }
 
 .cancel-button {
-    background: #f1f5f9;
+    background: var(--bg-tertiary);
 
-    color: #475569;
+    color: var(--text-secondary);
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .cancel-button:hover {
-    background: #e2e8f0;
+    background: var(--border-primary);
 }
 
 .save-button {
-    background: #2563eb;
+    background: var(--brand-primary);
 
     color: #ffffff;
 }
 
 .save-button:hover {
-    background: #1d4ed8;
+    background: var(--brand-primary-hover);
 }
 
 
@@ -367,13 +416,17 @@
    ========================================================= */
 
 .students-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-primary);
 
     border-radius: 14px;
 
     overflow: hidden;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .students-loading,
@@ -384,23 +437,27 @@
 }
 
 .students-loading {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 14px;
 }
 
 .students-empty h3 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     margin: 0 0 5px;
+
+    transition: color var(--theme-transition);
 }
 
 .students-empty p {
-    color: #64748b;
+    color: var(--text-muted);
 
     margin: 0;
 
     font-size: 14px;
+
+    transition: color var(--theme-transition);
 }
 
 .students-empty .students-search-clear {
@@ -427,32 +484,38 @@
 
     padding: 11px 12px;
 
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--input-border);
 
     border-radius: 8px;
 
     outline: none;
 
-    color: #0f172a;
+    color: var(--input-text);
 
-    background: #ffffff;
+    background: var(--input-bg);
 
     font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .students-search-input:focus {
-    border-color: #2563eb;
+    border-color: var(--brand-primary);
 
     box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
+        0 0 0 3px var(--focus-ring);
 }
 
 .students-search-clear {
     border: none;
 
-    background: #f1f5f9;
+    background: var(--bg-tertiary);
 
-    color: #475569;
+    color: var(--text-secondary);
 
     padding: 11px 16px;
 
@@ -463,18 +526,24 @@
     font-weight: 700;
 
     white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .students-search-clear:hover {
-    background: #e2e8f0;
+    background: var(--border-primary);
 }
 
 .students-result-count {
-    color: #64748b;
+    color: var(--text-muted);
 
     margin: 0 0 15px;
 
     font-size: 13px;
+
+    transition: color var(--theme-transition);
 }
 
 
@@ -497,9 +566,9 @@
 }
 
 .students-table th {
-    background: #f8fafc;
+    background: var(--table-header-bg);
 
-    color: #64748b;
+    color: var(--text-muted);
 
     padding: 14px 18px;
 
@@ -512,17 +581,26 @@
 
     letter-spacing: 0.04em;
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-primary);
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .students-table td {
     padding: 16px 18px;
 
-    color: #475569;
+    color: var(--text-secondary);
 
     font-size: 14px;
 
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--table-border);
+
+    transition:
+        color var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .students-table tbody tr:last-child td {
@@ -530,11 +608,13 @@
 }
 
 .students-table tbody tr:hover {
-    background: #f8fafc;
+    background: var(--table-row-hover);
 }
 
 .students-table td strong {
-    color: #0f172a;
+    color: var(--text-primary);
+
+    transition: color var(--theme-transition);
 }
 
 
@@ -563,23 +643,31 @@
 }
 
 .edit-button {
-    background: #dbeafe;
+    background: var(--accent-bg);
 
-    color: #1d4ed8;
+    color: var(--brand-text);
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .edit-button:hover {
-    background: #bfdbfe;
+    background: var(--brand-bg-hover);
 }
 
 .delete-button {
-    background: #fee2e2;
+    background: var(--danger-bg);
 
-    color: #b91c1c;
+    color: var(--danger-text);
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .delete-button:hover {
-    background: #fecaca;
+    background: var(--danger-bg-hover);
 }
 
 
