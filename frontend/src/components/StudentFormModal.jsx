@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import apiRequest from "../services/api";
 
+import PasswordInput from "./PasswordInput";
+
 function StudentFormModal({
     show,
     editingStudent,
@@ -691,6 +693,7 @@ function StudentFormModal({
                     </div>
 
 
+
                     {/* Password - CREATE ONLY */}
                     {!editingStudent && (
                         <div className="form-group">
@@ -699,16 +702,15 @@ function StudentFormModal({
                                 Password
                             </label>
 
-                            <input
+                            <PasswordInput
                                 id="password"
-                                type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 disabled={formLoading}
-                                aria-invalid={
-                                    Boolean(fieldErrors.password)
-                                }
+                                required
+                                autoComplete="new-password"
+                                invalid={Boolean(fieldErrors.password)}
                             />
 
                             {fieldErrors.password && (
