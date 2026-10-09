@@ -95,6 +95,12 @@ const addStudent = async (req, res) => {
         const normalizedEmail = email.trim();
         const normalizedPhoneNumber = phoneNumber.trim();
 
+        const normalizedRegistrationNo = registrationNo.trim();
+        const normalizedFirstName = firstName.trim();
+        const normalizedLastName = lastName.trim();
+        const normalizedEmail = email.trim();
+        const normalizedPhoneNumber = phoneNumber.trim();
+
 
         // Get database connection
         connection = await pool.getConnection();
@@ -313,6 +319,12 @@ const editStudent = async (req, res) => {
         const normalizedEmail = email.trim();
         const normalizedPhoneNumber = phoneNumber.trim();
 
+        const normalizedRegistrationNo = registrationNo.trim();
+        const normalizedFirstName = firstName.trim();
+        const normalizedLastName = lastName.trim();
+        const normalizedEmail = email.trim();
+        const normalizedPhoneNumber = phoneNumber.trim();
+
 
         // Check student exists
         const existingStudent = await getStudentById(studentId);
@@ -344,6 +356,14 @@ const editStudent = async (req, res) => {
         });
 
     } catch (error) {
+
+        if (error.code === "ER_DUP_ENTRY") {
+            const isEmail = error.message && error.message.toLowerCase().includes("email");
+            return res.status(409).json({
+                success: false,
+                message: isEmail ? "Email address is already registered" : "Registration number is already registered"
+            });
+        }
 
         console.error("Update student error:", error);
 
