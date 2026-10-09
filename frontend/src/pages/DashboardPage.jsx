@@ -10,6 +10,7 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/dashboard.css";
 
@@ -270,6 +271,7 @@ function DashboardPage() {
 
 
                 <div className="dashboard-header-actions">
+                    <ThemeToggle />
 
                     <div className="admin-info">
                         <strong>

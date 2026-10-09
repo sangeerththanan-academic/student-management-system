@@ -7,6 +7,7 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/studentDashboard.css";
 
@@ -69,6 +70,7 @@ function StudentDashboardPage() {
                 </div>
 
                 <div className="student-header-actions">
+                    <ThemeToggle />
                     <span className="role-badge">STUDENT</span>
                     <button
                         className="logout-button"
