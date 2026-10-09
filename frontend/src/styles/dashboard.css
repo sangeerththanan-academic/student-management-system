@@ -317,6 +317,57 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* ── CR-016: Password visibility toggle ── */
+.student-form .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.student-form .password-input-wrapper input {
+    width: 100%;
+    padding-right: 42px;
+}
+
+.student-form .password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    line-height: 1;
+}
+
+.student-form .password-toggle-btn:hover:not(:disabled) {
+    color: #1e293b;
+    background-color: #f1f5f9;
+}
+
+.student-form .password-toggle-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+
+.student-form .password-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.student-form .password-toggle-btn .eye-icon {
+    display: block;
+    pointer-events: none;
+}
+
 /* ── CR-004: Inline field validation ── */
 
 .student-form .form-group.field-error input {

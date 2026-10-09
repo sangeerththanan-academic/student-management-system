@@ -235,6 +235,60 @@
 }
 
 /* =========================================================
+   Password Visibility Toggle (CR-016)
+   ========================================================= */
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 44px;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    line-height: 1;
+}
+
+.password-toggle-btn:hover:not(:disabled) {
+    color: #1e293b;
+    background-color: #f1f5f9;
+}
+
+.password-toggle-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+
+.password-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.password-toggle-btn .eye-icon {
+    display: block;
+    pointer-events: none;
+}
+
+/* =========================================================
    Submit Button
    ========================================================= */
 
