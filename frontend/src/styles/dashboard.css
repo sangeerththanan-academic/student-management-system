@@ -713,3 +713,181 @@
         max-height: 95vh;
     }
 }
+
+
+
+
+/* Fix header alignment and theme toggle overlap */
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dashboard-header-actions .theme-toggle {
+    position: static !important;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.dashboard-header-actions .logout-button {
+    position: static;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        align-items: flex-start;
+    }
+
+    .dashboard-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+}
+
+
+
+
+
+/* =========================================
+   FULL SCREEN DARK MODE
+   ========================================= */
+
+:root[data-theme="dark"],
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root {
+    min-height: 100%;
+    background: #0b1120;
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] body {
+    min-height: 100vh;
+}
+
+:root[data-theme="dark"] #root {
+    min-height: 100vh;
+}
+
+/* Entire dashboard */
+:root[data-theme="dark"] .dashboard-page {
+    min-height: 100vh;
+    background: #0b1120;
+    color: #e2e8f0;
+}
+
+/* Header */
+:root[data-theme="dark"] .dashboard-header {
+    background: #111827;
+    border-bottom-color: #334155;
+}
+
+:root[data-theme="dark"] .dashboard-header h1,
+:root[data-theme="dark"] .dashboard-header .admin-info strong,
+:root[data-theme="dark"] .students-heading h2 {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .dashboard-header p,
+:root[data-theme="dark"] .students-heading p {
+    color: #cbd5e1;
+}
+
+/* Main content */
+:root[data-theme="dark"] .dashboard-content {
+    background: transparent;
+}
+
+/* Cards and tables */
+:root[data-theme="dark"] .students-card,
+:root[data-theme="dark"] .student-form-card {
+    background: #172033;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-table th {
+    background: #263449;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .students-table td {
+    background: #172033;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-table td strong {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .students-table tbody tr:hover td {
+    background: #263449;
+}
+
+/* Search and form fields */
+:root[data-theme="dark"] .students-search-input,
+:root[data-theme="dark"] .student-form .form-group input {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .students-search-input::placeholder {
+    color: #94a3b8;
+}
+
+:root[data-theme="dark"] .student-form .form-group label,
+:root[data-theme="dark"] .form-card-header h3 {
+    color: #e2e8f0;
+}
+
+/* Empty and loading messages */
+:root[data-theme="dark"] .students-loading,
+:root[data-theme="dark"] .students-empty h3 {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .students-empty p,
+:root[data-theme="dark"] .students-result-count,
+:root[data-theme="dark"] .form-card-header p {
+    color: #cbd5e1;
+}
+
+/* Modal */
+:root[data-theme="dark"] .modal-content {
+    background: #172033;
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .close-form-button,
+:root[data-theme="dark"] .cancel-button,
+:root[data-theme="dark"] .students-search-clear {
+    background: #334155;
+    color: #f8fafc;
+}
+
+/* Smooth transition */
+body,
+#root,
+.dashboard-page,
+.dashboard-header,
+.students-card,
+.student-form-card {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}

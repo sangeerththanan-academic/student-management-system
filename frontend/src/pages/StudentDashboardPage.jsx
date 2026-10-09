@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
 
 import {
     getStoredUser,
@@ -61,23 +62,26 @@ function StudentDashboardPage() {
     return (
         <div className="student-dashboard-page">
 
-            {/* Header */}
-            <header className="student-dashboard-header">
-                <div>
-                    <h1>Student Portal</h1>
-                    <p>Welcome, {user?.username}</p>
-                </div>
+<header className="student-dashboard-header">
+    <div>
+        <h1>Student Portal</h1>
+        <p>Welcome, {user?.username}</p>
+    </div>
 
-                <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
-                    <button
-                        className="logout-button"
-                        onClick={handleLogout}
-                    >
-                        Logout
-                    </button>
-                </div>
-            </header>
+    <div className="student-header-actions">
+        <span className="role-badge">STUDENT</span>
+
+        <button
+            type="button"
+            className="logout-button"
+            onClick={handleLogout}
+        >
+            Logout
+        </button>
+
+        <ThemeToggle />
+    </div>
+</header>
 
             {/* Main Content */}
             <main className="student-dashboard-main">
