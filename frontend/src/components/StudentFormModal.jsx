@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 
 import apiRequest from "../services/api";
 
+const registrationNumberPattern = /^[A-Za-z0-9]{3,50}$/;
+const namePattern = /^[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordSpecialCharacterPattern = /[^A-Za-z0-9\s]/;
+
 function StudentFormModal({
     show,
     editingStudent,
@@ -71,21 +76,62 @@ function StudentFormModal({
 
         setFormError("");
 
+        const registrationNo = formData.registrationNo.trim();
+        const firstName = formData.firstName.trim();
+        const lastName = formData.lastName.trim();
+        const email = formData.email.trim();
+        const phoneNumber = formData.phoneNumber.trim();
+
         if (
-            !formData.registrationNo.trim() ||
-            !formData.firstName.trim() ||
-            !formData.lastName.trim() ||
-            !formData.email.trim() ||
-            !formData.phoneNumber.trim()
+            !registrationNo ||
+            !firstName ||
+            !lastName ||
+            !email ||
+            !phoneNumber
         ) {
             setFormError("All student fields are required.");
             return;
         }
 
-        // Password is required only when creating
-        if (!editingStudent && !formData.password) {
-            setFormError("Password is required for a new student.");
+        if (!registrationNumberPattern.test(registrationNo)) {
+            setFormError("Registration number must be 3-50 letters or numbers, with no spaces or special characters.");
             return;
+        }
+
+        if (firstName.length < 3 || firstName.length > 100 || !namePattern.test(firstName)) {
+            setFormError("First name must contain at least 3 characters and use only letters, spaces, hyphens, or apostrophes.");
+            return;
+        }
+
+        if (lastName.length < 3 || lastName.length > 100 || !namePattern.test(lastName)) {
+            setFormError("Last name must contain at least 3 characters and use only letters, spaces, hyphens, or apostrophes.");
+            return;
+        }
+
+        if (!emailPattern.test(email) || email.length > 150) {
+            setFormError("Enter a valid email address (maximum 150 characters).");
+            return;
+        }
+
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            setFormError("Phone number must contain exactly 10 digits.");
+            return;
+        }
+
+        // Password is required only when creating
+        if (!editingStudent) {
+            const password = formData.password;
+
+            if (
+                password.length < 8 ||
+                !/[A-Z]/.test(password) ||
+                !/[a-z]/.test(password) ||
+                !/\d/.test(password) ||
+                !passwordSpecialCharacterPattern.test(password)
+            ) {
+                setFormError("Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.");
+                return;
+            }
         }
 
         try {
@@ -97,11 +143,11 @@ function StudentFormModal({
                     {
                         method: "PUT",
                         body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim()
+                            registrationNo,
+                            firstName,
+                            lastName,
+                            email,
+                            phoneNumber
                         })
                     }
                 );
@@ -111,11 +157,11 @@ function StudentFormModal({
                     {
                         method: "POST",
                         body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim(),
+                            registrationNo,
+                            firstName,
+                            lastName,
+                            email,
+                            phoneNumber,
                             password: formData.password
                         })
                     }
@@ -196,6 +242,7 @@ function StudentFormModal({
             <form
                 className="student-form"
                 onSubmit={handleSubmit}
+                noValidate
             >
 
                 <div className="form-group">
@@ -209,6 +256,9 @@ function StudentFormModal({
                         value={formData.registrationNo}
                         onChange={handleInputChange}
                         disabled={formLoading}
+                        minLength={3}
+                        maxLength={50}
+                        pattern="[A-Za-z0-9]{3,50}"
                         required
                     />
                 </div>
@@ -225,6 +275,8 @@ function StudentFormModal({
                         value={formData.firstName}
                         onChange={handleInputChange}
                         disabled={formLoading}
+                        minLength={3}
+                        maxLength={100}
                         required
                     />
                 </div>
@@ -241,6 +293,8 @@ function StudentFormModal({
                         value={formData.lastName}
                         onChange={handleInputChange}
                         disabled={formLoading}
+                        minLength={3}
+                        maxLength={100}
                         required
                     />
                 </div>
@@ -257,6 +311,7 @@ function StudentFormModal({
                         value={formData.email}
                         onChange={handleInputChange}
                         disabled={formLoading}
+                        maxLength={150}
                         required
                     />
                 </div>
@@ -268,11 +323,13 @@ function StudentFormModal({
                     </label>
 
                     <input
-                        type="text"
+                        type="tel"
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleInputChange}
                         disabled={formLoading}
+                        inputMode="numeric"
+                        maxLength={10}
                         required
                     />
                 </div>
@@ -290,6 +347,7 @@ function StudentFormModal({
                             value={formData.password}
                             onChange={handleInputChange}
                             disabled={formLoading}
+                            minLength={8}
                             required
                         />
                     </div>

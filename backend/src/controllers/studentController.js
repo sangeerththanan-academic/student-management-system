@@ -11,6 +11,59 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
+const registrationNumberPattern = /^[A-Za-z0-9]{3,50}$/;
+const namePattern = /^[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordSpecialCharacterPattern = /[^A-Za-z0-9\s]/;
+
+const validateStudentFields = ({
+    registrationNo,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    password
+}, requirePassword = false) => {
+    const fields = [registrationNo, firstName, lastName, email, phoneNumber];
+
+    if (fields.some((value) => typeof value !== "string" || !value.trim())) {
+        return "All student fields are required.";
+    }
+
+    if (!registrationNumberPattern.test(registrationNo.trim())) {
+        return "Registration number must be 3-50 letters or numbers, with no spaces or special characters.";
+    }
+
+    if (firstName.trim().length < 3 || firstName.trim().length > 100 || !namePattern.test(firstName.trim())) {
+        return "First name must contain at least 3 characters and use only letters, spaces, hyphens, or apostrophes.";
+    }
+
+    if (lastName.trim().length < 3 || lastName.trim().length > 100 || !namePattern.test(lastName.trim())) {
+        return "Last name must contain at least 3 characters and use only letters, spaces, hyphens, or apostrophes.";
+    }
+
+    if (email.trim().length > 150 || !emailPattern.test(email.trim())) {
+        return "Enter a valid email address (maximum 150 characters).";
+    }
+
+    if (!/^\d{10}$/.test(phoneNumber.trim())) {
+        return "Phone number must contain exactly 10 digits.";
+    }
+
+    if (requirePassword && (
+        typeof password !== "string" ||
+        password.length < 8 ||
+        !/[A-Z]/.test(password) ||
+        !/[a-z]/.test(password) ||
+        !/\d/.test(password) ||
+        !passwordSpecialCharacterPattern.test(password)
+    )) {
+        return "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.";
+    }
+
+    return null;
+};
+
 
 // CREATE STUDENT
 const addStudent = async (req, res) => {
@@ -28,21 +81,19 @@ const addStudent = async (req, res) => {
 
     try {
 
-        // Validate required fields
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber ||
-            !password
-        ) {
-
+        const validationError = validateStudentFields(req.body, true);
+        if (validationError) {
             return res.status(400).json({
                 success: false,
-                message: "All student fields and password are required"
+                message: validationError
             });
         }
+
+        const normalizedRegistrationNo = registrationNo.trim();
+        const normalizedFirstName = firstName.trim();
+        const normalizedLastName = lastName.trim();
+        const normalizedEmail = email.trim();
+        const normalizedPhoneNumber = phoneNumber.trim();
 
 
         // Get database connection
@@ -59,7 +110,7 @@ const addStudent = async (req, res) => {
              FROM users
              WHERE username = ?
              LIMIT 1`,
-            [registrationNo]
+            [normalizedRegistrationNo]
         );
 
         if (existingUser.length > 0) {
@@ -79,7 +130,7 @@ const addStudent = async (req, res) => {
              FROM students
              WHERE email = ?
              LIMIT 1`,
-            [email]
+            [normalizedEmail]
         );
 
         if (existingStudent.length > 0) {
@@ -107,7 +158,7 @@ const addStudent = async (req, res) => {
             )
             VALUES (?, ?, 'STUDENT')`,
             [
-                registrationNo,
+                normalizedRegistrationNo,
                 passwordHash
             ]
         );
@@ -119,11 +170,11 @@ const addStudent = async (req, res) => {
         const studentId = await createStudent(
             connection,
             userId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
+            normalizedRegistrationNo,
+            normalizedFirstName,
+            normalizedLastName,
+            normalizedEmail,
+            normalizedPhoneNumber
         );
 
 
@@ -138,11 +189,11 @@ const addStudent = async (req, res) => {
             student: {
                 studentId,
                 userId,
-                registrationNo,
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
+                registrationNo: normalizedRegistrationNo,
+                firstName: normalizedFirstName,
+                lastName: normalizedLastName,
+                email: normalizedEmail,
+                phoneNumber: normalizedPhoneNumber,
                 role: "STUDENT"
             }
         });
@@ -248,20 +299,19 @@ const editStudent = async (req, res) => {
         } = req.body;
 
 
-        // Validate input
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber
-        ) {
-
+        const validationError = validateStudentFields(req.body);
+        if (validationError) {
             return res.status(400).json({
                 success: false,
-                message: "All student fields are required"
+                message: validationError
             });
         }
+
+        const normalizedRegistrationNo = registrationNo.trim();
+        const normalizedFirstName = firstName.trim();
+        const normalizedLastName = lastName.trim();
+        const normalizedEmail = email.trim();
+        const normalizedPhoneNumber = phoneNumber.trim();
 
 
         // Check student exists
@@ -279,11 +329,11 @@ const editStudent = async (req, res) => {
         // Update student
         const result = await updateStudent(
             studentId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
+            normalizedRegistrationNo,
+            normalizedFirstName,
+            normalizedLastName,
+            normalizedEmail,
+            normalizedPhoneNumber
         );
 
 
