@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PasswordInput from "./PasswordInput";
 
 function LoginFormSection({ onSubmit, loading, error }) {
 
@@ -72,9 +73,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             Password
                         </label>
 
-                        <input
+                        <PasswordInput
                             id="password"
-                            type="password"
+                            name="password"
                             value={password}
                             onChange={(event) =>
                                 setPassword(event.target.value)

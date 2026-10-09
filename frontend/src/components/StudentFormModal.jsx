@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-
 import apiRequest from "../services/api";
+import PasswordInput from "./PasswordInput";
 
 // CR-004 validation rules
 const REGISTRATION_NO_REGEX = /^REG\d+$/;
@@ -529,17 +529,17 @@ function StudentFormModal({
                     {/* Password - Add only */}
                     {!editingStudent && (
                         <div className="form-group">
-
                             <label htmlFor="password">
                                 Password
                             </label>
 
-                            <input
+                            <PasswordInput
                                 id="password"
-                                type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
+                                placeholder="Enter password"
+                                autoComplete="new-password"
                                 disabled={formLoading}
                                 required
                             />
@@ -549,7 +549,6 @@ function StudentFormModal({
                                     {fieldErrors.password}
                                 </span>
                             )}
-
                         </div>
                     )}
 
