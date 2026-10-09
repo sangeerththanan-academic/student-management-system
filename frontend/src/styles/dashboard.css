@@ -317,6 +317,46 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.student-form .password-input-wrapper {
+    position: relative;
+}
+
+.student-form .password-input-wrapper input {
+    padding-right: 46px;
+}
+
+.student-form .password-visibility-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+    padding: 0;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: transparent;
+    color: #64748b;
+
+    transform: translateY(-50%);
+}
+
+.student-form .password-visibility-toggle:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.student-form .password-visibility-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+
 /* ── CR-004: Inline field validation ── */
 
 .student-form .form-group.field-error input {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import apiRequest from "../services/api";
 
@@ -28,6 +29,7 @@ function StudentFormModal({
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const [touched, setTouched] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -56,6 +58,7 @@ function StudentFormModal({
         setFormError("");
         setFieldErrors({});
         setTouched({});
+        setShowPassword(false);
     }, [editingStudent, show]);
 
 
@@ -455,19 +458,36 @@ function StudentFormModal({
 
                 {!editingStudent && (
                     <div className="form-group">
-                        <label>
+                        <label htmlFor="sf-password">
                             Password
                         </label>
 
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            minLength={8}
-                            required
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                id="sf-password"
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                disabled={formLoading}
+                                autoComplete="new-password"
+                                minLength={8}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-visibility-toggle"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-pressed={showPassword}
+                                onClick={() => setShowPassword((visible) => !visible)}
+                                disabled={formLoading}
+                            >
+                                {showPassword
+                                    ? <EyeOff size={18} aria-hidden="true" />
+                                    : <Eye size={18} aria-hidden="true" />
+                                }
+                            </button>
+                        </div>
                     </div>
                 )}
 
