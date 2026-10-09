@@ -388,3 +388,50 @@
     width: 100%;
     padding-right: 50px;
 }
+
+/* CR-012: Login page dark mode */
+
+:root[data-theme="dark"] .login-page {
+    background: var(--bg-primary);
+}
+
+:root[data-theme="dark"] .login-form-section {
+    background: var(--bg-primary);
+}
+
+:root[data-theme="dark"] .login-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    box-shadow: 0 15px 40px var(--shadow-color);
+}
+
+:root[data-theme="dark"] .login-heading h2 {
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .login-heading p {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .form-group label {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .form-group input {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .form-group input::placeholder {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .password-toggle-button {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .password-toggle-button:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+}

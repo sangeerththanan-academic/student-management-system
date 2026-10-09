@@ -183,3 +183,36 @@
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+/* CR-012: Student dashboard dark mode */
+
+:root[data-theme="dark"] .student-dashboard-page {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .student-dashboard-header {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .student-dashboard-header h1,
+:root[data-theme="dark"] .section-title,
+:root[data-theme="dark"] .detail-value {
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .student-dashboard-header p,
+:root[data-theme="dark"] .detail-label,
+:root[data-theme="dark"] .student-loading {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .profile-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .detail-row {
+    border-color: var(--border-color);
+}

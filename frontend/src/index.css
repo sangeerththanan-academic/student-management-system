@@ -9,3 +9,229 @@ body,
 body {
     margin: 0;
 }
+
+/* ========================================
+   CR-012: Global Theme Variables
+======================================== */
+
+:root,
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --input-text: #0f172a;
+
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+
+    --table-header-bg: #f1f5f9;
+    --hover-bg: #eaf0f8;
+
+    --shadow-color: rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+
+    --border-color: #475569;
+    --input-bg: #1e293b;
+    --input-text: #f8fafc;
+
+    --primary-color: #60a5fa;
+    --primary-hover: #93c5fd;
+
+    --table-header-bg: #334155;
+    --hover-bg: #334155;
+
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Global page styles */
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.page {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+label {
+    color: inherit;
+}
+
+/* Common cards and containers */
+
+.card,
+.login-card,
+.dashboard-card,
+.stat-card,
+.form-card,
+.table-container,
+.modal-content {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+/* Navbar */
+
+.navbar {
+    background: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+.logo {
+    color: var(--text-primary);
+}
+
+.nav-link {
+    color: var(--text-secondary);
+}
+
+.nav-link:hover,
+.logo:hover {
+    color: var(--primary-color);
+}
+
+/* Inputs */
+
+input,
+textarea,
+select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--border-color);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+/* Tables */
+
+table {
+    color: var(--text-primary);
+}
+
+thead,
+th {
+    background-color: var(--table-header-bg);
+    color: var(--text-primary);
+}
+
+td {
+    border-color: var(--border-color);
+}
+
+tbody tr:hover {
+    background-color: var(--hover-bg);
+}
+
+/* Theme toggle button */
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+/* Smooth theme transition */
+
+.navbar,
+.card,
+.login-card,
+.dashboard-card,
+.stat-card,
+.form-card,
+.table-container,
+.modal-content,
+input,
+textarea,
+select,
+table,
+th,
+td {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+/* Responsive navbar */
+
+@media (max-width: 600px) {
+    .navbar-container {
+        flex-wrap: wrap;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        gap: 12px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .theme-toggle {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+}

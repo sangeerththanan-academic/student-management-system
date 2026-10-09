@@ -182,3 +182,11 @@ button,
         color 0.2s ease,
         transform 0.2s ease;
 }
+
+:root[data-theme="dark"] .logo {
+    color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] .navbar .logo:hover {
+    color: #60a5fa !important;
+}

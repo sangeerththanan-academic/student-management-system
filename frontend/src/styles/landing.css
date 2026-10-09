@@ -436,3 +436,30 @@
         font-size: 28px;
     }
 }
+
+/* CR-012: Home page dark mode */
+
+:root[data-theme="dark"] .landing-page,
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .landing-content,
+:root[data-theme="dark"] .features-section,
+:root[data-theme="dark"] .about-section,
+:root[data-theme="dark"] .home-section {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .feature-card,
+:root[data-theme="dark"] .landing-card,
+:root[data-theme="dark"] .hero-card {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .landing-page h1,
+:root[data-theme="dark"] .landing-page h2,
+:root[data-theme="dark"] .landing-page h3,
+:root[data-theme="dark"] .landing-page p {
+    color: var(--text-primary);
+}

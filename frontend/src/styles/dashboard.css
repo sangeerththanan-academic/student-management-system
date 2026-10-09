@@ -713,3 +713,126 @@
         max-height: 95vh;
     }
 }
+
+/* =========================================================
+CR-012: Admin Dashboard Dark / Light Mode
+========================================================= */
+
+/* Dashboard background */
+.dashboard-page {
+background: var(--bg-primary);
+color: var(--text-primary);
+transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dashboard header */
+.dashboard-header {
+background: var(--bg-secondary);
+border-color: var(--border-color);
+}
+
+.dashboard-header h1,
+.students-heading h2,
+.form-card-header h3,
+.students-empty h3,
+.students-table td strong {
+color: var(--text-primary);
+}
+
+.dashboard-header p,
+.students-heading p,
+.admin-info strong,
+.form-card-header p,
+.students-loading,
+.students-empty p,
+.students-result-count {
+color: var(--text-secondary);
+}
+
+/* Cards and modal */
+.student-form-card,
+.students-card,
+.modal-content {
+background: var(--bg-secondary);
+color: var(--text-primary);
+border-color: var(--border-color);
+}
+
+/* Form labels */
+.student-form .form-group label {
+color: var(--text-secondary);
+}
+
+/* Inputs */
+.student-form .form-group input,
+.students-search-input {
+background: var(--input-bg);
+color: var(--input-text);
+border-color: var(--border-color);
+}
+
+.student-form .form-group input::placeholder,
+.students-search-input::placeholder {
+color: var(--text-secondary);
+}
+
+/* Close, cancel and search-clear buttons */
+.close-form-button,
+.cancel-button,
+.students-search-clear {
+background: var(--bg-tertiary);
+color: var(--text-primary);
+}
+
+.close-form-button:hover,
+.cancel-button:hover,
+.students-search-clear:hover {
+background: var(--hover-bg);
+}
+
+/* Table */
+.students-table th {
+background: var(--table-header-bg);
+color: var(--text-secondary);
+border-color: var(--border-color);
+}
+
+.students-table td {
+color: var(--text-secondary);
+border-color: var(--border-color);
+}
+
+.students-table tbody tr:hover {
+background: var(--hover-bg);
+}
+
+/* Supporting text */
+.field-hint {
+color: var(--text-secondary);
+}
+
+/* Dark mode: make all dashboard text readable */
+:root .dashboard-page h1,
+:root .dashboard-page h2,
+:root .dashboard-page h3,
+:root .dashboard-page h4,
+:root .dashboard-page p,
+:root .dashboard-page span,
+:root .dashboard-page label,
+:root .dashboard-page td,
+:root .dashboard-page th,
+:root .dashboard-page strong {
+color: var(--text-primary);
+}
+
+/* Dark mode: secondary text */
+:root .dashboard-page .dashboard-header p,
+:root .dashboard-page .students-heading p,
+:root .dashboard-page .admin-info span,
+:root .dashboard-page .students-result-count,
+:root .dashboard-page .students-loading,
+:root .dashboard-page .students-empty p,
+:root .dashboard-page .form-card-header p,
+:root .dashboard-page .field-hint {
+color: var(--text-secondary);
+}
