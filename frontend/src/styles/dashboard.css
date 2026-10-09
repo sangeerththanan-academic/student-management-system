@@ -681,3 +681,122 @@
         max-height: 95vh;
     }
 }
+.dashboard-page {
+    background: var(--page-bg, #f8fafc);
+    color: var(--text-primary, #0f172a);
+}
+
+.dashboard-header,
+.dashboard-content {
+    color: var(--text-primary, #0f172a);
+}
+
+.dashboard-header {
+    background: var(--surface-bg, #ffffff);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+.dashboard-header h1,
+.dashboard-header .admin-info strong,
+.students-heading h2,
+.students-empty h3,
+.students-table td strong,
+.form-card-header h3 {
+    color: var(--text-primary, #0f172a);
+}
+
+.dashboard-header p,
+.students-heading p,
+.students-result-count,
+.students-loading,
+.students-empty p,
+.form-card-header p {
+    color: var(--text-secondary, #64748b);
+}
+
+.students-card,
+.student-form-card,
+.modal-content {
+    background: var(--surface-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+.students-search-input,
+.student-form .form-group input {
+    background: var(--input-bg, #ffffff);
+    color: var(--input-text, #0f172a);
+    border-color: var(--border-color, #cbd5e1);
+}
+
+.student-form .form-group label {
+    color: var(--text-primary, #334155);
+}
+
+.students-table th {
+    background: var(--surface-secondary, #f8fafc);
+    color: var(--text-secondary, #64748b);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+.students-table td {
+    color: var(--text-secondary, #475569);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+.students-table tbody tr:hover {
+    background: var(--surface-secondary, #f8fafc);
+}
+
+.students-search-clear,
+.cancel-button,
+.close-form-button {
+    background: var(--surface-secondary, #f1f5f9);
+    color: var(--text-primary, #475569);
+}
+
+.students-search-clear:hover,
+.cancel-button:hover,
+.close-form-button:hover {
+    filter: brightness(0.95);
+}
+
+.student-form .form-group input::placeholder,
+.students-search-input::placeholder {
+    color: var(--text-secondary, #64748b);
+    opacity: 0.8;
+}
+
+/* Modal must also follow the Admin theme */
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.modal-content {
+    border-radius: 14px;
+}
+
+html[data-theme="dark"] .dashboard-error {
+    background: #451a1a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
+html[data-theme="dark"] .field-error {
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .logout-button {
+    background: #451a1a;
+    color: #fecaca;
+}
+
+html[data-theme="dark"] .edit-button {
+    background: #1e3a8a;
+    color: #dbeafe;
+}
+
+html[data-theme="dark"] .delete-button {
+    background: #451a1a;
+    color: #fecaca;
+}

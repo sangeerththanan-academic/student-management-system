@@ -6,9 +6,13 @@ import "../styles/login.css";
 
 import LoginInfo from "../components/LoginInfo";
 import LoginFormSection from "../components/LoginFormSection";
+import ThemeToggle from "../components/ThemeToggle";
+import { useApplySectionTheme } from "../context/ThemeContext";
 
 function LoginPage() {
     const navigate = useNavigate();
+
+    useApplySectionTheme("login");
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -31,7 +35,6 @@ function LoginPage() {
             } else {
                 navigate("/student-dashboard", { replace: true });
             }
-
         } catch (error) {
             setError(
                 error.message || "Login failed. Please try again."
@@ -48,12 +51,14 @@ function LoginPage() {
     return (
         <div className="login-page">
 
+            <div className="login-theme-toggle">
+                <ThemeToggle section="login" />
+            </div>
+
             <div className="login-container">
 
-                {/* Information Side */}
                 <LoginInfo onBack={handleBack} />
 
-                {/* Form Side */}
                 <LoginFormSection
                     onSubmit={handleLogin}
                     loading={loading}
@@ -61,7 +66,6 @@ function LoginPage() {
                 />
 
             </div>
-
         </div>
     );
 }

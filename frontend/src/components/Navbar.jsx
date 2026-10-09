@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
+import ThemeToggle from "./ThemeToggle";
 
-function Navbar() {
+function Navbar({ section = "login" }) {
     return (
         <nav className="navbar">
-
             <div className="navbar-container">
 
                 <Link to="/" className="logo">
@@ -20,10 +20,10 @@ function Navbar() {
                         Login
                     </Link>
 
+                    <ThemeToggle section={section} />
+
                 </div>
-
             </div>
-
         </nav>
     );
 }

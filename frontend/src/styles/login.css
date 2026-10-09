@@ -415,3 +415,56 @@
 
     pointer-events: none;
 }
+.login-page {
+    background: var(--page-bg, #f8fafc);
+    color: var(--text-primary, #0f172a);
+}
+
+.login-form-section {
+    background: var(--page-bg, #f8fafc);
+}
+
+.login-card {
+    background: var(--surface-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    border-color: var(--border-color, #e2e8f0);
+}
+
+.login-heading h2 {
+    color: var(--text-primary, #0f172a);
+}
+
+.login-heading p,
+.login-heading > span {
+    color: var(--text-secondary, #64748b);
+}
+
+.login-form .form-group label {
+    color: var(--text-primary, #334155);
+}
+
+.login-form .form-group input {
+    background: var(--input-bg, #ffffff);
+    color: var(--input-text, #0f172a);
+    border-color: var(--border-color, #cbd5e1);
+}
+
+.login-form .form-group input::placeholder {
+    color: var(--text-secondary, #94a3b8);
+}
+
+html[data-theme="dark"] .login-error {
+    background: #451a1a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
+/* Keep the blue login information panel readable */
+.login-info {
+    color: #ffffff;
+}
+
+.login-info-content h1,
+.login-info-content p {
+    color: #ffffff;
+}

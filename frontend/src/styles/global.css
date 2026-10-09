@@ -182,3 +182,214 @@ button,
         color 0.2s ease,
         transform 0.2s ease;
 }
+:root,
+html[data-theme="light"] {
+    color-scheme: light;
+
+    --page-bg: #f8fafc;
+    --surface-bg: #ffffff;
+    --surface-secondary: #f1f5f9;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+
+    --border-color: #e2e8f0;
+
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-text: #ffffff;
+
+    --input-bg: #ffffff;
+    --input-text: #0f172a;
+    --input-border: #cbd5e1;
+
+    --table-header-bg: #f1f5f9;
+    --table-row-hover: #f8fafc;
+
+    --shadow-color: rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+
+    --page-bg: #0f172a;
+    --surface-bg: #1e293b;
+    --surface-secondary: #334155;
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+
+    --border-color: #475569;
+
+    --primary-color: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-text: #ffffff;
+
+    --input-bg: #1e293b;
+    --input-text: #f8fafc;
+    --input-border: #64748b;
+
+    --table-header-bg: #334155;
+    --table-row-hover: #293548;
+
+    --shadow-color: rgba(0, 0, 0, 0.25);
+}
+
+
+/* =========================================================
+   Global theme application
+   ========================================================= */
+
+html,
+body,
+#root {
+    min-height: 100%;
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+}
+
+body {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.navbar,
+.dashboard-header,
+.student-dashboard-header,
+.students-card,
+.profile-card,
+.card,
+.panel,
+.modal-content {
+    background-color: var(--surface-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.navbar {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+    color: var(--text-primary);
+}
+
+.nav-link {
+    color: var(--text-secondary);
+}
+
+
+/* =========================================================
+   Theme toggle
+   ========================================================= */
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 9px 12px;
+
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+    border-color: var(--primary-color);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 3px;
+}
+
+.login-theme-toggle {
+    display: flex;
+    justify-content: flex-end;
+
+    width: 90%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+    padding-top: 16px;
+}
+
+
+/* =========================================================
+   Shared inputs
+   ========================================================= */
+
+input,
+textarea,
+select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.85;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline-color: var(--primary-color);
+}
+
+
+/* =========================================================
+   Shared tables
+   ========================================================= */
+
+table {
+    color: var(--text-primary);
+}
+
+th {
+    background-color: var(--table-header-bg);
+    color: var(--text-primary);
+}
+
+td,
+th {
+    border-color: var(--border-color);
+}
+
+tbody tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+
+/* =========================================================
+   Responsive theme toggle
+   ========================================================= */
+
+@media (max-width: 640px) {
+    .theme-toggle {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .login-theme-toggle {
+        width: 94%;
+    }
+}

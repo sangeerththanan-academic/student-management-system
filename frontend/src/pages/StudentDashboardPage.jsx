@@ -8,10 +8,16 @@ import {
 
 import apiRequest from "../services/api";
 
+import ThemeToggle from "../components/ThemeToggle";
+import { useApplySectionTheme } from "../context/ThemeContext";
+
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
+
+    // Apply the independent Student theme.
+    useApplySectionTheme("student");
 
     const [user, setUser] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
@@ -32,7 +38,6 @@ function StudentDashboardPage() {
                 if (data.student) {
                     setStudent(data.student);
                 }
-
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
@@ -61,7 +66,6 @@ function StudentDashboardPage() {
     return (
         <div className="student-dashboard-page">
 
-            {/* Header */}
             <header className="student-dashboard-header">
                 <div>
                     <h1>Student Portal</h1>
@@ -69,8 +73,16 @@ function StudentDashboardPage() {
                 </div>
 
                 <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
+
+                    {/* Student-only Dark/Light toggle */}
+                    <ThemeToggle section="student" />
+
+                    <span className="role-badge">
+                        STUDENT
+                    </span>
+
                     <button
+                        type="button"
                         className="logout-button"
                         onClick={handleLogout}
                     >
@@ -79,13 +91,12 @@ function StudentDashboardPage() {
                 </div>
             </header>
 
-            {/* Main Content */}
             <main className="student-dashboard-main">
 
                 <h2 className="section-title">My Profile</h2>
 
                 {error && (
-                    <div className="student-error">
+                    <div className="student-error" role="alert">
                         {error}
                     </div>
                 )}
@@ -102,9 +113,11 @@ function StudentDashboardPage() {
                                 {student.first_name?.charAt(0)}
                                 {student.last_name?.charAt(0)}
                             </div>
+
                             <div className="profile-name">
                                 <h3>
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </h3>
                                 <p>{student.registration_no}</p>
                             </div>
@@ -126,7 +139,8 @@ function StudentDashboardPage() {
                                     Full Name
                                 </span>
                                 <span className="detail-value">
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </span>
                             </div>
 
@@ -153,14 +167,15 @@ function StudentDashboardPage() {
                                     Member Since
                                 </span>
                                 <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
+                                    {student.created_at
+                                        ? new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()
+                                        : "Not available"}
                                 </span>
                             </div>
 
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -171,7 +186,6 @@ function StudentDashboardPage() {
                 )}
 
             </main>
-
         </div>
     );
 }
