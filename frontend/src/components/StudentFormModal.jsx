@@ -7,6 +7,7 @@ const REGISTRATION_NO_REGEX = /^REG\d+$/;
 const NAME_REGEX = /^[A-Za-z]{3,}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\d{10}$/;
+
 const PASSWORD_REGEX =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
@@ -25,7 +26,6 @@ const validateStudentForm = (
     const phoneNumber = (data.phoneNumber || "").trim();
     const password = data.password || "";
 
-
     // Registration number
     if (!registrationNo) {
         errors.registrationNo = "Registration number is required.";
@@ -33,7 +33,6 @@ const validateStudentForm = (
         errors.registrationNo =
             "Registration number must start with REG and contain numbers only after REG (e.g. REG001).";
     }
-
 
     // First name
     if (!firstName) {
@@ -43,7 +42,6 @@ const validateStudentForm = (
             "First name must be at least 3 letters and contain letters only.";
     }
 
-
     // Last name
     if (!lastName) {
         errors.lastName = "Last name is required.";
@@ -52,14 +50,12 @@ const validateStudentForm = (
             "Last name must be at least 3 letters and contain letters only.";
     }
 
-
     // Email
     if (!email) {
         errors.email = "Email is required.";
     } else if (!EMAIL_REGEX.test(email)) {
         errors.email = "Enter a valid email address.";
     }
-
 
     // Phone number
     if (!phoneNumber) {
@@ -68,8 +64,7 @@ const validateStudentForm = (
         errors.phoneNumber = "Phone number must be exactly 10 digits.";
     }
 
-
-    // Password - only required when creating a new student
+    // Password - required only when creating a new student
     if (requirePassword) {
         if (!password) {
             errors.password = "Password is required for a new student.";
@@ -78,7 +73,6 @@ const validateStudentForm = (
                 "Password must be at least 8 characters and include uppercase, lowercase, number and special character.";
         }
     }
-
 
     return errors;
 };
@@ -91,7 +85,6 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-
     const [formData, setFormData] = useState({
         registrationNo: "",
         firstName: "",
@@ -104,6 +97,9 @@ function StudentFormModal({
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+
+    // Password visibility toggle
+    const [showPassword, setShowPassword] = useState(false);
 
 
     // Reset form when modal opens or editing student changes
@@ -136,6 +132,9 @@ function StudentFormModal({
         setFieldErrors({});
         setFormLoading(false);
 
+        // Always hide password when opening/resetting the modal
+        setShowPassword(false);
+
     }, [editingStudent, show]);
 
 
@@ -145,22 +144,17 @@ function StudentFormModal({
 
         let newValue = value;
 
-
-        // Phone number:
-        // Allow numeric characters only.
-        // Do NOT silently truncate values beyond 10 digits.
+        // Allow numeric characters only for phone number
         if (name === "phoneNumber") {
             newValue = value.replace(/\D/g, "");
         }
-
 
         setFormData((previous) => ({
             ...previous,
             [name]: newValue
         }));
 
-
-        // Remove only the error belonging to the field being edited.
+        // Remove the error belonging to the edited field
         if (fieldErrors[name]) {
             setFieldErrors((previous) => ({
                 ...previous,
@@ -168,30 +162,28 @@ function StudentFormModal({
             }));
         }
 
-
-        // Remove the general form error when user starts correcting data.
+        // Clear general error while correcting data
         if (formError) {
             setFormError("");
         }
     };
 
 
-    // Close modal only when explicitly requested by the user
+    // Close modal only when explicitly requested
     const handleClose = () => {
-
-        // Do not allow closing while saving
         if (formLoading) {
             return;
         }
 
         setFormError("");
         setFieldErrors({});
+        setShowPassword(false);
 
         onClose();
     };
 
 
-    // Prevent backdrop click from closing the modal
+    // Prevent backdrop click from closing modal
     const handleModalContentClick = (event) => {
         event.stopPropagation();
     };
@@ -205,37 +197,26 @@ function StudentFormModal({
             return;
         }
 
-
-        // Clear previous general error
         setFormError("");
 
-
-        // Validate form before API request
+        // Validate before API request
         const errors = validateStudentForm(formData, {
             requirePassword: !editingStudent
         });
 
-
         setFieldErrors(errors);
 
-
-        // Stop submission if validation failed
         if (Object.keys(errors).length > 0) {
             setFormError(
                 "Please fix the highlighted errors before saving."
             );
-
             return;
         }
 
-
         try {
-
             setFormLoading(true);
 
-
             if (editingStudent) {
-
                 // EDIT STUDENT
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
@@ -259,9 +240,7 @@ function StudentFormModal({
                         })
                     }
                 );
-
             } else {
-
                 // ADD STUDENT
                 await apiRequest(
                     "/api/students/",
@@ -283,26 +262,20 @@ function StudentFormModal({
                             phoneNumber:
                                 formData.phoneNumber.trim(),
 
-                            password:
-                                formData.password
+                            password: formData.password
                         })
                     }
                 );
             }
 
-
-            // Only after successful API request:
-            // refresh student list
+            // Refresh student list after successful save
             onSuccess();
-
 
             // Close modal after successful save
             handleClose();
 
         } catch (error) {
-
             console.error("Student save error:", error);
-
 
             // Authentication error
             if (error.status === 401) {
@@ -310,16 +283,13 @@ function StudentFormModal({
                 return;
             }
 
-
             // Authorization error
             if (error.status === 403) {
                 setFormError(
                     "You do not have permission to modify students."
                 );
-
                 return;
             }
-
 
             // Backend validation / duplicate / other API error
             setFormError(
@@ -327,7 +297,6 @@ function StudentFormModal({
             );
 
         } finally {
-
             setFormLoading(false);
         }
     };
@@ -343,14 +312,11 @@ function StudentFormModal({
             className="modal-overlay"
             onClick={handleClose}
         >
-
             <div
                 className="modal-content student-form-card"
                 onClick={handleModalContentClick}
             >
-
                 <div className="form-card-header">
-
                     <div>
                         <h3>
                             {editingStudent
@@ -367,7 +333,6 @@ function StudentFormModal({
                         </p>
                     </div>
 
-
                     <button
                         type="button"
                         className="close-form-button"
@@ -377,12 +342,14 @@ function StudentFormModal({
                     >
                         ×
                     </button>
-
                 </div>
 
 
                 {formError && (
-                    <div className="dashboard-error">
+                    <div
+                        className="dashboard-error"
+                        role="alert"
+                    >
                         {formError}
                     </div>
                 )}
@@ -393,10 +360,8 @@ function StudentFormModal({
                     onSubmit={handleSubmit}
                     noValidate
                 >
-
                     {/* Registration Number */}
                     <div className="form-group">
-
                         <label htmlFor="registrationNo">
                             Registration Number
                         </label>
@@ -416,13 +381,11 @@ function StudentFormModal({
                                 {fieldErrors.registrationNo}
                             </span>
                         )}
-
                     </div>
 
 
                     {/* First Name */}
                     <div className="form-group">
-
                         <label htmlFor="firstName">
                             First Name
                         </label>
@@ -442,13 +405,11 @@ function StudentFormModal({
                                 {fieldErrors.firstName}
                             </span>
                         )}
-
                     </div>
 
 
                     {/* Last Name */}
                     <div className="form-group">
-
                         <label htmlFor="lastName">
                             Last Name
                         </label>
@@ -468,13 +429,11 @@ function StudentFormModal({
                                 {fieldErrors.lastName}
                             </span>
                         )}
-
                     </div>
 
 
                     {/* Email */}
                     <div className="form-group">
-
                         <label htmlFor="email">
                             Email
                         </label>
@@ -494,13 +453,11 @@ function StudentFormModal({
                                 {fieldErrors.email}
                             </span>
                         )}
-
                     </div>
 
 
                     {/* Phone Number */}
                     <div className="form-group">
-
                         <label htmlFor="phoneNumber">
                             Phone Number
                         </label>
@@ -522,41 +479,104 @@ function StudentFormModal({
                                 {fieldErrors.phoneNumber}
                             </span>
                         )}
-
                     </div>
 
 
-                    {/* Password - Add only */}
+                    {/* Password - Add only, with Show / Hide Toggle */}
                     {!editingStudent && (
                         <div className="form-group">
-
                             <label htmlFor="password">
                                 Password
                             </label>
 
-                            <input
-                                id="password"
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                disabled={formLoading}
-                                required
-                            />
+                            <div className="password-input-wrapper">
+                                <input
+                                    id="password"
+                                    className="password-input"
+                                    type={
+                                        showPassword
+                                            ? "text"
+                                            : "password"
+                                    }
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    disabled={formLoading}
+                                    required
+                                    autoComplete="new-password"
+                                />
+
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() =>
+                                        setShowPassword(
+                                            (previous) => !previous
+                                        )
+                                    }
+                                    aria-label={
+                                        showPassword
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                    aria-pressed={showPassword}
+                                    disabled={formLoading}
+                                >
+                                    {showPassword ? (
+                                        // Eye-slash icon
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="22"
+                                            height="22"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M3 3l18 18" />
+                                            <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                                            <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.3 4.5 9 7a11.8 11.8 0 0 1-3 4.6" />
+                                            <path d="M6.6 6.6A12 12 0 0 0 3 12c.7 2.5 4 7 9 7 1.1 0 2.1-.2 3-.6" />
+                                        </svg>
+                                    ) : (
+                                        // Eye icon
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="22"
+                                            height="22"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+                                            <circle
+                                                cx="12"
+                                                cy="12"
+                                                r="3"
+                                            />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
 
                             {fieldErrors.password && (
                                 <span className="field-error">
                                     {fieldErrors.password}
                                 </span>
                             )}
-
                         </div>
                     )}
 
 
                     {/* Form Actions */}
                     <div className="form-actions">
-
                         <button
                             type="button"
                             className="cancel-button"
@@ -565,7 +585,6 @@ function StudentFormModal({
                         >
                             Cancel
                         </button>
-
 
                         <button
                             type="submit"
@@ -579,13 +598,9 @@ function StudentFormModal({
                                     : "Create Student"
                             }
                         </button>
-
                     </div>
-
                 </form>
-
             </div>
-
         </div>
     );
 }

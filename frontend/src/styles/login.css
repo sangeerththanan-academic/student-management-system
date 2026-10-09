@@ -323,3 +323,95 @@
         font-size: 25px;
     }
 }
+/* =========================================================
+   Password Visibility Toggle - CR-016
+   ========================================================= */
+
+.password-input-wrapper {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+}
+
+/* Password input spacing to prevent icon overlap */
+
+.password-input-wrapper .password-input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding-right: 50px;
+}
+
+/* Eye / Eye-slash toggle button */
+
+.password-toggle {
+    position: absolute;
+
+    top: 50%;
+    right: 10px;
+
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    padding: 5px;
+
+    border: none;
+    border-radius: 6px;
+
+    background: transparent;
+
+    color: #64748b;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+/* Hover effect */
+
+.password-toggle:hover:not(:disabled) {
+    color: #2563eb;
+
+    background: #eff6ff;
+}
+
+/* Keyboard focus indicator */
+
+.password-toggle:focus-visible {
+    outline: 2px solid #2563eb;
+
+    outline-offset: 2px;
+}
+
+/* Disabled state */
+
+.password-toggle:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+}
+
+/* Icon sizing */
+
+.password-toggle svg {
+    display: block;
+
+    width: 22px;
+    height: 22px;
+
+    flex-shrink: 0;
+
+    pointer-events: none;
+}
