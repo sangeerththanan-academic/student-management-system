@@ -5,7 +5,7 @@
 .dashboard-page {
     min-height: 100vh;
 
-    background: #f8fafc;
+    background: var(--bg-page);
 }
 
 
@@ -18,9 +18,9 @@
 
     padding: 18px 5%;
 
-    background: #ffffff;
+    background: var(--bg-card);
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
 
     display: flex;
 
@@ -31,7 +31,7 @@
 }
 
 .dashboard-header h1 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 22px;
 
@@ -39,7 +39,7 @@
 }
 
 .dashboard-header p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 13px;
 
@@ -63,13 +63,13 @@
 }
 
 .admin-info strong {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 14px;
 }
 
 .admin-info span {
-    color: #2563eb;
+    color: var(--primary);
 
     font-size: 11px;
     font-weight: 800;
@@ -80,8 +80,8 @@
 .logout-button {
     border: none;
 
-    background: #fee2e2;
-    color: #b91c1c;
+    background: var(--danger-bg);
+    color: var(--danger-text);
 
     padding: 10px 16px;
 
@@ -92,7 +92,7 @@
 }
 
 .logout-button:hover {
-    background: #fecaca;
+    background: var(--danger-bg-hover);
 }
 
 
@@ -121,7 +121,7 @@
 }
 
 .students-heading h2 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 30px;
 
@@ -129,7 +129,7 @@
 }
 
 .students-heading p {
-    color: #64748b;
+    color: var(--text-muted);
 
     margin: 0;
 
@@ -139,8 +139,8 @@
 .add-student-button {
     border: none;
 
-    background: #2563eb;
-    color: #ffffff;
+    background: var(--primary);
+    color: var(--on-primary);
 
     padding: 12px 18px;
 
@@ -151,7 +151,7 @@
 }
 
 .add-student-button:hover {
-    background: #1d4ed8;
+    background: var(--primary-hover);
 }
 
 
@@ -160,11 +160,11 @@
    ========================================================= */
 
 .dashboard-error {
-    background: #fef2f2;
+    background: var(--error-bg);
 
-    border: 1px solid #fecaca;
+    border: 1px solid var(--error-border);
 
-    color: #b91c1c;
+    color: var(--error-text);
 
     padding: 12px 15px;
 
@@ -184,7 +184,7 @@
     position: fixed;
     inset: 0;
 
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--overlay);
 
     display: flex;
     align-items: center;
@@ -211,14 +211,13 @@
    ========================================================= */
 
 .student-form-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
 
     padding: 25px;
 
-    box-shadow:
-        0 8px 25px rgba(15, 23, 42, 0.05);
+    box-shadow: var(--card-shadow-soft);
 }
 
 .form-card-header {
@@ -234,7 +233,7 @@
 }
 
 .form-card-header h3 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 20px;
 
@@ -242,7 +241,7 @@
 }
 
 .form-card-header p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 13px;
 
@@ -255,9 +254,9 @@
 
     border: none;
 
-    background: #f1f5f9;
+    background: var(--bg-muted);
 
-    color: #475569;
+    color: var(--text-secondary);
 
     border-radius: 7px;
 
@@ -267,7 +266,7 @@
 }
 
 .close-form-button:hover {
-    background: #e2e8f0;
+    background: var(--border-color);
 }
 
 .student-form {
@@ -288,7 +287,7 @@
 }
 
 .student-form .form-group label {
-    color: #334155;
+    color: var(--text-label);
 
     font-size: 13px;
     font-weight: 700;
@@ -299,26 +298,25 @@
 
     padding: 11px 12px;
 
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--input-border);
 
     border-radius: 7px;
 
     outline: none;
 
-    color: #0f172a;
+    color: var(--text-primary);
 
-    background: #ffffff;
+    background: var(--input-bg);
 }
 
 .student-form .form-group input:focus {
-    border-color: #2563eb;
+    border-color: var(--primary);
 
-    box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px var(--focus-ring-soft);
 }
 
 .field-error {
-    color: #b91c1c;
+    color: var(--error-text);
 
     font-size: 12px;
 
@@ -350,23 +348,23 @@
 }
 
 .cancel-button {
-    background: #f1f5f9;
+    background: var(--bg-muted);
 
-    color: #475569;
+    color: var(--text-secondary);
 }
 
 .cancel-button:hover {
-    background: #e2e8f0;
+    background: var(--border-color);
 }
 
 .save-button {
-    background: #2563eb;
+    background: var(--primary);
 
-    color: #ffffff;
+    color: var(--on-primary);
 }
 
 .save-button:hover {
-    background: #1d4ed8;
+    background: var(--primary-hover);
 }
 
 
@@ -375,9 +373,9 @@
    ========================================================= */
 
 .students-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
 
     border-radius: 14px;
 
@@ -392,19 +390,19 @@
 }
 
 .students-loading {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 14px;
 }
 
 .students-empty h3 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     margin: 0 0 5px;
 }
 
 .students-empty p {
-    color: #64748b;
+    color: var(--text-muted);
 
     margin: 0;
 
@@ -435,32 +433,35 @@
 
     padding: 11px 12px;
 
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--input-border);
 
     border-radius: 8px;
 
     outline: none;
 
-    color: #0f172a;
+    color: var(--text-primary);
 
-    background: #ffffff;
+    background: var(--input-bg);
 
     font-size: 14px;
 }
 
-.students-search-input:focus {
-    border-color: #2563eb;
+.students-search-input::placeholder {
+    color: var(--input-placeholder);
+}
 
-    box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
+.students-search-input:focus {
+    border-color: var(--primary);
+
+    box-shadow: 0 0 0 3px var(--focus-ring-soft);
 }
 
 .students-search-clear {
     border: none;
 
-    background: #f1f5f9;
+    background: var(--bg-muted);
 
-    color: #475569;
+    color: var(--text-secondary);
 
     padding: 11px 16px;
 
@@ -474,11 +475,11 @@
 }
 
 .students-search-clear:hover {
-    background: #e2e8f0;
+    background: var(--border-color);
 }
 
 .students-result-count {
-    color: #64748b;
+    color: var(--text-muted);
 
     margin: 0 0 15px;
 
@@ -505,9 +506,9 @@
 }
 
 .students-table th {
-    background: #f8fafc;
+    background: var(--bg-hover);
 
-    color: #64748b;
+    color: var(--text-muted);
 
     padding: 14px 18px;
 
@@ -520,17 +521,17 @@
 
     letter-spacing: 0.04em;
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .students-table td {
     padding: 16px 18px;
 
-    color: #475569;
+    color: var(--text-secondary);
 
     font-size: 14px;
 
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .students-table tbody tr:last-child td {
@@ -538,11 +539,11 @@
 }
 
 .students-table tbody tr:hover {
-    background: #f8fafc;
+    background: var(--bg-hover);
 }
 
 .students-table td strong {
-    color: #0f172a;
+    color: var(--text-primary);
 }
 
 
@@ -571,23 +572,23 @@
 }
 
 .edit-button {
-    background: #dbeafe;
+    background: var(--primary-soft);
 
-    color: #1d4ed8;
+    color: var(--primary-soft-text);
 }
 
 .edit-button:hover {
-    background: #bfdbfe;
+    background: var(--primary-soft-hover);
 }
 
 .delete-button {
-    background: #fee2e2;
+    background: var(--danger-bg);
 
-    color: #b91c1c;
+    color: var(--danger-text);
 }
 
 .delete-button:hover {
-    background: #fecaca;
+    background: var(--danger-bg-hover);
 }
 
 

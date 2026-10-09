@@ -1,0 +1,109 @@
+/* =========================================================
+   Theme tokens - light default, dark via [data-theme="dark"]
+   ========================================================= */
+
+:root {
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-muted: #f1f5f9;
+    --bg-hover: #f8fafc;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-label: #334155;
+
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-placeholder: #94a3b8;
+
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: #dbeafe;
+    --primary-soft-hover: #bfdbfe;
+    --primary-soft-text: #1d4ed8;
+    --primary-tint: #eff6ff;
+    --on-primary: #ffffff;
+
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --error-text: #b91c1c;
+
+    --danger-bg: #fee2e2;
+    --danger-bg-hover: #fecaca;
+    --danger-text: #b91c1c;
+    --danger-solid: #ef4444;
+    --danger-solid-hover: #dc2626;
+    --on-danger: #ffffff;
+
+    --hero-gradient: linear-gradient(
+        135deg,
+        #eff6ff 0%,
+        #ffffff 55%,
+        #dbeafe 100%
+    );
+    --card-shadow: 0 15px 40px rgba(15, 23, 42, 0.06);
+    --card-shadow-soft: 0 8px 25px rgba(15, 23, 42, 0.05);
+    --feature-hover-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+    --hero-card-shadow: 0 25px 60px rgba(37, 99, 235, 0.12);
+    --focus-ring: rgba(37, 99, 235, 0.12);
+    --focus-ring-soft: rgba(37, 99, 235, 0.1);
+    --overlay: rgba(15, 23, 42, 0.5);
+
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    --bg-page: #020617;
+    --bg-card: #0f172a;
+    --bg-muted: #1e293b;
+    --bg-hover: #1e293b;
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-label: #cbd5e1;
+
+    --border-color: #334155;
+    --border-light: #1e293b;
+    --input-bg: #020617;
+    --input-border: #475569;
+    --input-placeholder: #64748b;
+
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-soft: #1e3a8a;
+    --primary-soft-hover: #1e40af;
+    --primary-soft-text: #bfdbfe;
+    --primary-tint: #1e293b;
+    --on-primary: #ffffff;
+
+    --error-bg: rgba(127, 29, 29, 0.35);
+    --error-border: #7f1d1d;
+    --error-text: #fecaca;
+
+    --danger-bg: rgba(127, 29, 29, 0.45);
+    --danger-bg-hover: rgba(153, 27, 27, 0.6);
+    --danger-text: #fecaca;
+    --danger-solid: #dc2626;
+    --danger-solid-hover: #ef4444;
+    --on-danger: #ffffff;
+
+    --hero-gradient: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #020617 55%,
+        #1e3a8a 100%
+    );
+    --card-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+    --card-shadow-soft: 0 8px 25px rgba(0, 0, 0, 0.4);
+    --feature-hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
+    --hero-card-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    --focus-ring: rgba(59, 130, 246, 0.25);
+    --focus-ring-soft: rgba(59, 130, 246, 0.2);
+    --overlay: rgba(2, 6, 23, 0.7);
+
+    color-scheme: dark;
+}

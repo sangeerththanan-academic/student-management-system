@@ -8,7 +8,7 @@
     display: flex;
     flex-direction: column;
 
-    background: #ffffff;
+    background: var(--bg-card);
 }
 
 
@@ -17,13 +17,7 @@
    ========================================================= */
 
 .hero-section {
-    background:
-        linear-gradient(
-            135deg,
-            #eff6ff 0%,
-            #ffffff 55%,
-            #dbeafe 100%
-        );
+    background: var(--hero-gradient);
 
     padding: 100px 0;
 }
@@ -51,8 +45,8 @@
 
     padding: 7px 12px;
 
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: var(--primary-soft);
+    color: var(--primary-soft-text);
 
     border-radius: 999px;
 
@@ -63,7 +57,7 @@
 }
 
 .hero-content h1 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: clamp(42px, 6vw, 68px);
 
@@ -73,13 +67,13 @@
 }
 
 .hero-content h1 span {
-    color: #2563eb;
+    color: var(--primary);
 }
 
 .hero-content > p {
     max-width: 600px;
 
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 18px;
 
@@ -117,26 +111,26 @@
 }
 
 .primary-button {
-    background: #2563eb;
-    color: #ffffff;
+    background: var(--primary);
+    color: var(--on-primary);
 }
 
 .primary-button:hover {
-    background: #1d4ed8;
+    background: var(--primary-hover);
 
     transform: translateY(-2px);
 }
 
 .secondary-button {
-    background: #ffffff;
+    background: var(--bg-card);
 
-    color: #2563eb;
+    color: var(--primary);
 
-    border: 1px solid #bfdbfe;
+    border: 1px solid var(--primary-soft-hover);
 }
 
 .secondary-button:hover {
-    background: #eff6ff;
+    background: var(--primary-tint);
 
     transform: translateY(-2px);
 }
@@ -147,16 +141,15 @@
    ========================================================= */
 
 .hero-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
     padding: 40px;
 
     border-radius: 20px;
 
-    border: 1px solid #dbeafe;
+    border: 1px solid var(--border-color);
 
-    box-shadow:
-        0 25px 60px rgba(37, 99, 235, 0.12);
+    box-shadow: var(--hero-card-shadow);
 }
 
 .hero-card-icon {
@@ -167,9 +160,11 @@
     align-items: center;
     justify-content: center;
 
-    background: #eff6ff;
+    background: var(--primary-tint);
 
     border-radius: 18px;
+
+    color: var(--primary);
 
     font-size: 35px;
 
@@ -177,7 +172,7 @@
 }
 
 .hero-card h2 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 25px;
 
@@ -185,7 +180,7 @@
 }
 
 .hero-card > p {
-    color: #64748b;
+    color: var(--text-muted);
 
     line-height: 1.7;
 
@@ -202,11 +197,11 @@
 .hero-card-stats > div {
     padding: 15px;
 
-    background: #f8fafc;
+    background: var(--bg-hover);
 
     border-radius: 10px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
 }
 
 .hero-card-stats strong,
@@ -215,13 +210,13 @@
 }
 
 .hero-card-stats strong {
-    color: #2563eb;
+    color: var(--primary);
 
     margin-bottom: 3px;
 }
 
 .hero-card-stats span {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 13px;
 }
@@ -237,11 +232,11 @@
 }
 
 .about-section {
-    background: #ffffff;
+    background: var(--bg-card);
 }
 
 .features-section {
-    background: #f8fafc;
+    background: var(--bg-page);
 }
 
 .section-container {
@@ -262,7 +257,7 @@
 .section-label {
     display: inline-block;
 
-    color: #2563eb;
+    color: var(--primary);
 
     font-size: 13px;
     font-weight: 800;
@@ -275,7 +270,7 @@
 }
 
 .section-heading h2 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 36px;
 
@@ -285,7 +280,7 @@
 }
 
 .section-heading p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 16px;
 
@@ -309,11 +304,11 @@
 }
 
 .feature-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
     padding: 30px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
 
     border-radius: 14px;
 
@@ -325,8 +320,7 @@
 .feature-card:hover {
     transform: translateY(-4px);
 
-    box-shadow:
-        0 15px 35px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--feature-hover-shadow);
 }
 
 .feature-icon {
@@ -337,9 +331,11 @@
     align-items: center;
     justify-content: center;
 
-    background: #eff6ff;
+    background: var(--primary-tint);
 
     border-radius: 14px;
+
+    color: var(--primary);
 
     font-size: 26px;
 
@@ -347,7 +343,7 @@
 }
 
 .feature-card h3 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 19px;
 
@@ -355,7 +351,7 @@
 }
 
 .feature-card p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 14px;
 

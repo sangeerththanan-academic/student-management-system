@@ -10,6 +10,7 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/dashboard.css";
 
@@ -280,6 +281,8 @@ function DashboardPage() {
                             {user?.role}
                         </span>
                     </div>
+
+                    <ThemeToggle />
 
                     <button
                         onClick={handleLogout}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PasswordInput from "./PasswordInput";
+import ThemeToggle from "./ThemeToggle";
 
 function LoginFormSection({ onSubmit, loading, error }) {
 
@@ -13,6 +14,8 @@ function LoginFormSection({ onSubmit, loading, error }) {
 
     return (
         <section className="login-form-section">
+
+            <ThemeToggle />
 
             <div className="login-card">
 
