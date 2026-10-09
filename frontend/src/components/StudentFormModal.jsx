@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import apiRequest from "../services/api";
+import { LuEye, LuEyeClosed } from "react-icons/lu";
 
 function StudentFormModal({
     show,
@@ -9,6 +10,7 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
+    const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         registrationNo: "",
@@ -376,20 +378,50 @@ function StudentFormModal({
             setFormLoading(false);
         }
     };
+const renderField = (label, name, type = "text", hint = "") => (
+    <div
+        key={name}
+        className={`form-group${
+            touched[name] && fieldErrors[name] ? " field-error" : ""
+        }`}
+    >
+        <label htmlFor={`sf-${name}`}>
+            {label}
+        </label>
 
-
-    if (!show) return null;
-
-    // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
-
+        {name === "password" ? (
+            <div className="password-input-wrapper">
+                <input
+                    id={`sf-${name}`}
+                    type={showPassword ? "text" : "password"}
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    disabled={formLoading}
+                    autoComplete="new-password"
+                    className="password-input"
+                    aria-describedby={`sf-${name}-hint`}
+                    aria-invalid={!!(
+                        touched[name] && fieldErrors[name]
+                    )}
+                />
+<button
+    type="button"
+    className="password-toggle"
+    onClick={() => setShowPassword((prev) => !prev)}
+    aria-label={showPassword ? "Hide password" : "Show password"}
+    aria-pressed={showPassword}
+    disabled={formLoading}
+>
+    {showPassword ? (
+        <LuEyeClosed size={20} aria-hidden="true" />
+    ) : (
+        <LuEye size={20} aria-hidden="true" />
+    )}
+</button>
+            </div>
+        ) : (
             <input
                 id={`sf-${name}`}
                 type={type}
@@ -398,22 +430,35 @@ function StudentFormModal({
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
+                autoComplete="off"
                 aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
+                aria-invalid={!!(
+                    touched[name] && fieldErrors[name]
+                )}
             />
+        )}
 
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
+        {touched[name] && fieldErrors[name] ? (
+            <span
+                id={`sf-${name}-hint`}
+                className="field-error-msg"
+            >
+                {fieldErrors[name]}
+            </span>
+        ) : hint ? (
+            <span
+                id={`sf-${name}-hint`}
+                className="field-hint"
+            >
+                {hint}
+            </span>
+        ) : null}
+    </div>
+);
+
+    if (!show) return null;
+
+
 
 
     return (
