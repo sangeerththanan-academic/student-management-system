@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff } from 'lucide-react';
+import PasswordShowHide from "./PasswordShowHide"
 
 import apiRequest from "../services/api";
 import "../styles/login.css";
@@ -23,12 +23,6 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-
-    // Toggles the visibility state
-    const togglePasswordVisibility = () => {
-        setShowPassword((prev) => !prev);
-    };
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -163,189 +157,170 @@ function StudentFormModal({
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
-        <div className="modal-content student-form-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content student-form-card" onClick={(e) => e.stopPropagation()}>
 
-            <div className="form-card-header">
+                <div className="form-card-header">
 
-                <div>
-                    <h3>
-                        {editingStudent
-                            ? "Edit Student"
-                            : "Add New Student"
-                        }
-                    </h3>
+                    <div>
+                        <h3>
+                            {editingStudent
+                                ? "Edit Student"
+                                : "Add New Student"
+                            }
+                        </h3>
 
-                    <p>
-                        {editingStudent
-                            ? "Update student information."
-                            : "Create a new student account."
-                        }
-                    </p>
+                        <p>
+                            {editingStudent
+                                ? "Update student information."
+                                : "Create a new student account."
+                            }
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="close-form-button"
+                        onClick={handleClose}
+                    >
+                        ×
+                    </button>
+
                 </div>
 
-                <button
-                    type="button"
-                    className="close-form-button"
-                    onClick={handleClose}
+
+                {formError && (
+                    <div className="dashboard-error">
+                        {formError}
+                    </div>
+                )}
+
+
+                <form
+                    className="student-form"
+                    onSubmit={handleSubmit}
                 >
-                    ×
-                </button>
 
-            </div>
-
-
-            {formError && (
-                <div className="dashboard-error">
-                    {formError}
-                </div>
-            )}
-
-
-            <form
-                className="student-form"
-                onSubmit={handleSubmit}
-            >
-
-                <div className="form-group">
-                    <label>
-                        Registration Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="registrationNo"
-                        value={formData.registrationNo}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        First Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Last Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Phone Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                {!editingStudent && (
                     <div className="form-group">
                         <label>
-                            Password
+                            Registration Number
                         </label>
 
-                            <div className="password-input-wrapper">
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    disabled={formLoading}
-                                    required
-                                />
+                        <input
+                            type="text"
+                            name="registrationNo"
+                            value={formData.registrationNo}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
 
-                                <button
-                                    type="button"
-                                    className="password-toggle-button"
-                                    onClick={togglePasswordVisibility}
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                    disabled={formLoading}
-                                >
-                                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                                </button>
-                            </div>
+
+                    <div className="form-group">
+                        <label>
+                            First Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
+
+
+                    <div className="form-group">
+                        <label>
+                            Last Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
+
+
+                    <div className="form-group">
+                        <label>
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
+
+
+                    <div className="form-group">
+                        <label>
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
+
+
+                    {!editingStudent && (
+                        <div className="form-group">
+                            <label>
+                                Password
+                            </label>
+
+                            <PasswordShowHide password={formData.password} setPassword={(val) => handleInputChange({ target: { name: "password", value: val } })} loadingVal={formLoading} />
 
                         </div>
                     )}
 
 
-                <div className="form-actions">
+                    <div className="form-actions">
 
-                    <button
-                        type="button"
-                        className="cancel-button"
-                        onClick={handleClose}
-                        disabled={formLoading}
-                    >
-                        Cancel
-                    </button>
+                        <button
+                            type="button"
+                            className="cancel-button"
+                            onClick={handleClose}
+                            disabled={formLoading}
+                        >
+                            Cancel
+                        </button>
 
-                    <button
-                        type="submit"
-                        className="save-button"
-                        disabled={formLoading}
-                    >
-                        {formLoading
-                            ? "Saving..."
-                            : editingStudent
-                                ? "Update Student"
-                                : "Create Student"
-                        }
-                    </button>
+                        <button
+                            type="submit"
+                            className="save-button"
+                            disabled={formLoading}
+                        >
+                            {formLoading
+                                ? "Saving..."
+                                : editingStudent
+                                    ? "Update Student"
+                                    : "Create Student"
+                            }
+                        </button>
 
-                </div>
+                    </div>
 
-            </form>
+                </form>
 
-        </div>
+            </div>
         </div>
     );
 }
