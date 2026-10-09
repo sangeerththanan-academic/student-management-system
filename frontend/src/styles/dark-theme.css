@@ -42,7 +42,9 @@
 
 /* Login Page & Landing Page */
 [data-theme="dark"] .login-page,
-[data-theme="dark"] .landing-page {
+[data-theme="dark"] .landing-page,
+[data-theme="dark"] .about-section,
+[data-theme="dark"] .features-section {
     background: #0f172a;
 }
 
@@ -222,4 +224,41 @@
 [data-theme="dark"] .footer {
     background: #020617;
     color: #94a3b8;
+}
+
+/* Landing – Secondary button */
+[data-theme="dark"] .secondary-button {
+    background: #1e293b;
+    color: #60a5fa;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .secondary-button:hover {
+    background: #334155;
+}
+
+/* Landing – Section headings & descriptions */
+[data-theme="dark"] .section-heading p {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .section-label {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .hero-content > p {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .hero-card > p {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .feature-card p {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .hero-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
 }
