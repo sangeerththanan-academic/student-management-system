@@ -182,3 +182,83 @@ button,
         color 0.2s ease,
         transform 0.2s ease;
 }
+
+
+/* CR-012: Global Light/Dark Theme */
+:root {
+    color-scheme: light;
+    --page-bg: #f8fafc;
+    --surface-bg: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --input-text: #0f172a;
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-bg: #0f172a;
+    --surface-bg: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --border-color: #334155;
+    --input-bg: #0f172a;
+    --input-text: #f1f5f9;
+}
+body { background: var(--page-bg); color: var(--text-primary); transition: background-color .2s ease, color .2s ease; }
+.theme-toggle { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:9px 12px; border:1px solid var(--border-color); border-radius:8px; background:var(--surface-bg); color:var(--text-primary); font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; }
+.theme-toggle:hover { opacity:.86; }
+.theme-toggle:focus-visible { outline:2px solid #3b82f6; outline-offset:2px; }
+.app-theme-control { position:fixed; right:20px; bottom:20px; z-index:1000; }
+:root[data-theme="dark"] .navbar,
+:root[data-theme="dark"] .navbar-container,
+:root[data-theme="dark"] .landing-page,
+:root[data-theme="dark"] .login-page,
+:root[data-theme="dark"] .login-form-section,
+:root[data-theme="dark"] .login-card,
+:root[data-theme="dark"] .dashboard-page,
+:root[data-theme="dark"] .dashboard-header,
+:root[data-theme="dark"] .students-card,
+:root[data-theme="dark"] .student-form-card,
+:root[data-theme="dark"] .student-dashboard-page,
+:root[data-theme="dark"] .student-dashboard-header,
+:root[data-theme="dark"] .profile-card,
+:root[data-theme="dark"] .profile-details,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .feature-card,
+:root[data-theme="dark"] .stat-card { background-color:var(--surface-bg); color:var(--text-primary); border-color:var(--border-color); }
+:root[data-theme="dark"] .hero-section { background:linear-gradient(135deg,#0f172a 0%,#172554 55%,#1e293b 100%); }
+:root[data-theme="dark"] .hero-content h1,
+:root[data-theme="dark"] .hero-content p,
+:root[data-theme="dark"] .section-title,
+:root[data-theme="dark"] .dashboard-header h1,
+:root[data-theme="dark"] .admin-info strong,
+:root[data-theme="dark"] .students-heading h2,
+:root[data-theme="dark"] .form-card-header h3,
+:root[data-theme="dark"] .students-empty h3,
+:root[data-theme="dark"] .student-dashboard-header h1,
+:root[data-theme="dark"] .profile-name h3,
+:root[data-theme="dark"] .detail-value,
+:root[data-theme="dark"] .logo,
+:root[data-theme="dark"] .nav-link { color:var(--text-primary); }
+:root[data-theme="dark"] .dashboard-header p,
+:root[data-theme="dark"] .students-heading p,
+:root[data-theme="dark"] .students-result-count,
+:root[data-theme="dark"] .students-loading,
+:root[data-theme="dark"] .students-empty p,
+:root[data-theme="dark"] .form-card-header p,
+:root[data-theme="dark"] .detail-label,
+:root[data-theme="dark"] .student-loading { color:var(--text-secondary); }
+:root[data-theme="dark"] .admin-info span { color:#93c5fd; }
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] .students-search-input,
+:root[data-theme="dark"] .student-form input,
+:root[data-theme="dark"] .student-form select { background:var(--input-bg); color:var(--input-text); border-color:var(--border-color); }
+:root[data-theme="dark"] .students-table th { background:#172033; color:#cbd5e1; border-color:var(--border-color); }
+:root[data-theme="dark"] .students-table td { color:#cbd5e1; border-color:var(--border-color); }
+:root[data-theme="dark"] .students-table td strong { color:#f1f5f9; }
+:root[data-theme="dark"] .students-table tbody tr:hover { background:#273449; }
+:root[data-theme="dark"] .detail-row { border-color:var(--border-color); }
+@media (max-width:600px) { .theme-toggle { padding:8px 9px; font-size:12px; } .app-theme-control { right:12px; bottom:12px; } }

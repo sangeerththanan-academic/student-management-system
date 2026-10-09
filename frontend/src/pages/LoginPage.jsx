@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -31,7 +32,6 @@ function LoginPage() {
             } else {
                 navigate("/student-dashboard", { replace: true });
             }
-
         } catch (error) {
             setError(
                 error.message || "Login failed. Please try again."
@@ -50,10 +50,8 @@ function LoginPage() {
 
             <div className="login-container">
 
-                {/* Information Side */}
                 <LoginInfo onBack={handleBack} />
 
-                {/* Form Side */}
                 <LoginFormSection
                     onSubmit={handleLogin}
                     loading={loading}

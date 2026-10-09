@@ -1,3 +1,4 @@
+
 import { GraduationCap } from "lucide-react";
 
 function LoginInfo({ onBack }) {
@@ -18,9 +19,7 @@ function LoginInfo({ onBack }) {
                     <GraduationCap size={60} />
                 </div>
 
-                <h1>
-                    Student Management System
-                </h1>
+                <h1>Student Management System</h1>
 
                 <p>
                     Manage student accounts, profiles,

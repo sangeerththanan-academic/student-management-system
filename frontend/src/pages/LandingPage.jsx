@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -12,23 +12,20 @@ import {
     Database
 } from "lucide-react";
 
-
 function LandingPage() {
-
     return (
         <div className="landing-page">
 
+            {/* Navigation */}
             <Navbar />
-
 
             <main>
 
-                {/* Hero */}
+                {/* Hero Section */}
                 <section
                     className="hero-section"
                     id="home"
                 >
-
                     <div className="hero-container">
 
                         <div className="hero-content">
@@ -46,7 +43,6 @@ function LandingPage() {
                                 A modern and secure platform for
                                 managing student information efficiently.
                             </p>
-
 
                             <div className="hero-actions">
 
@@ -68,7 +64,6 @@ function LandingPage() {
 
                         </div>
 
-
                         <div className="hero-card">
 
                             <div className="hero-card-icon">
@@ -84,28 +79,16 @@ function LandingPage() {
                                 and academic information from one place.
                             </p>
 
-
                             <div className="hero-card-stats">
 
                                 <div>
-                                    <strong>
-                                        Secure
-                                    </strong>
-
-                                    <span>
-                                        Authentication
-                                    </span>
+                                    <strong>Secure</strong>
+                                    <span>Authentication</span>
                                 </div>
 
-
                                 <div>
-                                    <strong>
-                                        Easy
-                                    </strong>
-
-                                    <span>
-                                        Management
-                                    </span>
+                                    <strong>Easy</strong>
+                                    <span>Management</span>
                                 </div>
 
                             </div>
@@ -113,16 +96,13 @@ function LandingPage() {
                         </div>
 
                     </div>
-
                 </section>
 
-
-                {/* About */}
+                {/* About Section */}
                 <section
                     className="about-section"
                     id="about"
                 >
-
                     <div className="section-container">
 
                         <div className="section-heading">
@@ -144,16 +124,13 @@ function LandingPage() {
                         </div>
 
                     </div>
-
                 </section>
 
-
-                {/* Features */}
+                {/* Features Section */}
                 <section
                     className="features-section"
                     id="features"
                 >
-
                     <div className="section-container">
 
                         <div className="section-heading">
@@ -168,9 +145,9 @@ function LandingPage() {
 
                         </div>
 
-
                         <div className="features-grid">
 
+                            {/* Feature 1 */}
                             <div className="feature-card">
 
                                 <div className="feature-icon">
@@ -188,7 +165,7 @@ function LandingPage() {
 
                             </div>
 
-
+                            {/* Feature 2 */}
                             <div className="feature-card">
 
                                 <div className="feature-icon">
@@ -206,7 +183,7 @@ function LandingPage() {
 
                             </div>
 
-
+                            {/* Feature 3 */}
                             <div className="feature-card">
 
                                 <div className="feature-icon">
@@ -227,12 +204,11 @@ function LandingPage() {
                         </div>
 
                     </div>
-
                 </section>
 
             </main>
 
-
+            {/* Footer */}
             <Footer />
 
         </div>

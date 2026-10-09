@@ -1,4 +1,3 @@
-
 /* =========================================================
    Login Page
    ========================================================= */
@@ -452,4 +451,14 @@
         font-size: 25px;
     }
 }
+
+
+
+:root[data-theme="dark"] .login-page,
+:root[data-theme="dark"] .login-form-section { background:var(--page-bg); }
+:root[data-theme="dark"] .login-card { background:var(--surface-bg); color:var(--text-primary); border-color:var(--border-color); }
+:root[data-theme="dark"] .login-heading h2,
+:root[data-theme="dark"] .login-heading p,
+:root[data-theme="dark"] .login-form label { color:var(--text-primary); }
+:root[data-theme="dark"] .login-form input { background:var(--input-bg); color:var(--input-text); border-color:var(--border-color); }
 

@@ -270,7 +270,6 @@ function DashboardPage() {
 
 
                 <div className="dashboard-header-actions">
-
                     <div className="admin-info">
                         <strong>
                             {user?.username}
