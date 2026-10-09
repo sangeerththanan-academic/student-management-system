@@ -115,16 +115,54 @@ const updateStudent = async (
 };
 
 
-// DELETE STUDENT
+// DELETE STUDENT + LINKED USER ACCOUNT
+// Deletes both rows so registration_no / username can be reused.
 const deleteStudent = async (studentId) => {
 
-    const [result] = await pool.execute(
-        `DELETE FROM students
-        WHERE student_id = ?`,
-        [studentId]
-    );
+    const connection = await pool.getConnection();
 
-    return result;
+    try {
+        await connection.beginTransaction();
+
+        const [rows] = await connection.execute(
+            `SELECT user_id
+            FROM students
+            WHERE student_id = ?
+            LIMIT 1`,
+            [studentId]
+        );
+
+        if (rows.length === 0) {
+            await connection.rollback();
+            return { affectedRows: 0 };
+        }
+
+        const userId = rows[0].user_id;
+
+        // Must delete child first (FK is ON DELETE RESTRICT)
+        const [studentResult] = await connection.execute(
+            `DELETE FROM students
+            WHERE student_id = ?`,
+            [studentId]
+        );
+
+        // Delete orphan login, otherwise users.username UNIQUE
+        // blocks reusing the same registration number.
+        await connection.execute(
+            `DELETE FROM users
+            WHERE user_id = ?`,
+            [userId]
+        );
+
+        await connection.commit();
+
+        return studentResult;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
 
 
