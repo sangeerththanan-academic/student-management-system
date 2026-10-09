@@ -323,3 +323,68 @@
         font-size: 25px;
     }
 }
+
+
+
+/* Password Show / Hide Toggle */
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 50px;
+}
+
+.password-toggle-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.password-toggle-button:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #2563eb;
+}
+
+.password-toggle-button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Student Form Password Toggle */
+
+.student-form .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.student-form .password-input-wrapper input {
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 50px;
+}

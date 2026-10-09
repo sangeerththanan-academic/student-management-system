@@ -1,5 +1,5 @@
-const bcrypt = require("bcryptjs");
 
+const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
 const {
@@ -13,15 +13,12 @@ const {
 
 const { validateStudentData } = require("../utils/validation");
 
-
 // =====================================================
 // VALIDATION HELPERS
 // =====================================================
 
-// Validate name
 const validateName = (name, fieldName) => {
-
-    if (!name || !name.trim()) {
+    if (typeof name !== "string" || !name.trim()) {
         return `${fieldName} is required`;
     }
 
@@ -29,19 +26,15 @@ const validateName = (name, fieldName) => {
         return `${fieldName} must contain at least 3 characters`;
     }
 
-    // Allows letters and spaces only
     if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(name.trim())) {
-        return `${fieldName} must contain only letters`;
+        return `${fieldName} must contain only letters and spaces`;
     }
 
     return null;
 };
 
-
-// Validate email
 const validateEmail = (email) => {
-
-    if (!email || !email.trim()) {
+    if (typeof email !== "string" || !email.trim()) {
         return "Email address is required";
     }
 
@@ -52,34 +45,22 @@ const validateEmail = (email) => {
     return null;
 };
 
-
-// Validate phone number
 const validatePhoneNumber = (phoneNumber) => {
+    const phone = String(phoneNumber ?? "").trim();
 
-    if (!phoneNumber || !String(phoneNumber).trim()) {
+    if (!phone) {
         return "Phone number is required";
     }
 
-    if (!/^\d+$/.test(String(phoneNumber).trim())) {
-        return "Phone number must contain only digits";
-    }
-
-    if (String(phoneNumber).trim().length < 10) {
-        return "Phone number must contain exactly 10 digits";
-    }
-
-    if (String(phoneNumber).trim().length > 10) {
+    if (!/^\d{10}$/.test(phone)) {
         return "Phone number must contain exactly 10 digits";
     }
 
     return null;
 };
 
-
-// Validate password
 const validatePassword = (password) => {
-
-    if (!password) {
+    if (typeof password !== "string" || !password) {
         return "Password is required";
     }
 
@@ -106,14 +87,12 @@ const validatePassword = (password) => {
     return null;
 };
 
-
 // =====================================================
 // CREATE STUDENT
-// POST /api/students/
+// POST /api/students
 // =====================================================
 
 const addStudent = async (req, res) => {
-
     const {
         registrationNo,
         firstName,
@@ -126,26 +105,10 @@ const addStudent = async (req, res) => {
     let connection;
 
     try {
-
-<<<<<<< HEAD
-        // -------------------------------------------------
-        // Required field validation
-        // -------------------------------------------------
-
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber ||
-            !password
-        ) {
-
-=======
-        // Validate input data (CR-004)
+        // Validate required fields and CR-004 rules
         const validation = validateStudentData(req.body, false);
+
         if (!validation.isValid) {
->>>>>>> origin/JFICT16/CR004
             return res.status(400).json({
                 success: false,
                 message: validation.firstError,
@@ -153,119 +116,62 @@ const addStudent = async (req, res) => {
             });
         }
 
-
-        // -------------------------------------------------
-        // Registration number validation
-        // -------------------------------------------------
-
-        if (!registrationNo.trim()) {
-
+        if (typeof registrationNo !== "string" || !registrationNo.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Registration number is required"
             });
         }
 
-
-        // -------------------------------------------------
-        // First name validation
-        // -------------------------------------------------
-
-        const firstNameError = validateName(
-            firstName,
-            "First name"
-        );
+        const firstNameError = validateName(firstName, "First name");
 
         if (firstNameError) {
-
             return res.status(400).json({
                 success: false,
                 message: firstNameError
             });
         }
 
-
-        // -------------------------------------------------
-        // Last name validation
-        // -------------------------------------------------
-
-        const lastNameError = validateName(
-            lastName,
-            "Last name"
-        );
+        const lastNameError = validateName(lastName, "Last name");
 
         if (lastNameError) {
-
             return res.status(400).json({
                 success: false,
                 message: lastNameError
             });
         }
 
-
-        // -------------------------------------------------
-        // Email validation
-        // -------------------------------------------------
-
         const emailError = validateEmail(email);
 
         if (emailError) {
-
             return res.status(400).json({
                 success: false,
                 message: emailError
             });
         }
 
-
-        // -------------------------------------------------
-        // Phone validation
-        // -------------------------------------------------
-
         const phoneError = validatePhoneNumber(phoneNumber);
 
         if (phoneError) {
-
             return res.status(400).json({
                 success: false,
                 message: phoneError
             });
         }
 
-
-        // -------------------------------------------------
-        // Password validation
-        // -------------------------------------------------
-
         const passwordError = validatePassword(password);
 
         if (passwordError) {
-
             return res.status(400).json({
                 success: false,
                 message: passwordError
             });
         }
 
-
-        // -------------------------------------------------
-        // Get database connection
-        // -------------------------------------------------
-
         connection = await pool.getConnection();
-
-
-        // -------------------------------------------------
-        // Start transaction
-        // -------------------------------------------------
-
         await connection.beginTransaction();
 
-
-        // -------------------------------------------------
         // Check duplicate registration number
-        // -------------------------------------------------
-
         const [existingUser] = await connection.execute(
             `SELECT user_id
              FROM users
@@ -275,7 +181,6 @@ const addStudent = async (req, res) => {
         );
 
         if (existingUser.length > 0) {
-
             await connection.rollback();
 
             return res.status(409).json({
@@ -284,11 +189,7 @@ const addStudent = async (req, res) => {
             });
         }
 
-
-        // -------------------------------------------------
         // Check duplicate email
-        // -------------------------------------------------
-
         const [existingStudent] = await connection.execute(
             `SELECT student_id
              FROM students
@@ -298,7 +199,6 @@ const addStudent = async (req, res) => {
         );
 
         if (existingStudent.length > 0) {
-
             await connection.rollback();
 
             return res.status(409).json({
@@ -307,42 +207,20 @@ const addStudent = async (req, res) => {
             });
         }
 
-
-        // -------------------------------------------------
         // Hash password
-        // -------------------------------------------------
+        const passwordHash = await bcrypt.hash(password, 10);
 
-        const passwordHash = await bcrypt.hash(
-            password,
-            10
-        );
-
-
-        // -------------------------------------------------
         // Create user account
-        // -------------------------------------------------
-
         const [userResult] = await connection.execute(
             `INSERT INTO users
-            (
-                username,
-                password_hash,
-                role
-            )
-            VALUES (?, ?, 'STUDENT')`,
-            [
-                registrationNo.trim(),
-                passwordHash
-            ]
+                (username, password_hash, role)
+             VALUES (?, ?, 'STUDENT')`,
+            [registrationNo.trim(), passwordHash]
         );
 
         const userId = userResult.insertId;
 
-
-        // -------------------------------------------------
         // Create student profile
-        // -------------------------------------------------
-
         const studentId = await createStudent(
             connection,
             userId,
@@ -350,28 +228,14 @@ const addStudent = async (req, res) => {
             firstName.trim(),
             lastName.trim(),
             email.trim(),
-            phoneNumber.trim()
+            String(phoneNumber).trim()
         );
-
-
-        // -------------------------------------------------
-        // Commit transaction
-        // -------------------------------------------------
 
         await connection.commit();
 
-
-        // -------------------------------------------------
-        // Success response
-        // -------------------------------------------------
-
         return res.status(201).json({
-
             success: true,
-
-            message:
-                "Student account and profile created successfully",
-
+            message: "Student account and profile created successfully",
             student: {
                 studentId,
                 userId,
@@ -379,53 +243,46 @@ const addStudent = async (req, res) => {
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
                 email: email.trim(),
-                phoneNumber: phoneNumber.trim(),
+                phoneNumber: String(phoneNumber).trim(),
                 role: "STUDENT"
             }
         });
-
     } catch (error) {
-
-        // -------------------------------------------------
-        // Rollback transaction
-        // -------------------------------------------------
-
         if (connection) {
-            await connection.rollback();
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error("Transaction rollback error:", rollbackError);
+            }
         }
 
-        console.error(
-            "Create student error:",
-            error
-        );
+        console.error("Create student error:", error);
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Registration number or email is already registered"
+            });
+        }
 
         return res.status(500).json({
             success: false,
             message: "Failed to create student"
         });
-
     } finally {
-
-        // -------------------------------------------------
-        // Release connection
-        // -------------------------------------------------
-
         if (connection) {
             connection.release();
         }
     }
 };
 
-
 // =====================================================
 // GET ALL STUDENTS
-// GET /api/students/
+// GET /api/students
 // =====================================================
 
 const getStudents = async (req, res) => {
-
     try {
-
         const students = await getAllStudents();
 
         return res.status(200).json({
@@ -433,13 +290,8 @@ const getStudents = async (req, res) => {
             count: students.length,
             students
         });
-
     } catch (error) {
-
-        console.error(
-            "Get students error:",
-            error
-        );
+        console.error("Get students error:", error);
 
         return res.status(500).json({
             success: false,
@@ -448,24 +300,17 @@ const getStudents = async (req, res) => {
     }
 };
 
-
 // =====================================================
 // GET STUDENT BY ID
 // GET /api/students/:id
 // =====================================================
 
 const getStudent = async (req, res) => {
-
     try {
-
         const studentId = req.params.id;
-
-        const student = await getStudentById(
-            studentId
-        );
+        const student = await getStudentById(studentId);
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
                 message: "Student not found"
@@ -476,13 +321,8 @@ const getStudent = async (req, res) => {
             success: true,
             student
         });
-
     } catch (error) {
-
-        console.error(
-            "Get student error:",
-            error
-        );
+        console.error("Get student error:", error);
 
         return res.status(500).json({
             success: false,
@@ -491,16 +331,13 @@ const getStudent = async (req, res) => {
     }
 };
 
-
 // =====================================================
 // UPDATE STUDENT
 // PUT /api/students/:id
 // =====================================================
 
 const editStudent = async (req, res) => {
-
     try {
-
         const studentId = req.params.id;
 
         const {
@@ -511,25 +348,10 @@ const editStudent = async (req, res) => {
             phoneNumber
         } = req.body;
 
-
-<<<<<<< HEAD
-        // -------------------------------------------------
-        // Required field validation
-        // -------------------------------------------------
-
-        if (
-            !registrationNo ||
-            !firstName ||
-            !lastName ||
-            !email ||
-            !phoneNumber
-        ) {
-
-=======
-        // Validate input data (CR-004)
+        // Validate update data
         const validation = validateStudentData(req.body, true);
+
         if (!validation.isValid) {
->>>>>>> origin/JFICT16/CR004
             return res.status(400).json({
                 success: false,
                 message: validation.firstError,
@@ -537,107 +359,57 @@ const editStudent = async (req, res) => {
             });
         }
 
-
-        // -------------------------------------------------
-        // Registration number validation
-        // -------------------------------------------------
-
-        if (!registrationNo.trim()) {
-
+        if (typeof registrationNo !== "string" || !registrationNo.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Registration number is required"
             });
         }
 
-
-        // -------------------------------------------------
-        // First name validation
-        // -------------------------------------------------
-
-        const firstNameError = validateName(
-            firstName,
-            "First name"
-        );
+        const firstNameError = validateName(firstName, "First name");
 
         if (firstNameError) {
-
             return res.status(400).json({
                 success: false,
                 message: firstNameError
             });
         }
 
-
-        // -------------------------------------------------
-        // Last name validation
-        // -------------------------------------------------
-
-        const lastNameError = validateName(
-            lastName,
-            "Last name"
-        );
+        const lastNameError = validateName(lastName, "Last name");
 
         if (lastNameError) {
-
             return res.status(400).json({
                 success: false,
                 message: lastNameError
             });
         }
 
-
-        // -------------------------------------------------
-        // Email validation
-        // -------------------------------------------------
-
         const emailError = validateEmail(email);
 
         if (emailError) {
-
             return res.status(400).json({
                 success: false,
                 message: emailError
             });
         }
 
-
-        // -------------------------------------------------
-        // Phone validation
-        // -------------------------------------------------
-
-        const phoneError = validatePhoneNumber(
-            phoneNumber
-        );
+        const phoneError = validatePhoneNumber(phoneNumber);
 
         if (phoneError) {
-
             return res.status(400).json({
                 success: false,
                 message: phoneError
             });
         }
 
-
-        // -------------------------------------------------
-        // Check student exists
-        // -------------------------------------------------
-
-        const existingStudent =
-            await getStudentById(studentId);
+        const existingStudent = await getStudentById(studentId);
 
         if (!existingStudent) {
-
             return res.status(404).json({
                 success: false,
                 message: "Student not found"
             });
         }
-
-
-        // -------------------------------------------------
-        // Update student
-        // -------------------------------------------------
 
         const result = await updateStudent(
             studentId,
@@ -645,43 +417,23 @@ const editStudent = async (req, res) => {
             firstName.trim(),
             lastName.trim(),
             email.trim(),
-            phoneNumber.trim()
+            String(phoneNumber).trim()
         );
-
-
-        // -------------------------------------------------
-        // Success response
-        // -------------------------------------------------
 
         return res.status(200).json({
-
             success: true,
-
-            message:
-                "Student updated successfully",
-
-            affectedRows:
-                result.affectedRows
+            message: "Student updated successfully",
+            affectedRows: result.affectedRows
         });
-
     } catch (error) {
+        console.error("Update student error:", error);
 
-<<<<<<< HEAD
-        console.error(
-            "Update student error:",
-            error
-        );
-=======
         if (error.code === "ER_DUP_ENTRY") {
-            const isEmail = error.message && error.message.toLowerCase().includes("email");
             return res.status(409).json({
                 success: false,
-                message: isEmail ? "Email address is already registered" : "Registration number is already registered"
+                message: "Email address or registration number is already registered"
             });
         }
-
-        console.error("Update student error:", error);
->>>>>>> origin/JFICT16/CR004
 
         return res.status(500).json({
             success: false,
@@ -690,64 +442,32 @@ const editStudent = async (req, res) => {
     }
 };
 
-
 // =====================================================
 // DELETE STUDENT
 // DELETE /api/students/:id
 // =====================================================
 
 const removeStudent = async (req, res) => {
-
     try {
-
         const studentId = req.params.id;
-
-
-        // -------------------------------------------------
-        // Check student exists
-        // -------------------------------------------------
-
-        const student =
-            await getStudentById(studentId);
+        const student = await getStudentById(studentId);
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
                 message: "Student not found"
             });
         }
 
-
-        // -------------------------------------------------
-        // Delete student
-        // -------------------------------------------------
-
-        const result =
-            await deleteStudent(studentId);
-
-
-        // -------------------------------------------------
-        // Success response
-        // -------------------------------------------------
+        const result = await deleteStudent(studentId);
 
         return res.status(200).json({
-
             success: true,
-
-            message:
-                "Student deleted successfully",
-
-            affectedRows:
-                result.affectedRows
+            message: "Student deleted successfully",
+            affectedRows: result.affectedRows
         });
-
     } catch (error) {
-
-        console.error(
-            "Delete student error:",
-            error
-        );
+        console.error("Delete student error:", error);
 
         return res.status(500).json({
             success: false,
@@ -756,22 +476,16 @@ const removeStudent = async (req, res) => {
     }
 };
 
-
 // =====================================================
-// GET CURRENT STUDENT'S OWN PROFILE
+// GET LOGGED-IN STUDENT PROFILE
+// GET /api/students/me
 // =====================================================
 
 const getMyProfile = async (req, res) => {
-
     try {
-
-        const student =
-            await getStudentByUserId(
-                req.user.userId
-            );
+        const student = await getStudentByUserId(req.user.userId);
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
                 message: "Student profile not found"
@@ -782,13 +496,8 @@ const getMyProfile = async (req, res) => {
             success: true,
             student
         });
-
     } catch (error) {
-
-        console.error(
-            "Get my profile error:",
-            error
-        );
+        console.error("Get my profile error:", error);
 
         return res.status(500).json({
             success: false,
@@ -796,7 +505,6 @@ const getMyProfile = async (req, res) => {
         });
     }
 };
-
 
 // =====================================================
 // EXPORT CONTROLLERS

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 
+import { useEffect, useState } from "react";
 import apiRequest from "../services/api";
 
 function StudentFormModal({
@@ -9,117 +9,123 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         registrationNo: "",
         firstName: "",
         lastName: "",
         email: "",
         phoneNumber: "",
         password: ""
-    });
+    };
 
+    const [formData, setFormData] = useState(initialFormData);
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const [touched, setTouched] = useState({});
-
-
-
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
-
         if (!show) return;
 
+        setShowPassword(false);
+
         if (editingStudent) {
-
             setFormData({
-                registrationNo:
-                    editingStudent.registration_no || "",
-
-                firstName:
-                    editingStudent.first_name || "",
-
-                lastName:
-                    editingStudent.last_name || "",
-
-                email:
-                    editingStudent.email || "",
-
-                phoneNumber:
-                    editingStudent.phone_number || "",
-
+                registrationNo: editingStudent.registration_no || "",
+                firstName: editingStudent.first_name || "",
+                lastName: editingStudent.last_name || "",
+                email: editingStudent.email || "",
+                phoneNumber: String(editingStudent.phone_number || ""),
                 password: ""
             });
-
         } else {
-
-            setFormData({
-                registrationNo: "",
-                firstName: "",
-                lastName: "",
-                email: "",
-                phoneNumber: "",
-                password: ""
-            });
+            setFormData({ ...initialFormData });
         }
 
         setFormError("");
-<<<<<<< HEAD
-
-    }, [editingStudent, show]);
-
-
-=======
         setFieldErrors({});
         setTouched({});
     }, [editingStudent, show]);
 
-
-    // ── Validation helpers (CR-004) ─────────────────────────────
+    // FIELD VALIDATION
     const validateField = (name, value) => {
-        const v = (value || "").trim();
+        const v = String(value ?? "").trim();
 
         switch (name) {
             case "registrationNo":
-                if (!v) return "Registration number is required.";
-                if (!/^[A-Za-z0-9_-]+$/.test(v))
-                    return "Only letters, numbers, hyphens, or underscores allowed.";
+                if (!v) {
+                    return "Registration number is required.";
+                }
+                if (!/^[A-Za-z0-9_-]+$/.test(v)) {
+                    return "Only letters, numbers, hyphens, and underscores are allowed.";
+                }
                 return null;
 
             case "firstName":
-                if (!v) return "First name is required.";
-                if (v.length < 3) return "First name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v)) return "First name must contain letters only.";
+                if (!v) {
+                    return "First name is required.";
+                }
+                if (v.length < 3) {
+                    return "First name must be at least 3 characters.";
+                }
+                if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
+                    return "First name must contain letters and spaces only.";
+                }
                 return null;
 
             case "lastName":
-                if (!v) return "Last name is required.";
-                if (v.length < 3) return "Last name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v)) return "Last name must contain letters only.";
+                if (!v) {
+                    return "Last name is required.";
+                }
+                if (v.length < 3) {
+                    return "Last name must be at least 3 characters.";
+                }
+                if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
+                    return "Last name must contain letters and spaces only.";
+                }
                 return null;
 
             case "email":
-                if (!v) return "Email address is required.";
-                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v))
-                    return "Enter a valid email address (e.g. user@example.com).";
+                if (!v) {
+                    return "Email address is required.";
+                }
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                    return "Please enter a valid email address.";
+                }
                 return null;
 
             case "phoneNumber":
-                if (!v) return "Phone number is required.";
-                if (!/^\d+$/.test(v)) return "Phone number must contain digits only.";
-                if (v.length !== 10) return "Phone number must be exactly 10 digits.";
+                if (!v) {
+                    return "Phone number is required.";
+                }
+                if (!/^\d{10}$/.test(v)) {
+                    return "Phone number must contain exactly 10 digits.";
+                }
                 return null;
 
             case "password":
-                if (editingStudent) return null;
-                if (!value) return "Password is required.";
-                if (value.length < 8) return "Password must be at least 8 characters.";
-                if (!/[A-Z]/.test(value)) return "Password must include an uppercase letter.";
-                if (!/[a-z]/.test(value)) return "Password must include a lowercase letter.";
-                if (!/[0-9]/.test(value)) return "Password must include a number.";
-                if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value))
-                    return "Password must include a special character.";
+                if (editingStudent) {
+                    return null;
+                }
+                if (!value) {
+                    return "Password is required.";
+                }
+                if (value.length < 8) {
+                    return "Password must be at least 8 characters.";
+                }
+                if (!/[A-Z]/.test(value)) {
+                    return "Password must contain an uppercase letter.";
+                }
+                if (!/[a-z]/.test(value)) {
+                    return "Password must contain a lowercase letter.";
+                }
+                if (!/\d/.test(value)) {
+                    return "Password must contain a number.";
+                }
+                if (!/[@$!*?&%]/.test(value)) {
+                    return "Password must contain a special character.";
+                }
                 return null;
 
             default:
@@ -128,690 +134,388 @@ function StudentFormModal({
     };
 
     const validateAll = () => {
-        const fields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
-        if (!editingStudent) fields.push("password");
+        const fields = [
+            "registrationNo",
+            "firstName",
+            "lastName",
+            "email",
+            "phoneNumber"
+        ];
 
-        const errors = {};
-        fields.forEach((name) => {
-            const err = validateField(name, formData[name]);
-            if (err) errors[name] = err;
-        });
-        return errors;
-    };
-    // ────────────────────────────────────────────────────────────
->>>>>>> origin/JFICT16/CR004
-
-
-    const handleInputChange = (event) => {
-
-        const { name, value } = event.target;
-
-
-        if (name === "phoneNumber") {
-
-            const digitsOnly =
-                value.replace(/\D/g, "");
-
-           
-            if (digitsOnly.length <= 10) {
-
-                setFormData((previous) => ({
-                    ...previous,
-                    phoneNumber: digitsOnly
-                }));
-            }
-
-            return;
+        if (!editingStudent) {
+            fields.push("password");
         }
 
+        const errors = {};
+
+        fields.forEach((name) => {
+            const error = validateField(name, formData[name]);
+            if (error) {
+                errors[name] = error;
+            }
+        });
+
+        return errors;
+    };
+
+    // INPUT CHANGE
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        let nextValue = value;
+
+        if (name === "phoneNumber") {
+            if (!/^\d*$/.test(value) || value.length > 10) {
+                return;
+            }
+            nextValue = value;
+        }
 
         setFormData((previous) => ({
             ...previous,
-            [name]: value
+            [name]: nextValue
         }));
 
-<<<<<<< HEAD
-=======
-        // Live-clear the error for the field being edited
-        if (fieldErrors[name]) {
-            setFieldErrors((prev) => ({ ...prev, [name]: null }));
+        setFormError("");
+
+        if (touched[name]) {
+            const error = validateField(name, nextValue);
+
+            setFieldErrors((previous) => ({
+                ...previous,
+                [name]: error
+            }));
         }
     };
 
+    // INPUT BLUR
     const handleBlur = (event) => {
         const { name, value } = event.target;
-        setTouched((prev) => ({ ...prev, [name]: true }));
-        const err = validateField(name, value);
-        setFieldErrors((prev) => ({ ...prev, [name]: err }));
->>>>>>> origin/JFICT16/CR004
+
+        setTouched((previous) => ({
+            ...previous,
+            [name]: true
+        }));
+
+        const error = validateField(name, value);
+
+        setFieldErrors((previous) => ({
+            ...previous,
+            [name]: error
+        }));
     };
 
-
-   
-
+    // CLOSE MODAL
     const handleClose = () => {
+        if (formLoading) return;
 
+        setShowPassword(false);
         setFormError("");
-<<<<<<< HEAD
-
-=======
         setFieldErrors({});
         setTouched({});
->>>>>>> origin/JFICT16/CR004
         onClose();
     };
 
-
-   
-
-    const validateForm = () => {
-
-        const registrationNo =
-            formData.registrationNo.trim();
-
-        const firstName =
-            formData.firstName.trim();
-
-        const lastName =
-            formData.lastName.trim();
-
-        const email =
-            formData.email.trim();
-
-        const phoneNumber =
-            formData.phoneNumber.trim();
-
-        const password =
-            formData.password;
-
-
-        
-
-        if (!registrationNo) {
-
-            return "Registration number is required.";
-        }
-
-
-
-
-        if (!firstName) {
-
-            return "First name is required.";
-        }
-
-        if (firstName.length < 3) {
-
-            return "First name must contain at least 3 characters.";
-        }
-
-        if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(firstName)) {
-
-            return "First name must contain only letters.";
-        }
-
-
-
-        if (!lastName) {
-
-            return "Last name is required.";
-        }
-
-        if (lastName.length < 3) {
-
-            return "Last name must contain at least 3 characters.";
-        }
-
-        if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(lastName)) {
-
-            return "Last name must contain only letters.";
-        }
-
-
-
-        if (!email) {
-
-            return "Email address is required.";
-        }
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-
-            return "Please enter a valid email address.";
-        }
-
-
-        
-
-        if (!phoneNumber) {
-
-            return "Phone number is required.";
-        }
-
-        if (!/^\d+$/.test(phoneNumber)) {
-
-            return "Phone number must contain only digits.";
-        }
-
-        if (phoneNumber.length !== 10) {
-
-            return "Phone number must contain exactly 10 digits.";
-        }
-
-
-      
-
-        // Password is required only for new student
-        if (!editingStudent) {
-
-            if (!password) {
-
-                return "Password is required for a new student.";
-            }
-
-            if (password.length < 8) {
-
-                return "Password must be at least 8 characters.";
-            }
-
-            if (!/[A-Z]/.test(password)) {
-
-                return "Password must contain at least one uppercase letter.";
-            }
-
-            if (!/[a-z]/.test(password)) {
-
-                return "Password must contain at least one lowercase letter.";
-            }
-
-            if (!/\d/.test(password)) {
-
-                return "Password must contain at least one number.";
-            }
-
-            if (!/[@$!%*?&]/.test(password)) {
-
-                return "Password must contain at least one special character.";
-            }
-        }
-
-
-        return null;
-    };
-
-
+    // SUBMIT FORM
     const handleSubmit = async (event) => {
-
         event.preventDefault();
-
         setFormError("");
 
-<<<<<<< HEAD
+        const errors = validateAll();
 
-   
+        const fields = [
+            "registrationNo",
+            "firstName",
+            "lastName",
+            "email",
+            "phoneNumber"
+        ];
 
-        const validationError =
-            validateForm();
-
-        if (validationError) {
-
-            setFormError(validationError);
-
-            return;
+        if (!editingStudent) {
+            fields.push("password");
         }
 
-=======
-        // Mark all fields touched & run full validation
-        const errors = validateAll();
-        const allFields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber", "password"];
         const allTouched = {};
-        allFields.forEach((f) => { allTouched[f] = true; });
+        fields.forEach((field) => {
+            allTouched[field] = true;
+        });
+
         setTouched(allTouched);
         setFieldErrors(errors);
 
         if (Object.keys(errors).length > 0) {
-            setFormError("Please fix the highlighted errors before submitting.");
+            setFormError(
+                "Please fix the highlighted errors before submitting."
+            );
             return;
         }
->>>>>>> origin/JFICT16/CR004
 
         try {
-
             setFormLoading(true);
 
-
-      
+            const studentData = {
+                registrationNo: formData.registrationNo.trim(),
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
+                email: formData.email.trim(),
+                phoneNumber: formData.phoneNumber.trim()
+            };
 
             if (editingStudent) {
-
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim()
-                        })
+                        body: JSON.stringify(studentData)
                     }
                 );
-
+            } else {
+                await apiRequest("/api/students/", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        ...studentData,
+                        password: formData.password
+                    })
+                });
             }
-
-
-         
-
-            else {
-
-                await apiRequest(
-                    "/api/students/",
-                    {
-                        method: "POST",
-
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim(),
-
-                            password:
-                                formData.password
-                        })
-                    }
-                );
-            }
-
-
-         
 
             onSuccess();
-
             handleClose();
-
-
         } catch (error) {
-
-            console.error(
-                "Student save error:",
-                error
-            );
-
-
-           
+            console.error("Student save error:", error);
 
             if (error.status === 401) {
-
                 onAuthError();
-
                 return;
             }
 
-
-           
-
             if (error.status === 403) {
-
                 setFormError(
                     "You do not have permission to modify students."
                 );
-
                 return;
             }
 
+            if (error.status === 400 && error.errors) {
+                setFieldErrors((previous) => ({
+                    ...previous,
+                    ...error.errors
+                }));
 
-            setFormError(
-                error.message ||
-                "Failed to save student."
-            );
+                setFormError(
+                    error.message || "Please check the form fields."
+                );
+                return;
+            }
 
-
+            setFormError(error.message || "Failed to save student.");
         } finally {
-
             setFormLoading(false);
         }
     };
 
+    // FORM FIELD
+    const renderField = (label, name, type = "text", hint = "") => {
+        const hasError = Boolean(touched[name] && fieldErrors[name]);
+        const hintId = `sf-${name}-hint`;
+        const isPassword = name === "password";
 
+        return (
+            <div
+                key={name}
+                className={`form-group${hasError ? " field-error" : ""}`}
+            >
+                <label htmlFor={`sf-${name}`}>{label}</label>
 
+                {isPassword ? (
+                    <div className="password-input-wrapper">
+                        <input
+                            id={`sf-${name}`}
+                            type={showPassword ? "text" : "password"}
+                            name={name}
+                            value={formData[name]}
+                            onChange={handleInputChange}
+                            onBlur={handleBlur}
+                            disabled={formLoading}
+                            required={!editingStudent}
+                            autoComplete="new-password"
+                            aria-describedby={
+                                hasError || hint ? hintId : undefined
+                            }
+                            aria-invalid={hasError}
+                        />
+
+                        <button
+                            type="button"
+                            className="password-toggle-button"
+                            onClick={() =>
+                                setShowPassword((previous) => !previous)
+                            }
+                            disabled={formLoading}
+                            aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                            }
+                            aria-pressed={showPassword}
+                        >
+                            {showPassword ? (
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="20"
+                                    height="20"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M3 3l18 18" />
+                                    <path d="M10.6 10.6a2 2 0 002.8 2.8" />
+                                    <path d="M9.9 5.2A11 11 0 0121 12a11.8 11.8 0 01-4 4.8" />
+                                    <path d="M6.2 6.2A12 12 0 003 12a11 11 0 0014.2 6.3" />
+                                </svg>
+                            ) : (
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="20"
+                                    height="20"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
+                ) : (
+                    <input
+                        id={`sf-${name}`}
+                        type={type}
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        disabled={formLoading}
+                        required
+                        autoComplete="off"
+                        maxLength={name === "phoneNumber" ? 10 : undefined}
+                        inputMode={
+                            name === "phoneNumber" ? "numeric" : undefined
+                        }
+                        aria-describedby={
+                            hasError || hint ? hintId : undefined
+                        }
+                        aria-invalid={hasError}
+                    />
+                )}
+
+                {hasError ? (
+                    <span
+                        id={hintId}
+                        className="field-error-msg"
+                        role="alert"
+                    >
+                        {fieldErrors[name]}
+                    </span>
+                ) : hint ? (
+                    <span id={hintId} className="field-hint">
+                        {hint}
+                    </span>
+                ) : null}
+            </div>
+        );
+    };
 
     if (!show) return null;
 
-    // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
-
-            <input
-                id={`sf-${name}`}
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
-                aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
-            />
-
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
-
-
-    
-
     return (
-
-        <div
-            className="modal-overlay"
-            onClick={handleClose}
-        >
-
-<<<<<<< HEAD
+        <div className="modal-overlay" onClick={handleClose}>
             <div
                 className="modal-content student-form-card"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
             >
-
-               
-
                 <div className="form-card-header">
-
                     <div>
-
                         <h3>
-                            {editingStudent
-                                ? "Edit Student"
-                                : "Add New Student"
-                            }
+                            {editingStudent ? "Edit Student" : "Add New Student"}
                         </h3>
-
                         <p>
                             {editingStudent
                                 ? "Update student information."
-                                : "Create a new student account."
-                            }
+                                : "Create a new student account."}
                         </p>
-
                     </div>
-
 
                     <button
                         type="button"
                         className="close-form-button"
                         onClick={handleClose}
+                        disabled={formLoading}
+                        aria-label="Close form"
                     >
                         ×
                     </button>
-
                 </div>
-=======
-                <div>
-                    <h3>
-                        {editingStudent
-                            ? "Edit Student"
-                            : "Add New Student"
-                        }
-                    </h3>
-
-                    <p>
-                        {editingStudent
-                            ? "Update student information."
-                            : "Create a new student account."
-                        }
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    className="close-form-button"
-                    onClick={handleClose}
-                >
-                    ×
-                </button>
-
-            </div>
-
-
-            {formError && (
-                <div className="dashboard-error" role="alert">
-                    {formError}
-                </div>
-            )}
-
-
-            <form
-                className="student-form"
-                onSubmit={handleSubmit}
-                noValidate
-            >
-
-                {renderField(
-                    "Registration Number",
-                    "registrationNo",
-                    "text",
-                    "Letters, numbers, hyphens, or underscores only."
-                )}
-
-                {renderField(
-                    "First Name",
-                    "firstName",
-                    "text",
-                    "Min 3 characters, letters only."
-                )}
->>>>>>> origin/JFICT16/CR004
-
-                {renderField(
-                    "Last Name",
-                    "lastName",
-                    "text",
-                    "Min 3 characters, letters only."
-                )}
-
-<<<<<<< HEAD
 
                 {formError && (
-
-                    <div className="dashboard-error">
+                    <div className="dashboard-error" role="alert">
                         {formError}
                     </div>
-
                 )}
-
-
 
                 <form
                     className="student-form"
                     onSubmit={handleSubmit}
+                    noValidate
                 >
-
-
-                   
-
-                    <div className="form-group">
-
-                        <label>
-                            Registration Number
-                        </label>
-
-                        <input
-                            type="text"
-                            name="registrationNo"
-                            value={formData.registrationNo}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-
-                    </div>
-=======
-                {renderField(
-                    "Email",
-                    "email",
-                    "email",
-                    "e.g. student@example.com"
-                )}
-
-                {renderField(
-                    "Phone Number",
-                    "phoneNumber",
-                    "text",
-                    "Exactly 10 digits, numbers only."
-                )}
-
-                {!editingStudent && renderField(
-                    "Password",
-                    "password",
-                    "password",
-                    "Min 8 chars with uppercase, lowercase, number & special character."
-                )}
->>>>>>> origin/JFICT16/CR004
-
-
-                
-
-                    <div className="form-group">
-
-                        <label>
-                            First Name
-                        </label>
-
-                        <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            minLength={3}
-                            required
-                        />
-
-                    </div>
-
-
-                  
-
-                    <div className="form-group">
-
-                        <label>
-                            Last Name
-                        </label>
-
-                        <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            minLength={3}
-                            required
-                        />
-
-                    </div>
-
-
-                   
-                    <div className="form-group">
-
-                        <label>
-                            Email
-                        </label>
-
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-
-                    </div>
-
-
-                    
-
-                    <div className="form-group">
-
-                        <label>
-                            Phone Number
-                        </label>
-
-                        <input
-                            type="text"
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            maxLength={10}
-                            inputMode="numeric"
-                            required
-                        />
-
-                    </div>
-
-
-                   
-                    {!editingStudent && (
-
-                        <div className="form-group">
-
-                            <label>
-                                Password
-                            </label>
-
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                disabled={formLoading}
-                                minLength={8}
-                                required
-                            />
-
-                        </div>
-
+                    {renderField(
+                        "Registration Number",
+                        "registrationNo",
+                        "text",
+                        "Letters, numbers, hyphens, or underscores only."
                     )}
 
+                    {renderField(
+                        "First Name",
+                        "firstName",
+                        "text",
+                        "At least 3 characters; letters and spaces only."
+                    )}
+
+                    {renderField(
+                        "Last Name",
+                        "lastName",
+                        "text",
+                        "At least 3 characters; letters and spaces only."
+                    )}
+
+                    {renderField(
+                        "Email",
+                        "email",
+                        "email",
+                        "Example: student@example.com"
+                    )}
+
+                    {renderField(
+                        "Phone Number",
+                        "phoneNumber",
+                        "text",
+                        "Exactly 10 digits."
+                    )}
+
+                    {!editingStudent &&
+                        renderField(
+                            "Password",
+                            "password",
+                            "password",
+                            "At least 8 characters with uppercase, lowercase, number, and special character."
+                        )}
 
                     <div className="form-actions">
-
                         <button
                             type="button"
                             className="cancel-button"
@@ -821,28 +525,20 @@ function StudentFormModal({
                             Cancel
                         </button>
 
-
                         <button
                             type="submit"
                             className="save-button"
                             disabled={formLoading}
                         >
-
                             {formLoading
                                 ? "Saving..."
                                 : editingStudent
                                     ? "Update Student"
-                                    : "Create Student"
-                            }
-
+                                    : "Create Student"}
                         </button>
-
                     </div>
-
                 </form>
-
             </div>
-
         </div>
     );
 }
