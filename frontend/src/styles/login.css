@@ -323,3 +323,62 @@
         font-size: 25px;
     }
 }
+
+
+/* CR-016: Password visibility toggle */
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.form-group .password-input-wrapper .password-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 48px 13px 14px;
+}
+
+.password-toggle-button {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 5px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #64748b;
+
+    cursor: pointer;
+    line-height: 0;
+}
+
+.password-toggle-button:hover:not(:disabled) {
+    color: #1d4ed8;
+}
+
+.password-toggle-button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+@media (max-width: 500px) {
+    .form-group .password-input-wrapper .password-input {
+        padding-right: 44px;
+    }
+
+    .password-toggle-button {
+        right: 10px;
+    }
+}
+

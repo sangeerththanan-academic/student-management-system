@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import apiRequest from "../services/api";
 
 function StudentFormModal({
@@ -21,10 +20,11 @@ function StudentFormModal({
     const [formErrors, setFormErrors] = useState({});
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
-    const [fieldErrors, setFieldErrors] = useState({});
-    const [touched, setTouched] = useState({});
 
-    // Reset form when editingStudent changes or modal opens
+    // Password show/hide state
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Reset form when modal opens or editing student changes
     useEffect(() => {
         if (!show) return;
 
@@ -50,55 +50,114 @@ function StudentFormModal({
 
         setFormErrors({});
         setFormError("");
-        setFieldErrors({});
-        setTouched({});
+        setShowPassword(false);
     }, [editingStudent, show]);
 
+    // =====================================================
+    // FIELD VALIDATION
+    // =====================================================
 
-    // ── Validation helpers (CR-004) ─────────────────────────────
     const validateField = (name, value) => {
-        const v = (value || "").trim();
+        const v =
+            typeof value === "string" ? value.trim() : "";
 
         switch (name) {
             case "registrationNo":
-                if (!v) return "Registration number is required.";
-                if (!/^[A-Za-z0-9_-]+$/.test(v))
-                    return "Only letters, numbers, hyphens, or underscores allowed.";
+                if (!v) {
+                    return "Registration number is required.";
+                }
+
+                if (!/^[A-Za-z0-9/_-]+$/.test(v)) {
+                    return "Registration number contains invalid characters.";
+                }
+
                 return null;
 
             case "firstName":
-                if (!v) return "First name is required.";
-                if (v.length < 3) return "First name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v)) return "First name must contain letters only.";
+                if (!v) {
+                    return "First name is required.";
+                }
+
+                if (v.length < 3) {
+                    return "First name must contain at least 3 characters.";
+                }
+
+                if (!/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/.test(v)) {
+                    return "First name contains invalid characters.";
+                }
+
                 return null;
 
             case "lastName":
-                if (!v) return "Last name is required.";
-                if (v.length < 3) return "Last name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v)) return "Last name must contain letters only.";
+                if (!v) {
+                    return "Last name is required.";
+                }
+
+                if (v.length < 3) {
+                    return "Last name must contain at least 3 characters.";
+                }
+
+                if (!/^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/.test(v)) {
+                    return "Last name contains invalid characters.";
+                }
+
                 return null;
 
             case "email":
-                if (!v) return "Email address is required.";
-                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v))
-                    return "Enter a valid email address (e.g. user@example.com).";
+                if (!v) {
+                    return "Email address is required.";
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                    return "Please enter a valid email address.";
+                }
+
                 return null;
 
             case "phoneNumber":
-                if (!v) return "Phone number is required.";
-                if (!/^\d+$/.test(v)) return "Phone number must contain digits only.";
-                if (v.length !== 10) return "Phone number must be exactly 10 digits.";
+                if (!v) {
+                    return "Phone number is required.";
+                }
+
+                if (!/^\d+$/.test(v)) {
+                    return "Phone number must contain numbers only.";
+                }
+
+                if (v.length !== 10) {
+                    return "Phone number must contain exactly 10 digits.";
+                }
+
                 return null;
 
             case "password":
-                if (editingStudent) return null;
-                if (!value) return "Password is required.";
-                if (value.length < 8) return "Password must be at least 8 characters.";
-                if (!/[A-Z]/.test(value)) return "Password must include an uppercase letter.";
-                if (!/[a-z]/.test(value)) return "Password must include a lowercase letter.";
-                if (!/[0-9]/.test(value)) return "Password must include a number.";
-                if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value))
-                    return "Password must include a special character.";
+                if (editingStudent) {
+                    return null;
+                }
+
+                if (!value) {
+                    return "Password is required.";
+                }
+
+                if (value.length < 8) {
+                    return "Password must contain at least 8 characters.";
+                }
+
+                if (!/[A-Z]/.test(value)) {
+                    return "Password must contain at least one uppercase letter.";
+                }
+
+                if (!/[a-z]/.test(value)) {
+                    return "Password must contain at least one lowercase letter.";
+                }
+
+                if (!/[0-9]/.test(value)) {
+                    return "Password must contain at least one number.";
+                }
+
+                if (!/[^A-Za-z0-9]/.test(value)) {
+                    return "Password must contain at least one special character.";
+                }
+
                 return null;
 
             default:
@@ -106,19 +165,39 @@ function StudentFormModal({
         }
     };
 
-    const validateAll = () => {
-        const fields = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
-        if (!editingStudent) fields.push("password");
+    // =====================================================
+    // VALIDATE ALL FIELDS
+    // =====================================================
+
+    const validateForm = () => {
+        const fields = [
+            "registrationNo",
+            "firstName",
+            "lastName",
+            "email",
+            "phoneNumber"
+        ];
+
+        if (!editingStudent) {
+            fields.push("password");
+        }
 
         const errors = {};
+
         fields.forEach((name) => {
-            const err = validateField(name, formData[name]);
-            if (err) errors[name] = err;
+            const error = validateField(name, formData[name]);
+
+            if (error) {
+                errors[name] = error;
+            }
         });
+
         return errors;
     };
-    // ────────────────────────────────────────────────────────────
 
+    // =====================================================
+    // HANDLE INPUT CHANGES
+    // =====================================================
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -128,114 +207,41 @@ function StudentFormModal({
             [name]: value
         }));
 
-        // Remove field error when user starts correcting it
-        setFormErrors((previous) => ({
-            ...previous,
-            [name]: ""
-        }));
+        // Validate the changed field and update its error
+        const error = validateField(name, value);
+
+        setFormErrors((previous) => {
+            const updatedErrors = { ...previous };
+
+            if (error) {
+                updatedErrors[name] = error;
+            } else {
+                delete updatedErrors[name];
+            }
+
+            return updatedErrors;
+        });
 
         setFormError("");
     };
 
-
-    const validateForm = () => {
-        const errors = {};
-
-        const registrationNo = formData.registrationNo.trim();
-        const firstName = formData.firstName.trim();
-        const lastName = formData.lastName.trim();
-        const email = formData.email.trim();
-        const phoneNumber = formData.phoneNumber.trim();
-        const password = formData.password;
-
-        // Registration number
-        if (!registrationNo) {
-            errors.registrationNo = "Registration number is required.";
-        } else if (!/^[A-Za-z0-9/_-]+$/.test(registrationNo)) {
-            errors.registrationNo =
-                "Registration number contains invalid characters.";
-        }
-
-        // Name validation
-        const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
-
-        if (!firstName) {
-            errors.firstName = "First name is required.";
-        } else if (firstName.length < 3) {
-            errors.firstName =
-                "First name must contain at least 3 characters.";
-        } else if (!nameRegex.test(firstName)) {
-            errors.firstName =
-                "First name can contain alphabetic characters only.";
-        }
-
-        if (!lastName) {
-            errors.lastName = "Last name is required.";
-        } else if (lastName.length < 3) {
-            errors.lastName =
-                "Last name must contain at least 3 characters.";
-        } else if (!nameRegex.test(lastName)) {
-            errors.lastName =
-                "Last name can contain alphabetic characters only.";
-        }
-
-        // Email validation
-        const emailRegex =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!email) {
-            errors.email = "Email address is required.";
-        } else if (!emailRegex.test(email)) {
-            errors.email = "Please enter a valid email address.";
-        }
-
-        // Phone validation
-        if (!phoneNumber) {
-            errors.phoneNumber = "Phone number is required.";
-        } else if (!/^\d+$/.test(phoneNumber)) {
-            errors.phoneNumber =
-                "Phone number must contain numbers only.";
-        } else if (phoneNumber.length < 10) {
-            errors.phoneNumber =
-                "Phone number must contain exactly 10 digits.";
-        } else if (phoneNumber.length > 10) {
-            errors.phoneNumber =
-                "Phone number must contain exactly 10 digits.";
-        }
-
-        // Password validation only when creating
-        if (!editingStudent) {
-            if (!password) {
-                errors.password =
-                    "Password is required for a new student.";
-            } else if (password.length < 8) {
-                errors.password =
-                    "Password must contain at least 8 characters.";
-            } else if (!/[A-Z]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one uppercase letter.";
-            } else if (!/[a-z]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one lowercase letter.";
-            } else if (!/[0-9]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one number.";
-            } else if (!/[^A-Za-z0-9]/.test(password)) {
-                errors.password =
-                    "Password must contain at least one special character.";
-            }
-        }
-
-        return errors;
-    };
-
+    // =====================================================
+    // CLOSE MODAL
+    // =====================================================
 
     const handleClose = () => {
+        if (formLoading) return;
+
         setFormError("");
         setFormErrors({});
+        setShowPassword(false);
+
         onClose();
     };
 
+    // =====================================================
+    // SUBMIT FORM
+    // =====================================================
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -253,40 +259,32 @@ function StudentFormModal({
             setFormLoading(true);
 
             if (editingStudent) {
+                // Update existing student
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
                         body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-                            firstName:
-                                formData.firstName.trim(),
-                            lastName:
-                                formData.lastName.trim(),
-                            email:
-                                formData.email.trim(),
-                            phoneNumber:
-                                formData.phoneNumber.trim()
+                            registrationNo: formData.registrationNo.trim(),
+                            firstName: formData.firstName.trim(),
+                            lastName: formData.lastName.trim(),
+                            email: formData.email.trim(),
+                            phoneNumber: formData.phoneNumber.trim()
                         })
                     }
                 );
             } else {
+                // Create new student
                 await apiRequest(
                     "/api/students/",
                     {
                         method: "POST",
                         body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-                            firstName:
-                                formData.firstName.trim(),
-                            lastName:
-                                formData.lastName.trim(),
-                            email:
-                                formData.email.trim(),
-                            phoneNumber:
-                                formData.phoneNumber.trim(),
+                            registrationNo: formData.registrationNo.trim(),
+                            firstName: formData.firstName.trim(),
+                            lastName: formData.lastName.trim(),
+                            email: formData.email.trim(),
+                            phoneNumber: formData.phoneNumber.trim(),
                             password: formData.password
                         })
                     }
@@ -311,6 +309,19 @@ function StudentFormModal({
                 return;
             }
 
+            if (error.status === 409) {
+                setFormError(
+                    error.message ||
+                    "Registration number or email is already registered."
+                );
+                return;
+            }
+
+            if (error.status === 400 && error.errors) {
+                setFormErrors(error.errors);
+                return;
+            }
+
             setFormError(
                 error.message || "Failed to save student."
             );
@@ -320,44 +331,12 @@ function StudentFormModal({
         }
     };
 
-
+    // Do not render when modal is closed
     if (!show) return null;
 
-    // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
-
-            <input
-                id={`sf-${name}`}
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
-                aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
-            />
-
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
-
+    // =====================================================
+    // RENDER FORM
+    // =====================================================
 
     return (
         <div
@@ -366,24 +345,21 @@ function StudentFormModal({
         >
             <div
                 className="modal-content student-form-card"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
             >
-
+                {/* Modal Header */}
                 <div className="form-card-header">
-
                     <div>
                         <h3>
                             {editingStudent
                                 ? "Edit Student"
-                                : "Add New Student"
-                            }
+                                : "Add New Student"}
                         </h3>
 
                         <p>
                             {editingStudent
                                 ? "Update student information."
-                                : "Create a new student account."
-                            }
+                                : "Create a new student account."}
                         </p>
                     </div>
 
@@ -391,37 +367,44 @@ function StudentFormModal({
                         type="button"
                         className="close-form-button"
                         onClick={handleClose}
+                        disabled={formLoading}
+                        aria-label="Close form"
                     >
                         ×
                     </button>
-
                 </div>
 
-
+                {/* General Error */}
                 {formError && (
-                    <div className="dashboard-error">
+                    <div
+                        className="dashboard-error"
+                        role="alert"
+                    >
                         {formError}
                     </div>
                 )}
 
-
+                {/* Student Form */}
                 <form
                     className="student-form"
                     onSubmit={handleSubmit}
+                    noValidate
                 >
-
                     {/* Registration Number */}
                     <div className="form-group">
-                        <label>
+                        <label htmlFor="sf-registrationNo">
                             Registration Number
                         </label>
 
                         <input
+                            id="sf-registrationNo"
                             type="text"
                             name="registrationNo"
                             value={formData.registrationNo}
                             onChange={handleInputChange}
                             disabled={formLoading}
+                            autoComplete="off"
+                            aria-invalid={!!formErrors.registrationNo}
                             required
                         />
 
@@ -432,19 +415,21 @@ function StudentFormModal({
                         )}
                     </div>
 
-
                     {/* First Name */}
                     <div className="form-group">
-                        <label>
+                        <label htmlFor="sf-firstName">
                             First Name
                         </label>
 
                         <input
+                            id="sf-firstName"
                             type="text"
                             name="firstName"
                             value={formData.firstName}
                             onChange={handleInputChange}
                             disabled={formLoading}
+                            autoComplete="given-name"
+                            aria-invalid={!!formErrors.firstName}
                             required
                         />
 
@@ -455,19 +440,21 @@ function StudentFormModal({
                         )}
                     </div>
 
-
                     {/* Last Name */}
                     <div className="form-group">
-                        <label>
+                        <label htmlFor="sf-lastName">
                             Last Name
                         </label>
 
                         <input
+                            id="sf-lastName"
                             type="text"
                             name="lastName"
                             value={formData.lastName}
                             onChange={handleInputChange}
                             disabled={formLoading}
+                            autoComplete="family-name"
+                            aria-invalid={!!formErrors.lastName}
                             required
                         />
 
@@ -478,19 +465,21 @@ function StudentFormModal({
                         )}
                     </div>
 
-
                     {/* Email */}
                     <div className="form-group">
-                        <label>
+                        <label htmlFor="sf-email">
                             Email
                         </label>
 
                         <input
+                            id="sf-email"
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
                             disabled={formLoading}
+                            autoComplete="email"
+                            aria-invalid={!!formErrors.email}
                             required
                         />
 
@@ -501,14 +490,14 @@ function StudentFormModal({
                         )}
                     </div>
 
-
-                    {/* Phone */}
+                    {/* Phone Number */}
                     <div className="form-group">
-                        <label>
+                        <label htmlFor="sf-phoneNumber">
                             Phone Number
                         </label>
 
                         <input
+                            id="sf-phoneNumber"
                             type="text"
                             name="phoneNumber"
                             value={formData.phoneNumber}
@@ -516,6 +505,8 @@ function StudentFormModal({
                             disabled={formLoading}
                             maxLength={10}
                             inputMode="numeric"
+                            autoComplete="tel"
+                            aria-invalid={!!formErrors.phoneNumber}
                             required
                         />
 
@@ -526,22 +517,89 @@ function StudentFormModal({
                         )}
                     </div>
 
-
-                    {/* Password - Create only */}
+                    {/* Password - Create Only */}
                     {!editingStudent && (
                         <div className="form-group">
-                            <label>
+                            <label htmlFor="sf-password">
                                 Password
                             </label>
 
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                disabled={formLoading}
-                                required
-                            />
+                            <div className="password-input-wrapper">
+                                <input
+                                    id="sf-password"
+                                    type={
+                                        showPassword
+                                            ? "text"
+                                            : "password"
+                                    }
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    disabled={formLoading}
+                                    autoComplete="new-password"
+                                    aria-invalid={!!formErrors.password}
+                                    aria-describedby="sf-password-hint"
+                                    required
+                                />
+
+                                <button
+                                    type="button"
+                                    className="toggle-password-button"
+                                    onClick={() =>
+                                        setShowPassword((previous) => !previous)
+                                    }
+                                    disabled={formLoading}
+                                    aria-label={
+                                        showPassword
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                    aria-pressed={showPassword}
+                                    title={
+                                        showPassword
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                >
+                                    {showPassword ? (
+                                    // Eye-slash icon
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="M3 3l18 18" />
+                                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                                        <path d="M9.9 5.2A11 11 0 0 1 12 5c5 0 9 7 9 7a15 15 0 0 1-3 3.7" />
+                                        <path d="M6.6 6.6C4.2 8.2 3 12 3 12s4 7 9 7a9 9 0 0 0 3.4-.7" />
+                                    </svg>
+                                ) : (
+                                    // Eye icon
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="22"
+                                        height="22"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                )}
+                                </button>
+                            </div>
 
                             {formErrors.password && (
                                 <small className="form-error">
@@ -549,7 +607,10 @@ function StudentFormModal({
                                 </small>
                             )}
 
-                            <small>
+                            <small
+                                id="sf-password-hint"
+                                className="field-hint"
+                            >
                                 Password must contain at least 8 characters,
                                 including uppercase, lowercase, number and
                                 special character.
@@ -557,9 +618,8 @@ function StudentFormModal({
                         </div>
                     )}
 
-
+                    {/* Form Actions */}
                     <div className="form-actions">
-
                         <button
                             type="button"
                             className="cancel-button"
@@ -578,14 +638,10 @@ function StudentFormModal({
                                 ? "Saving..."
                                 : editingStudent
                                     ? "Update Student"
-                                    : "Create Student"
-                            }
+                                    : "Create Student"}
                         </button>
-
                     </div>
-
                 </form>
-
             </div>
         </div>
     );
