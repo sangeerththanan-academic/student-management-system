@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,9 +7,14 @@ import "../styles/login.css";
 
 import LoginInfo from "../components/LoginInfo";
 import LoginFormSection from "../components/LoginFormSection";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 function LoginPage() {
     const navigate = useNavigate();
+    const { getTheme } = useTheme();
+
+    const theme = getTheme("login");
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -31,7 +37,6 @@ function LoginPage() {
             } else {
                 navigate("/student-dashboard", { replace: true });
             }
-
         } catch (error) {
             setError(
                 error.message || "Login failed. Please try again."
@@ -46,24 +51,26 @@ function LoginPage() {
     };
 
     return (
-        <div className="login-page">
+        <div
+            className="login-page"
+            data-theme={theme}
+        >
+            <div className="login-theme-control">
+                <ThemeToggle scope="login" />
+            </div>
 
             <div className="login-container">
-
-                {/* Information Side */}
                 <LoginInfo onBack={handleBack} />
 
-                {/* Form Side */}
                 <LoginFormSection
                     onSubmit={handleLogin}
                     loading={loading}
                     error={error}
                 />
-
             </div>
-
         </div>
     );
 }
 
 export default LoginPage;
+

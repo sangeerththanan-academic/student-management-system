@@ -436,3 +436,142 @@
         font-size: 28px;
     }
 }
+
+
+/* =========================================================
+   Landing Page - Dark Mode
+   ========================================================= */
+
+.landing-theme-control {
+    margin-bottom: 20px;
+}
+
+[data-theme="dark"].landing-page {
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+/* Hero section */
+[data-theme="dark"] .hero-section {
+    background: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #111827 55%,
+        #172554 100%
+    );
+}
+
+[data-theme="dark"] .hero-content h1 {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .hero-content h1 span {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .hero-content > p {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .hero-badge {
+    background: #1e3a8a;
+    color: #bfdbfe;
+}
+
+/* Buttons */
+[data-theme="dark"] .secondary-button {
+    background: #1e293b;
+    color: #93c5fd;
+    border-color: #475569;
+}
+
+[data-theme="dark"] .secondary-button:hover {
+    background: #334155;
+}
+
+/* Hero card */
+[data-theme="dark"] .hero-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .hero-card h2 {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .hero-card > p {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .hero-card-icon,
+[data-theme="dark"] .feature-icon {
+    background: #172554;
+    color: #93c5fd;
+}
+
+[data-theme="dark"] .hero-card-stats > div {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .hero-card-stats strong {
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .hero-card-stats span {
+    color: #cbd5e1;
+}
+
+/* About and Features */
+[data-theme="dark"] .about-section {
+    background: #0f172a;
+}
+
+[data-theme="dark"] .features-section {
+    background: #111827;
+}
+
+[data-theme="dark"] .section-heading h2 {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .section-heading p {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .section-label {
+    color: #60a5fa;
+}
+
+/* Feature cards */
+[data-theme="dark"] .feature-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .feature-card:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .feature-card h3 {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .feature-card p {
+    color: #cbd5e1;
+}
+
+/* Smooth theme transition */
+.landing-page,
+.landing-page .hero-section,
+.landing-page .about-section,
+.landing-page .features-section,
+.landing-page .hero-card,
+.landing-page .feature-card {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+

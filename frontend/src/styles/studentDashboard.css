@@ -243,3 +243,183 @@
     cursor: not-allowed;
     opacity: 0.5;
 }
+
+/* =========================================
+   STUDENT DASHBOARD - DARK / LIGHT MODE
+========================================= */
+
+.student-dashboard-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.student-dashboard-page[data-theme="light"] {
+    color-scheme: light;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.student-dashboard-page[data-theme="dark"] {
+    color-scheme: dark;
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+/* Header */
+.student-dashboard-page[data-theme="dark"]
+.student-dashboard-header {
+    background: #1e293b;
+    border-bottom-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"]
+.student-dashboard-header h1 {
+    color: #f1f5f9;
+}
+
+.student-dashboard-page[data-theme="dark"]
+.student-dashboard-header p {
+    color: #cbd5e1;
+}
+
+/* Role badge */
+.student-dashboard-page[data-theme="dark"] .role-badge {
+    background: #1e3a8a;
+    color: #bfdbfe;
+}
+
+/* Main section */
+.student-dashboard-page[data-theme="dark"] .section-title {
+    color: #f1f5f9;
+}
+
+/* Profile card */
+.student-dashboard-page[data-theme="dark"] .profile-card {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+/* Profile header */
+.student-dashboard-page[data-theme="dark"] .profile-header {
+    background: linear-gradient(
+        135deg,
+        #1d4ed8 0%,
+        #172554 100%
+    );
+}
+
+/* Avatar */
+.student-dashboard-page[data-theme="dark"] .profile-avatar {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+/* Profile name */
+.student-dashboard-page[data-theme="dark"] .profile-name h3 {
+    color: #ffffff;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-name p {
+    color: #bfdbfe;
+}
+
+/* Profile details */
+.student-dashboard-page[data-theme="dark"] .profile-details {
+    background: #1e293b;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-row {
+    border-bottom-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-label {
+    color: #cbd5e1;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-value {
+    color: #f1f5f9;
+}
+
+/* Loading message */
+.student-dashboard-page[data-theme="dark"] .student-loading {
+    color: #cbd5e1;
+}
+
+/* Error message */
+.student-dashboard-page[data-theme="dark"] .student-error {
+    background: #450a0a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
+/* Theme toggle */
+.student-dashboard-page[data-theme="dark"] .theme-toggle-button {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.student-dashboard-page[data-theme="dark"] .theme-toggle-button:hover {
+    background: #334155;
+    border-color: #64748b;
+}
+
+/* Smooth theme transition */
+.student-dashboard-page .student-dashboard-header,
+.student-dashboard-page .profile-card,
+.student-dashboard-page .profile-details,
+.student-dashboard-page .detail-row {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+/* Responsive header */
+@media (max-width: 650px) {
+    .student-dashboard-header {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .student-header-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 450px) {
+    .student-dashboard-header {
+        align-items: flex-start;
+    }
+
+    .student-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .student-dashboard-main {
+        margin-top: 25px;
+    }
+
+    .profile-details {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .detail-row {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .detail-value {
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+}
+

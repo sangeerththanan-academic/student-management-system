@@ -713,3 +713,352 @@
         max-height: 95vh;
     }
 }
+
+
+/* =========================================
+   ADMIN DASHBOARD - DARK / LIGHT THEME
+========================================= */
+
+.dashboard-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.dashboard-page[data-theme="light"] {
+    color-scheme: light;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.dashboard-page[data-theme="dark"] {
+    color-scheme: dark;
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+/* Header */
+.dashboard-page[data-theme="dark"] .dashboard-header {
+    background: #1e293b;
+    border-bottom-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header h1,
+.dashboard-page[data-theme="dark"] .dashboard-header h2 {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header p {
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .admin-info strong {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .admin-info span {
+    color: #cbd5e1;
+}
+
+/* Main headings */
+.dashboard-page[data-theme="dark"] .students-heading h2 {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .students-heading p {
+    color: #cbd5e1;
+}
+
+/* Search */
+.dashboard-page[data-theme="dark"] .students-search-input {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-input::placeholder {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-input:focus {
+    border-color: #60a5fa;
+    outline-color: #60a5fa;
+}
+
+.dashboard-page[data-theme="dark"] .students-result-count {
+    color: #cbd5e1;
+}
+
+/* Student card and table */
+.dashboard-page[data-theme="dark"] .students-card {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .students-table {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .students-table thead th {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .students-table tbody td {
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .students-table tbody td strong {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .students-table tbody tr:hover {
+    background: #273449;
+}
+
+.dashboard-page[data-theme="dark"] .students-table tbody tr:hover td {
+    background: #273449;
+}
+
+/* Loading and empty states */
+.dashboard-page[data-theme="dark"] .students-loading,
+.dashboard-page[data-theme="dark"] .students-empty {
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .students-empty h3 {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .students-empty p {
+    color: #cbd5e1;
+}
+
+/* Error message */
+.dashboard-page[data-theme="dark"] .dashboard-error {
+    background: #450a0a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
+/* Modal theme: common possible modal selectors */
+.dashboard-page[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.dashboard-page[data-theme="dark"] .modal-content,
+.dashboard-page[data-theme="dark"] .student-form-modal,
+.dashboard-page[data-theme="dark"] .student-form-card {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .modal-content h2,
+.dashboard-page[data-theme="dark"] .modal-content h3,
+.dashboard-page[data-theme="dark"] .student-form-modal h2,
+.dashboard-page[data-theme="dark"] .student-form-modal h3,
+.dashboard-page[data-theme="dark"] .student-form-card h2,
+.dashboard-page[data-theme="dark"] .student-form-card h3 {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .modal-content label,
+.dashboard-page[data-theme="dark"] .student-form-modal label,
+.dashboard-page[data-theme="dark"] .student-form-card label {
+    color: #e2e8f0;
+}
+
+.dashboard-page[data-theme="dark"] .modal-content input,
+.dashboard-page[data-theme="dark"] .modal-content select,
+.dashboard-page[data-theme="dark"] .modal-content textarea,
+.dashboard-page[data-theme="dark"] .student-form-modal input,
+.dashboard-page[data-theme="dark"] .student-form-modal select,
+.dashboard-page[data-theme="dark"] .student-form-modal textarea,
+.dashboard-page[data-theme="dark"] .student-form-card input,
+.dashboard-page[data-theme="dark"] .student-form-card select,
+.dashboard-page[data-theme="dark"] .student-form-card textarea {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.dashboard-page[data-theme="dark"] .modal-content input::placeholder,
+.dashboard-page[data-theme="dark"] .modal-content textarea::placeholder,
+.dashboard-page[data-theme="dark"] .student-form-modal input::placeholder,
+.dashboard-page[data-theme="dark"] .student-form-modal textarea::placeholder,
+.dashboard-page[data-theme="dark"] .student-form-card input::placeholder,
+.dashboard-page[data-theme="dark"] .student-form-card textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* Theme toggle */
+.dashboard-page[data-theme="dark"] .theme-toggle-button {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.dashboard-page[data-theme="dark"] .theme-toggle-button:hover {
+    background: #334155;
+    border-color: #64748b;
+}
+
+/* Smooth theme changes */
+.dashboard-page .dashboard-header,
+.dashboard-page .students-card,
+.dashboard-page .students-search-input,
+.dashboard-page .students-table,
+.dashboard-page .students-table th,
+.dashboard-page .students-table td,
+.dashboard-page .modal-content,
+.dashboard-page .student-form-modal,
+.dashboard-page .student-form-card {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+/* Responsive header */
+@media (max-width: 700px) {
+    .dashboard-header-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .dashboard-header {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+/* =========================================
+   STUDENT FORM MODAL - DARK MODE
+========================================= */
+
+/* Modal background overlay */
+.dashboard-page[data-theme="dark"] .modal-overlay {
+    background: rgba(2, 6, 23, 0.82);
+}
+
+/* Modal card */
+.dashboard-page[data-theme="dark"] .modal-content.student-form-card {
+    background: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+/* Modal heading */
+.dashboard-page[data-theme="dark"] .form-card-header h3 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .form-card-header p {
+    color: #cbd5e1;
+}
+
+/* Close button */
+.dashboard-page[data-theme="dark"] .close-form-button {
+    color: #f1f5f9;
+    background: transparent;
+}
+
+.dashboard-page[data-theme="dark"] .close-form-button:hover {
+    background: #334155;
+}
+
+/* Form labels */
+.dashboard-page[data-theme="dark"] .student-form .form-group label {
+    color: #e2e8f0;
+}
+
+/* Input fields */
+.dashboard-page[data-theme="dark"] .student-form .form-group input,
+.dashboard-page[data-theme="dark"] .student-form .form-group select,
+.dashboard-page[data-theme="dark"] .student-form .form-group textarea {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+/* Input placeholder */
+.dashboard-page[data-theme="dark"] .student-form .form-group input::placeholder,
+.dashboard-page[data-theme="dark"] .student-form .form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* Input focus */
+.dashboard-page[data-theme="dark"] .student-form .form-group input:focus,
+.dashboard-page[data-theme="dark"] .student-form .form-group select:focus,
+.dashboard-page[data-theme="dark"] .student-form .form-group textarea:focus {
+    border-color: #60a5fa;
+    outline-color: #60a5fa;
+}
+
+/* Password visibility button */
+.dashboard-page[data-theme="dark"] .password-toggle-button {
+    color: #f1f5f9;
+    background: transparent;
+}
+
+/* Validation messages */
+.dashboard-page[data-theme="dark"] .validation-error {
+    color: #fca5a5;
+}
+
+/* Modal error message */
+.dashboard-page[data-theme="dark"] .student-form-card .dashboard-error {
+    background: #450a0a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
+/* Cancel button */
+.dashboard-page[data-theme="dark"] .student-form .cancel-button {
+    background: #334155;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .cancel-button:hover {
+    background: #475569;
+}
+
+/* Save button remains visually prominent */
+.dashboard-page[data-theme="dark"] .student-form .save-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .save-button:hover {
+    background: #1d4ed8;
+}
+
+/* Smooth theme transition */
+.dashboard-page .modal-content.student-form-card,
+.dashboard-page .student-form .form-group input,
+.dashboard-page .student-form .form-group select,
+.dashboard-page .student-form .form-group textarea {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+

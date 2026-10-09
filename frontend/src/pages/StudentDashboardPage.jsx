@@ -1,17 +1,21 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {
-    getStoredUser,
-    logout
-} from "../services/authService";
-
+import { getStoredUser, logout } from "../services/authService";
 import apiRequest from "../services/api";
+
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
+
+    // Student-specific theme
+    const { getTheme } = useTheme();
+    const theme = getTheme("student");
 
     const [user, setUser] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
@@ -26,13 +30,14 @@ function StudentDashboardPage() {
 
                 const data = await apiRequest(
                     "/api/students/me",
-                    { method: "GET" }
+                    {
+                        method: "GET"
+                    }
                 );
 
                 if (data.student) {
                     setStudent(data.student);
                 }
-
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
@@ -59,18 +64,27 @@ function StudentDashboardPage() {
     };
 
     return (
-        <div className="student-dashboard-page">
-
+        <div
+            className="student-dashboard-page"
+            data-theme={theme}
+        >
             {/* Header */}
             <header className="student-dashboard-header">
-                <div>
+                <div className="student-header-title">
                     <h1>Student Portal</h1>
                     <p>Welcome, {user?.username}</p>
                 </div>
 
                 <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
+                    <span className="role-badge">
+                        STUDENT
+                    </span>
+
+                    {/* Student-specific Dark / Light Mode */}
+                    <ThemeToggle scope="student" />
+
                     <button
+                        type="button"
                         className="logout-button"
                         onClick={handleLogout}
                     >
@@ -79,10 +93,11 @@ function StudentDashboardPage() {
                 </div>
             </header>
 
-            {/* Main Content */}
+            {/* Main content */}
             <main className="student-dashboard-main">
-
-                <h2 className="section-title">My Profile</h2>
+                <h2 className="section-title">
+                    My Profile
+                </h2>
 
                 {error && (
                     <div className="student-error">
@@ -96,26 +111,32 @@ function StudentDashboardPage() {
                     </div>
                 ) : student ? (
                     <div className="profile-card">
-
+                        {/* Profile header */}
                         <div className="profile-header">
                             <div className="profile-avatar">
                                 {student.first_name?.charAt(0)}
                                 {student.last_name?.charAt(0)}
                             </div>
+
                             <div className="profile-name">
                                 <h3>
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </h3>
-                                <p>{student.registration_no}</p>
+
+                                <p>
+                                    {student.registration_no}
+                                </p>
                             </div>
                         </div>
 
+                        {/* Profile details */}
                         <div className="profile-details">
-
                             <div className="detail-row">
                                 <span className="detail-label">
                                     Registration No
                                 </span>
+
                                 <span className="detail-value">
                                     {student.registration_no}
                                 </span>
@@ -125,8 +146,10 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Full Name
                                 </span>
+
                                 <span className="detail-value">
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </span>
                             </div>
 
@@ -134,6 +157,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Email
                                 </span>
+
                                 <span className="detail-value">
                                     {student.email}
                                 </span>
@@ -143,6 +167,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Phone
                                 </span>
+
                                 <span className="detail-value">
                                     {student.phone_number}
                                 </span>
@@ -152,15 +177,16 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Member Since
                                 </span>
+
                                 <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
+                                    {student.created_at
+                                        ? new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()
+                                        : "N/A"}
                                 </span>
                             </div>
-
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -169,11 +195,10 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
-
             </main>
-
         </div>
     );
 }
 
 export default StudentDashboardPage;
+

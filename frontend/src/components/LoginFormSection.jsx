@@ -1,7 +1,7 @@
+
 import { useState } from "react";
 
 function LoginFormSection({ onSubmit, loading, error }) {
-
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -13,25 +13,16 @@ function LoginFormSection({ onSubmit, loading, error }) {
 
     return (
         <section className="login-form-section">
-
             <div className="login-card">
-
                 <div className="login-heading">
+                    <span>SIGN IN</span>
 
-                    <span>
-                        SIGN IN
-                    </span>
-
-                    <h2>
-                        Welcome back
-                    </h2>
+                    <h2>Welcome back</h2>
 
                     <p>
                         Sign in to access your account.
                     </p>
-
                 </div>
-
 
                 {error && (
                     <div className="login-error">
@@ -39,14 +30,11 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     </div>
                 )}
 
-
                 <form
                     className="login-form"
                     onSubmit={handleSubmit}
                 >
-
                     <div className="form-group">
-
                         <label htmlFor="username">
                             Username
                         </label>
@@ -63,25 +51,17 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             disabled={loading}
                             required
                         />
-
                     </div>
 
-
                     <div className="form-group">
-
                         <label htmlFor="password">
                             Password
                         </label>
 
                         <div className="password-input-wrapper">
-
                             <input
                                 id="password"
-                                type={
-                                    showPassword
-                                        ? "text"
-                                        : "password"
-                                }
+                                type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(event) =>
                                     setPassword(event.target.value)
@@ -110,29 +90,21 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             >
                                 {showPassword ? "🙈" : "👁️"}
                             </button>
-
                         </div>
-
                     </div>
-
 
                     <button
                         type="submit"
                         className="login-submit-button"
                         disabled={loading}
                     >
-                        {loading
-                            ? "Signing in..."
-                            : "Sign In"
-                        }
+                        {loading ? "Signing in..." : "Sign In"}
                     </button>
-
                 </form>
-
             </div>
-
         </section>
     );
 }
 
 export default LoginFormSection;
+

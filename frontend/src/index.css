@@ -9,3 +9,121 @@ body,
 body {
     margin: 0;
 }
+
+/* =========================================
+   GLOBAL DARK MODE
+   Applies across the entire application
+========================================= */
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+/* Global page background and text */
+html[data-theme="light"] body {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+html[data-theme="dark"] body {
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+/* Make native form controls follow the selected theme */
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+    color-scheme: dark;
+}
+
+/* Login page */
+html[data-theme="dark"] .login-page {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+html[data-theme="dark"] .login-card,
+html[data-theme="dark"] .login-form-section {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+
+html[data-theme="dark"] .login-card h1,
+html[data-theme="dark"] .login-card h2,
+html[data-theme="dark"] .login-heading,
+html[data-theme="dark"] .login-form label {
+    color: #f1f5f9;
+}
+
+html[data-theme="dark"] .login-form input,
+html[data-theme="dark"] .login-form select,
+html[data-theme="dark"] .login-form textarea {
+    background-color: #0f172a;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+html[data-theme="dark"] .login-form input::placeholder {
+    color: #94a3b8;
+}
+
+/* Navbar */
+html[data-theme="dark"] .navbar {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+/* Footer */
+html[data-theme="dark"] .footer {
+    background-color: #111827;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+/* Theme toggle */
+html[data-theme="dark"] .theme-toggle-button {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+html[data-theme="dark"] .theme-toggle-button:hover {
+    background-color: #334155;
+}
+
+/* General form controls */
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+    border-color: #475569;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* Smooth transitions */
+.navbar,
+.footer,
+.login-card,
+.login-form-section,
+.students-card,
+.profile-card,
+.theme-toggle-button {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}

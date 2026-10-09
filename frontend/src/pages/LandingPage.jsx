@@ -1,7 +1,10 @@
+
 import { Link } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 import "../styles/landing.css";
 
@@ -12,26 +15,29 @@ import {
     Database
 } from "lucide-react";
 
-
 function LandingPage() {
+    const { getTheme } = useTheme();
+    const theme = getTheme("home");
 
     return (
-        <div className="landing-page">
-
+        <div
+            className="landing-page"
+            data-theme={theme}
+        >
             <Navbar />
 
-
             <main>
-
                 {/* Hero */}
                 <section
                     className="hero-section"
                     id="home"
                 >
-
                     <div className="hero-container">
-
                         <div className="hero-content">
+
+                            <div className="landing-theme-control">
+                                <ThemeToggle scope="home" />
+                            </div>
 
                             <span className="hero-badge">
                                 ABC Institute
@@ -47,9 +53,7 @@ function LandingPage() {
                                 managing student information efficiently.
                             </p>
 
-
                             <div className="hero-actions">
-
                                 <Link
                                     to="/login"
                                     className="primary-button"
@@ -63,14 +67,10 @@ function LandingPage() {
                                 >
                                     Explore Features
                                 </a>
-
                             </div>
-
                         </div>
 
-
                         <div className="hero-card">
-
                             <div className="hero-card-icon">
                                 <GraduationCap size={40} />
                             </div>
@@ -84,49 +84,28 @@ function LandingPage() {
                                 and academic information from one place.
                             </p>
 
-
                             <div className="hero-card-stats">
-
                                 <div>
-                                    <strong>
-                                        Secure
-                                    </strong>
-
-                                    <span>
-                                        Authentication
-                                    </span>
+                                    <strong>Secure</strong>
+                                    <span>Authentication</span>
                                 </div>
 
-
                                 <div>
-                                    <strong>
-                                        Easy
-                                    </strong>
-
-                                    <span>
-                                        Management
-                                    </span>
+                                    <strong>Easy</strong>
+                                    <span>Management</span>
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </section>
-
 
                 {/* About */}
                 <section
                     className="about-section"
                     id="about"
                 >
-
                     <div className="section-container">
-
                         <div className="section-heading">
-
                             <span className="section-label">
                                 About System
                             </span>
@@ -140,24 +119,17 @@ function LandingPage() {
                                 administrators with a centralized platform
                                 to manage student records and accounts.
                             </p>
-
                         </div>
-
                     </div>
-
                 </section>
-
 
                 {/* Features */}
                 <section
                     className="features-section"
                     id="features"
                 >
-
                     <div className="section-container">
-
                         <div className="section-heading">
-
                             <span className="section-label">
                                 Features
                             </span>
@@ -165,14 +137,10 @@ function LandingPage() {
                             <h2>
                                 Powerful and simple
                             </h2>
-
                         </div>
 
-
                         <div className="features-grid">
-
                             <div className="feature-card">
-
                                 <div className="feature-icon">
                                     <ShieldCheck size={32} />
                                 </div>
@@ -185,12 +153,9 @@ function LandingPage() {
                                     Secure login with JWT-based
                                     authentication and role-based access.
                                 </p>
-
                             </div>
 
-
                             <div className="feature-card">
-
                                 <div className="feature-icon">
                                     <Users size={32} />
                                 </div>
@@ -203,12 +168,9 @@ function LandingPage() {
                                     Create, view, update and delete
                                     student records efficiently.
                                 </p>
-
                             </div>
 
-
                             <div className="feature-card">
-
                                 <div className="feature-icon">
                                     <Database size={32} />
                                 </div>
@@ -221,22 +183,16 @@ function LandingPage() {
                                     Keep student information organized
                                     in a centralized database.
                                 </p>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </section>
-
             </main>
 
-
             <Footer />
-
         </div>
     );
 }
 
 export default LandingPage;
+

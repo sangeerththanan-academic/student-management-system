@@ -400,3 +400,100 @@
     cursor: not-allowed;
     opacity: 0.5;
 }
+
+
+/* =========================================================
+   Login Page - Theme Toggle
+   ========================================================= */
+
+.login-page {
+    position: relative;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.login-theme-control {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    z-index: 10;
+}
+
+/* =========================================================
+   Login Page - Dark Mode
+   ========================================================= */
+
+.login-page[data-theme="dark"] {
+    background: #0f172a;
+    color: #f1f5f9;
+}
+
+.login-page[data-theme="dark"] .login-form-section {
+    background: #0f172a;
+}
+
+.login-page[data-theme="dark"] .login-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
+
+.login-page[data-theme="dark"] .login-heading h2 {
+    color: #f1f5f9;
+}
+
+.login-page[data-theme="dark"] .login-heading p {
+    color: #cbd5e1;
+}
+
+.login-page[data-theme="dark"] .form-group label {
+    color: #e2e8f0;
+}
+
+.login-page[data-theme="dark"] .form-group input {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.login-page[data-theme="dark"] .form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.login-page[data-theme="dark"] .form-group input:focus {
+    border-color: #60a5fa;
+    outline-color: #60a5fa;
+}
+
+.login-page[data-theme="dark"] .login-error {
+    background: #450a0a;
+    color: #fecaca;
+    border-color: #7f1d1d;
+}
+
+.login-page[data-theme="dark"] .password-toggle-button {
+    color: #f1f5f9;
+}
+
+.login-page[data-theme="dark"] .login-theme-control .theme-toggle-button {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.login-page[data-theme="dark"] .login-theme-control .theme-toggle-button:hover {
+    background: #334155;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .login-theme-control {
+        top: 10px;
+        right: 10px;
+    }
+
+    .login-theme-control .theme-toggle-button {
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+}
+
