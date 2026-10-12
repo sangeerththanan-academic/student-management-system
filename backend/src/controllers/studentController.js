@@ -396,16 +396,34 @@ const editStudent = async (req, res) => {
 
 // DELETE STUDENT
 // DELETE /api/students/:id
+
+
 const removeStudent = async (req, res) => {
+    let connection;
+    let transactionStarted = false;
 
     try {
-
         const studentId = req.params.id;
 
-        // Check student exists
-        const student = await getStudentById(studentId);
+        console.log("UPDATED DELETE CONTROLLER RUNNING");
+console.log("Student ID:", studentId);
 
-        if (!student) {
+        connection = await pool.getConnection();
+
+        await connection.beginTransaction();
+        transactionStarted = true;
+
+        // Get the corresponding user ID
+        const [students] = await connection.execute(
+            `SELECT user_id
+             FROM students
+             WHERE student_id = ?`,
+            [studentId]
+        );
+
+        if (students.length === 0) {
+            await connection.rollback();
+            transactionStarted = false;
 
             return res.status(404).json({
                 success: false,
@@ -413,17 +431,57 @@ const removeStudent = async (req, res) => {
             });
         }
 
+        const userId = students[0].user_id;
 
-        // Delete student
-        const result = await deleteStudent(studentId);
+        // Delete the student record first
+        await connection.execute(
+            `DELETE FROM students
+             WHERE student_id = ?`,
+            [studentId]
+        );
+
+
+
+        console.log("User ID:", userId);
+console.log("User delete result:", userResult);
+
+
+
+        // Delete only the matching student account
+        const [userResult] = await connection.execute(
+            `DELETE FROM users
+             WHERE user_id = ?
+             AND role = 'STUDENT'`,
+            [userId]
+        );
+
+        // Ensure the student account was deleted
+        if (userResult.affectedRows !== 1) {
+            throw new Error(
+                "Corresponding student account was not deleted"
+            );
+        }
+
+        await connection.commit();
+        transactionStarted = false;
 
         return res.status(200).json({
             success: true,
-            message: "Student deleted successfully",
-            affectedRows: result.affectedRows
+            message:
+                "Student and user account deleted successfully"
         });
 
     } catch (error) {
+        if (connection && transactionStarted) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error(
+                    "Rollback error:",
+                    rollbackError
+                );
+            }
+        }
 
         console.error("Delete student error:", error);
 
@@ -431,8 +489,15 @@ const removeStudent = async (req, res) => {
             success: false,
             message: "Failed to delete student"
         });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 };
+
+
 
 
 // GET CURRENT STUDENT'S OWN PROFILE
