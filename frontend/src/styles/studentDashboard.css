@@ -183,3 +183,71 @@
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+
+/* =========================================================
+   CR-012: Complete Student Theme Support
+   ========================================================= */
+
+.section-student .student-dashboard-page {
+    background: var(--theme-bg);
+    color: var(--theme-text);
+}
+
+.section-student .student-dashboard-header {
+    background: var(--theme-surface);
+    border-bottom-color: var(--theme-border);
+}
+
+.section-student .student-dashboard-header h1,
+.section-student .student-dashboard-main .section-title {
+    color: var(--theme-text);
+}
+
+.section-student .student-dashboard-header p {
+    color: var(--theme-muted);
+}
+
+.section-student .profile-card {
+    background: var(--theme-surface);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+.section-student .profile-details {
+    background: var(--theme-surface);
+}
+
+.section-student .detail-row {
+    border-bottom-color: var(--theme-border);
+}
+
+.section-student .detail-label {
+    color: var(--theme-muted);
+}
+
+.section-student .detail-value {
+    color: var(--theme-text);
+}
+
+.section-student .student-loading {
+    color: var(--theme-muted);
+    background: var(--theme-surface);
+}
+
+.section-student .student-error {
+    background: var(--theme-surface);
+    border-color: var(--theme-border);
+    color: #dc2626;
+}
+
+/* Theme-aware transitions */
+.section-student .student-dashboard-header,
+.section-student .profile-card,
+.section-student .profile-details,
+.section-student .detail-row {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}

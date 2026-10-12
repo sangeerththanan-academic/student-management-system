@@ -1,3 +1,4 @@
+
 import {
     BrowserRouter,
     Routes,
@@ -10,29 +11,37 @@ import DashboardPage from "../pages/DashboardPage";
 import StudentDashboardPage from "../pages/StudentDashboardPage";
 
 import ProtectedRoute from "./ProtectedRoute";
+import ThemeSection from "../components/ThemeSection";
 
 function AppRoutes() {
-
     return (
         <BrowserRouter>
-
             <Routes>
-
                 <Route
                     path="/"
-                    element={<LandingPage />}
+                    element={
+                        <ThemeSection section="login">
+                            <LandingPage />
+                        </ThemeSection>
+                    }
                 />
 
                 <Route
                     path="/login"
-                    element={<LoginPage />}
+                    element={
+                        <ThemeSection section="login">
+                            <LoginPage />
+                        </ThemeSection>
+                    }
                 />
 
                 <Route
                     path="/dashboard"
                     element={
                         <ProtectedRoute role="ADMIN">
-                            <DashboardPage />
+                            <ThemeSection section="admin">
+                                <DashboardPage />
+                            </ThemeSection>
                         </ProtectedRoute>
                     }
                 />
@@ -41,13 +50,13 @@ function AppRoutes() {
                     path="/student-dashboard"
                     element={
                         <ProtectedRoute role="STUDENT">
-                            <StudentDashboardPage />
+                            <ThemeSection section="student">
+                                <StudentDashboardPage />
+                            </ThemeSection>
                         </ProtectedRoute>
                     }
                 />
-
             </Routes>
-
         </BrowserRouter>
     );
 }

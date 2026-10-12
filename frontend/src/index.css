@@ -9,3 +9,75 @@ body,
 body {
     margin: 0;
 }
+
+
+/* CR-012: Independent section themes */
+
+.theme-section {
+    --theme-bg: #f4f6f9;
+    --theme-surface: #ffffff;
+    --theme-text: #1f2937;
+    --theme-muted: #64748b;
+    --theme-border: #dbe2ea;
+    --theme-input-bg: #ffffff;
+    --theme-button-bg: #e8edf4;
+
+    position: relative;
+    min-height: 100vh;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.theme-section.theme-dark {
+    --theme-bg: #111827;
+    --theme-surface: #1f2937;
+    --theme-text: #f3f4f6;
+    --theme-muted: #cbd5e1;
+    --theme-border: #475569;
+    --theme-input-bg: #111827;
+    --theme-button-bg: #374151;
+
+    color-scheme: dark;
+}
+
+.theme-section.theme-light {
+    color-scheme: light;
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    z-index: 9999;
+    padding: 9px 14px;
+    border: 1px solid var(--theme-border);
+    border-radius: 8px;
+    background: var(--theme-surface);
+    color: var(--theme-text);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.theme-toggle:hover {
+    opacity: 0.85;
+}
+
+.theme-section input,
+.theme-section select,
+.theme-section textarea {
+    color: var(--theme-text);
+    background-color: var(--theme-input-bg);
+    border-color: var(--theme-border);
+}
+
+.theme-section table {
+    color: var(--theme-text);
+}
+
+.theme-section.theme-dark input::placeholder,
+.theme-section.theme-dark textarea::placeholder {
+    color: var(--theme-muted);
+}

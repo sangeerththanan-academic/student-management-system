@@ -713,3 +713,136 @@
         max-height: 95vh;
     }
 }
+
+/* =========================================================
+   CR-012: Complete Admin Theme Support
+   ========================================================= */
+
+.section-admin .dashboard-page,
+.section-admin .student-dashboard-page {
+    background: var(--theme-bg);
+    color: var(--theme-text);
+}
+
+/* Header */
+.section-admin .dashboard-header {
+    background: var(--theme-surface);
+    border-bottom-color: var(--theme-border);
+}
+
+.section-admin .dashboard-header h1,
+.section-admin .dashboard-header p,
+.section-admin .admin-info strong,
+.section-admin .students-heading h2,
+.section-admin .students-heading p {
+    color: var(--theme-text);
+}
+
+.section-admin .dashboard-header p,
+.section-admin .students-heading p {
+    color: var(--theme-muted);
+}
+
+/* Cards and content */
+.section-admin .students-card,
+.section-admin .student-form-card {
+    background: var(--theme-surface);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+.section-admin .students-empty h3,
+.section-admin .students-empty p,
+.section-admin .students-loading {
+    color: var(--theme-text);
+}
+
+.section-admin .students-empty p,
+.section-admin .students-loading {
+    color: var(--theme-muted);
+}
+
+/* Search and form fields */
+.section-admin .students-search-input,
+.section-admin .student-form .form-group input {
+    background: var(--theme-input-bg);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+.section-admin .student-form .form-group label,
+.section-admin .form-card-header h3,
+.section-admin .form-card-header p {
+    color: var(--theme-text);
+}
+
+.section-admin .student-form .form-group input::placeholder,
+.section-admin .students-search-input::placeholder {
+    color: var(--theme-muted);
+}
+
+/* Table */
+.section-admin .students-table,
+.section-admin .students-table tbody tr {
+    background: var(--theme-surface);
+    color: var(--theme-text);
+}
+
+.section-admin .students-table th {
+    background: var(--theme-button-bg);
+    color: var(--theme-text);
+    border-bottom-color: var(--theme-border);
+}
+
+.section-admin .students-table td {
+    color: var(--theme-text);
+    border-bottom-color: var(--theme-border);
+}
+
+.section-admin .students-table td strong {
+    color: var(--theme-text);
+}
+
+.section-admin .students-table tbody tr:hover {
+    background: var(--theme-button-bg);
+}
+
+/* Modal */
+.section-admin .modal-content {
+    background: var(--theme-surface);
+    color: var(--theme-text);
+}
+
+.section-admin .close-form-button,
+.section-admin .cancel-button,
+.section-admin .students-search-clear {
+    background: var(--theme-button-bg);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+/* Errors and helper text */
+.section-admin .dashboard-error {
+    background: var(--theme-surface);
+    border-color: var(--theme-border);
+    color: #dc2626;
+}
+
+.section-admin .field-hint {
+    color: var(--theme-muted);
+}
+
+/* Smooth transition */
+.section-admin .dashboard-header,
+.section-admin .students-card,
+.section-admin .student-form-card,
+.section-admin .students-table,
+.section-admin .students-table th,
+.section-admin .students-table td,
+.section-admin .students-search-input,
+.section-admin .student-form .form-group input {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
