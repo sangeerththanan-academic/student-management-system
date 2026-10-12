@@ -1,0 +1,14 @@
+/* Import global styles and theme colors */
+@import "./styles/global.css";
+
+/* Ensure full-page height */
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+/* Reset body margin */
+body {
+    margin: 0;
+}

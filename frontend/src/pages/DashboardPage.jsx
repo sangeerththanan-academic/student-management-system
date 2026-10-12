@@ -10,6 +10,7 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/dashboard.css";
 
@@ -25,16 +26,11 @@ function DashboardPage() {
     const navigate = useNavigate();
 
     const [user, setUser] = useState(getStoredUser());
-
     const [students, setStudents] = useState([]);
-
     const [searchTerm, setSearchTerm] = useState("");
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [showForm, setShowForm] = useState(false);
-
     const [editingStudent, setEditingStudent] = useState(null);
 
     // Load current user
@@ -50,22 +46,18 @@ function DashboardPage() {
                         role: data.user.role
                     });
                 }
-
             } catch (error) {
                 console.error("Failed to load current user:", error);
 
                 if (error.status === 401) {
                     logout();
-                    navigate("/login", {
-                        replace: true
-                    });
+                    navigate("/login", { replace: true });
                 }
             }
         };
 
         loadUser();
     }, [navigate]);
-
 
     // Load students
     const loadStudents = async () => {
@@ -75,23 +67,16 @@ function DashboardPage() {
 
             const data = await apiRequest(
                 "/api/students/",
-                {
-                    method: "GET"
-                }
+                { method: "GET" }
             );
 
             setStudents(data.students || []);
-
         } catch (error) {
             console.error("Failed to load students:", error);
 
             if (error.status === 401) {
                 logout();
-
-                navigate("/login", {
-                    replace: true
-                });
-
+                navigate("/login", { replace: true });
                 return;
             }
 
@@ -99,31 +84,23 @@ function DashboardPage() {
                 setError(
                     "You do not have permission to access students."
                 );
-
                 return;
             }
 
             setError(
-                error.message ||
-                "Failed to retrieve students."
+                error.message || "Failed to retrieve students."
             );
-
         } finally {
             setLoading(false);
         }
     };
 
-
     useEffect(() => {
         loadStudents();
     }, []);
 
-
     // Client-side search (CR-001)
-    // Filters the already-loaded students only.
-    // No API request is made for search keystrokes.
     const normalizedSearchTerm = normalizeSearchValue(searchTerm);
-
     const isSearching = normalizedSearchTerm !== "";
 
     const filteredStudents = useMemo(() => {
@@ -148,9 +125,7 @@ function DashboardPage() {
                 `${student.first_name ?? ""} ${student.last_name ?? ""}`
             );
 
-            const email = normalizeSearchValue(
-                student.email
-            );
+            const email = normalizeSearchValue(student.email);
 
             return (
                 registrationNo.includes(normalizedSearchTerm) ||
@@ -162,11 +137,9 @@ function DashboardPage() {
         });
     }, [students, normalizedSearchTerm, isSearching]);
 
-
     const handleClearSearch = () => {
         setSearchTerm("");
     };
-
 
     // Form handling
     const openAddForm = () => {
@@ -174,24 +147,20 @@ function DashboardPage() {
         setShowForm(true);
     };
 
-
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
     };
-
 
     const handleFormClose = () => {
         setShowForm(false);
         setEditingStudent(null);
     };
 
-
     const handleFormAuthError = () => {
         logout();
         navigate("/login", { replace: true });
     };
-
 
     // Delete student
     const handleDelete = async (studentId) => {
@@ -208,49 +177,30 @@ function DashboardPage() {
 
             await apiRequest(
                 `/api/students/${studentId}`,
-                {
-                    method: "DELETE"
-                }
+                { method: "DELETE" }
             );
 
             await loadStudents();
-
         } catch (error) {
-            console.error(
-                "Delete student error:",
-                error
-            );
+            console.error("Delete student error:", error);
 
             if (error.status === 401) {
                 logout();
-
-                navigate("/login", {
-                    replace: true
-                });
-
+                navigate("/login", { replace: true });
                 return;
             }
 
             setError(
-                error.message ||
-                "Failed to delete student."
+                error.message || "Failed to delete student."
             );
         }
     };
 
-
     // Logout
     const handleLogout = () => {
         logout();
-
-        navigate(
-            "/login",
-            {
-                replace: true
-            }
-        );
+        navigate("/login", { replace: true });
     };
-
 
     // Render
     return (
@@ -268,8 +218,10 @@ function DashboardPage() {
                     </p>
                 </div>
 
-
                 <div className="dashboard-header-actions">
+
+                    {/* Dark Mode / Light Mode toggle */}
+                    <ThemeToggle />
 
                     <div className="admin-info">
                         <strong>
@@ -292,11 +244,9 @@ function DashboardPage() {
 
             </header>
 
-
             <main className="dashboard-content">
 
                 {/* Page heading */}
-
                 <div className="students-heading">
 
                     <div>
@@ -309,7 +259,6 @@ function DashboardPage() {
                         </p>
                     </div>
 
-
                     <button
                         className="add-student-button"
                         onClick={openAddForm}
@@ -319,18 +268,14 @@ function DashboardPage() {
 
                 </div>
 
-
                 {/* Error */}
-
                 {error && (
                     <div className="dashboard-error">
                         {error}
                     </div>
                 )}
 
-
                 {/* Student form modal */}
-
                 <StudentFormModal
                     show={showForm}
                     editingStudent={editingStudent}
@@ -339,10 +284,9 @@ function DashboardPage() {
                     onAuthError={handleFormAuthError}
                 />
 
-
-                {/* Students */}
-
+                {/* Students search */}
                 <div className="students-search">
+
                     <input
                         type="text"
                         className="students-search-input"
@@ -363,13 +307,22 @@ function DashboardPage() {
                             Clear
                         </button>
                     )}
+
                 </div>
 
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
-                            ? `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"} found`
-                            : `${students.length} ${students.length === 1 ? "student" : "students"}`}
+                            ? `${filteredStudents.length} ${
+                                filteredStudents.length === 1
+                                    ? "student"
+                                    : "students"
+                            } found`
+                            : `${students.length} ${
+                                students.length === 1
+                                    ? "student"
+                                    : "students"
+                            }`}
                     </p>
                 )}
 
@@ -421,35 +374,17 @@ function DashboardPage() {
 
                                 <thead>
                                     <tr>
-                                        <th>
-                                            Registration No.
-                                        </th>
-
-                                        <th>
-                                            Name
-                                        </th>
-
-                                        <th>
-                                            Email
-                                        </th>
-
-                                        <th>
-                                            Phone
-                                        </th>
-
-                                        <th>
-                                            Actions
-                                        </th>
+                                        <th>Registration No.</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
 
-
                                 <tbody>
-
                                     {filteredStudents.map((student) => (
-                                        <tr
-                                            key={student.student_id}
-                                        >
+                                        <tr key={student.student_id}>
 
                                             <td>
                                                 <strong>
@@ -471,15 +406,12 @@ function DashboardPage() {
                                             </td>
 
                                             <td>
-
                                                 <div className="student-actions">
 
                                                     <button
                                                         className="edit-button"
                                                         onClick={() =>
-                                                            openEditForm(
-                                                                student
-                                                            )
+                                                            openEditForm(student)
                                                         }
                                                     >
                                                         Edit
@@ -497,18 +429,15 @@ function DashboardPage() {
                                                     </button>
 
                                                 </div>
-
                                             </td>
 
                                         </tr>
                                     ))}
-
                                 </tbody>
 
                             </table>
 
                         </div>
-
                     )}
 
                 </div>
@@ -520,3 +449,4 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+

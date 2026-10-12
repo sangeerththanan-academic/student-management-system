@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/landing.css";
 
@@ -12,14 +13,16 @@ import {
     Database
 } from "lucide-react";
 
-
 function LandingPage() {
-
     return (
         <div className="landing-page">
 
-            <Navbar />
+            {/* Dark Mode / Light Mode Toggle */}
+            <div className="theme-toggle-container">
+                <ThemeToggle />
+            </div>
 
+            <Navbar />
 
             <main>
 
@@ -28,7 +31,6 @@ function LandingPage() {
                     className="hero-section"
                     id="home"
                 >
-
                     <div className="hero-container">
 
                         <div className="hero-content">
@@ -46,7 +48,6 @@ function LandingPage() {
                                 A modern and secure platform for
                                 managing student information efficiently.
                             </p>
-
 
                             <div className="hero-actions">
 
@@ -68,7 +69,6 @@ function LandingPage() {
 
                         </div>
 
-
                         <div className="hero-card">
 
                             <div className="hero-card-icon">
@@ -84,7 +84,6 @@ function LandingPage() {
                                 and academic information from one place.
                             </p>
 
-
                             <div className="hero-card-stats">
 
                                 <div>
@@ -96,7 +95,6 @@ function LandingPage() {
                                         Authentication
                                     </span>
                                 </div>
-
 
                                 <div>
                                     <strong>
@@ -113,16 +111,13 @@ function LandingPage() {
                         </div>
 
                     </div>
-
                 </section>
-
 
                 {/* About */}
                 <section
                     className="about-section"
                     id="about"
                 >
-
                     <div className="section-container">
 
                         <div className="section-heading">
@@ -144,16 +139,13 @@ function LandingPage() {
                         </div>
 
                     </div>
-
                 </section>
-
 
                 {/* Features */}
                 <section
                     className="features-section"
                     id="features"
                 >
-
                     <div className="section-container">
 
                         <div className="section-heading">
@@ -167,7 +159,6 @@ function LandingPage() {
                             </h2>
 
                         </div>
-
 
                         <div className="features-grid">
 
@@ -188,7 +179,6 @@ function LandingPage() {
 
                             </div>
 
-
                             <div className="feature-card">
 
                                 <div className="feature-icon">
@@ -205,7 +195,6 @@ function LandingPage() {
                                 </p>
 
                             </div>
-
 
                             <div className="feature-card">
 
@@ -227,11 +216,9 @@ function LandingPage() {
                         </div>
 
                     </div>
-
                 </section>
 
             </main>
-
 
             <Footer />
 
@@ -240,3 +227,4 @@ function LandingPage() {
 }
 
 export default LandingPage;
+
