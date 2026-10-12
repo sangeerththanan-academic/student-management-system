@@ -36,7 +36,7 @@
 
     color: #ffffff;
 
-    padding: 40px;
+   
 }
 
 .back-button {
@@ -112,9 +112,9 @@
     display: flex;
 
     align-items: center;
-    justify-content: center;
+    justify-content: left;
 
-    padding: 40px;
+    padding: 80px;
 }
 
 .login-card {
