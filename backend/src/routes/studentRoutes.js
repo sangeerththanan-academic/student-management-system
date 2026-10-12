@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const {
@@ -14,31 +15,23 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
+const uploadProfileImage = require("../middleware/uploadMiddleware");
+
 const router = express.Router();
 
-
-// STUDENT ROUTES
-
 // Get current student's own profile
-router.get(
-    "/me",
-    authenticate,
-    getMyProfile
-);
+router.get("/me", authenticate, getMyProfile);
 
-
-// Create student
-// Administrator only
+// Create student with optional profile image
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfileImage,
     addStudent
 );
 
-
 // Get all students
-// Administrator only
 router.get(
     "/",
     authenticate,
@@ -46,9 +39,7 @@ router.get(
     getStudents
 );
 
-
 // Get student by ID
-// Administrator only
 router.get(
     "/:id",
     authenticate,
@@ -56,9 +47,7 @@ router.get(
     getStudent
 );
 
-
 // Update student
-// Administrator only
 router.put(
     "/:id",
     authenticate,
@@ -66,15 +55,12 @@ router.put(
     editStudent
 );
 
-
 // Delete student
-// Administrator only
 router.delete(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
     removeStudent
 );
-
 
 module.exports = router;
