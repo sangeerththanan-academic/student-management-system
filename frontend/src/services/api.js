@@ -1,25 +1,32 @@
-const API_BASE_URL =
+
+export const API_BASE_URL =
     import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const apiRequest = async (endpoint, options = {}) => {
     const token = localStorage.getItem("token");
+    const isFormData =
+        typeof FormData !== "undefined" &&
+        options.body instanceof FormData;
 
     const headers = {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...options.headers
     };
+
+    // Let the browser set the multipart boundary for FormData.
+    if (isFormData) {
+        delete headers["Content-Type"];
+        delete headers["content-type"];
+    }
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(
-        `${API_BASE_URL}${endpoint}`,
-        {
-            ...options,
-            headers
-        }
-    );
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers
+    });
 
     let data;
 
@@ -39,7 +46,6 @@ const apiRequest = async (endpoint, options = {}) => {
 
         error.status = response.status;
         error.data = data;
-
         throw error;
     }
 

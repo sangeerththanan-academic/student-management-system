@@ -691,3 +691,49 @@
         max-height: 95vh;
     }
 }
+
+
+/* =========================================================
+   CR-010: Student Profile Images
+   ========================================================= */
+
+.students-table {
+    min-width: 950px;
+}
+
+.student-profile-cell {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.student-profile-image,
+.student-profile-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+}
+
+.student-profile-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+}
+
+.student-profile-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+}

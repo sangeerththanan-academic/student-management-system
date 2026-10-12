@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,13 +8,16 @@ import {
     logout
 } from "../services/authService";
 
-import apiRequest from "../services/api";
+import apiRequest, { API_BASE_URL } from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
 
 import "../styles/dashboard.css";
 
-// Normalizes text for case-insensitive search with space handling.
+// ============================================================
+// CR-001: Normalize values for client-side search
+// ============================================================
+
 const normalizeSearchValue = (value) => {
     return String(value ?? "")
         .toLowerCase()
@@ -21,23 +25,63 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
+// ============================================================
+// CR-010: Build profile image URL
+// ============================================================
+
+const getProfilePhotoUrl = (profilePhoto) => {
+    if (!profilePhoto) {
+        return "";
+    }
+
+    // Support absolute image URLs too.
+    if (/^https?:\/\//i.test(profilePhoto)) {
+        return profilePhoto;
+    }
+
+    const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+    const imagePath = String(profilePhoto).replace(/^\/+/, "");
+
+    return `${baseUrl}/${imagePath}`;
+};
+
+// ============================================================
+// CR-010: Generate initials when a photo is unavailable
+// ============================================================
+
+const getStudentInitials = (student) => {
+    const firstInitial = String(student.first_name ?? "")
+        .trim()
+        .charAt(0);
+
+    const lastInitial = String(student.last_name ?? "")
+        .trim()
+        .charAt(0);
+
+    return `${firstInitial}${lastInitial}`.toUpperCase() || "?";
+};
+
+// ============================================================
+// ADMIN DASHBOARD
+// ============================================================
+
 function DashboardPage() {
     const navigate = useNavigate();
 
     const [user, setUser] = useState(getStoredUser());
-
     const [students, setStudents] = useState([]);
-
     const [searchTerm, setSearchTerm] = useState("");
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     const [showForm, setShowForm] = useState(false);
-
     const [editingStudent, setEditingStudent] = useState(null);
 
+    // ========================================================
     // Load current user
+    // ========================================================
+
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -50,12 +94,15 @@ function DashboardPage() {
                         role: data.user.role
                     });
                 }
-
             } catch (error) {
-                console.error("Failed to load current user:", error);
+                console.error(
+                    "Failed to load current user:",
+                    error
+                );
 
                 if (error.status === 401) {
                     logout();
+
                     navigate("/login", {
                         replace: true
                     });
@@ -66,8 +113,10 @@ function DashboardPage() {
         loadUser();
     }, [navigate]);
 
-
+    // ========================================================
     // Load students
+    // ========================================================
+
     const loadStudents = async () => {
         try {
             setLoading(true);
@@ -81,9 +130,11 @@ function DashboardPage() {
             );
 
             setStudents(data.students || []);
-
         } catch (error) {
-            console.error("Failed to load students:", error);
+            console.error(
+                "Failed to load students:",
+                error
+            );
 
             if (error.status === 401) {
                 logout();
@@ -107,24 +158,24 @@ function DashboardPage() {
                 error.message ||
                 "Failed to retrieve students."
             );
-
         } finally {
             setLoading(false);
         }
     };
 
-
     useEffect(() => {
         loadStudents();
     }, []);
 
+    // ========================================================
+    // CR-001: Client-side student search
+    // ========================================================
 
-    // Client-side search (CR-001)
-    // Filters the already-loaded students only.
-    // No API request is made for search keystrokes.
-    const normalizedSearchTerm = normalizeSearchValue(searchTerm);
+    const normalizedSearchTerm =
+        normalizeSearchValue(searchTerm);
 
-    const isSearching = normalizedSearchTerm !== "";
+    const isSearching =
+        normalizedSearchTerm !== "";
 
     const filteredStudents = useMemo(() => {
         if (!isSearching) {
@@ -162,38 +213,41 @@ function DashboardPage() {
         });
     }, [students, normalizedSearchTerm, isSearching]);
 
-
     const handleClearSearch = () => {
         setSearchTerm("");
     };
 
+    // ========================================================
+    // Student form handling
+    // ========================================================
 
-    // Form handling
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
     };
-
 
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
     };
 
-
     const handleFormClose = () => {
         setShowForm(false);
         setEditingStudent(null);
     };
 
-
     const handleFormAuthError = () => {
         logout();
-        navigate("/login", { replace: true });
+
+        navigate("/login", {
+            replace: true
+        });
     };
 
-
+    // ========================================================
     // Delete student
+    // ========================================================
+
     const handleDelete = async (studentId) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this student?"
@@ -214,7 +268,6 @@ function DashboardPage() {
             );
 
             await loadStudents();
-
         } catch (error) {
             console.error(
                 "Delete student error:",
@@ -238,26 +291,28 @@ function DashboardPage() {
         }
     };
 
-
+    // ========================================================
     // Logout
+    // ========================================================
+
     const handleLogout = () => {
         logout();
 
-        navigate(
-            "/login",
-            {
-                replace: true
-            }
-        );
+        navigate("/login", {
+            replace: true
+        });
     };
 
+    // ========================================================
+    // Render dashboard
+    // ========================================================
 
-    // Render
     return (
         <div className="dashboard-page">
 
-            <header className="dashboard-header">
+            {/* Dashboard header */}
 
+            <header className="dashboard-header">
                 <div>
                     <h1>
                         Student Management System
@@ -268,9 +323,7 @@ function DashboardPage() {
                     </p>
                 </div>
 
-
                 <div className="dashboard-header-actions">
-
                     <div className="admin-info">
                         <strong>
                             {user?.username}
@@ -282,54 +335,49 @@ function DashboardPage() {
                     </div>
 
                     <button
+                        type="button"
                         onClick={handleLogout}
                         className="logout-button"
                     >
                         Logout
                     </button>
-
                 </div>
-
             </header>
-
 
             <main className="dashboard-content">
 
                 {/* Page heading */}
 
                 <div className="students-heading">
-
                     <div>
-                        <h2>
-                            Students
-                        </h2>
+                        <h2>Students</h2>
 
                         <p>
                             Manage student accounts and profiles.
                         </p>
                     </div>
 
-
                     <button
+                        type="button"
                         className="add-student-button"
                         onClick={openAddForm}
                     >
                         + Add Student
                     </button>
-
                 </div>
 
-
-                {/* Error */}
+                {/* Error message */}
 
                 {error && (
-                    <div className="dashboard-error">
+                    <div
+                        className="dashboard-error"
+                        role="alert"
+                    >
                         {error}
                     </div>
                 )}
 
-
-                {/* Student form modal */}
+                {/* Add/Edit student modal */}
 
                 <StudentFormModal
                     show={showForm}
@@ -339,8 +387,7 @@ function DashboardPage() {
                     onAuthError={handleFormAuthError}
                 />
 
-
-                {/* Students */}
+                {/* Student search: CR-001 */}
 
                 <div className="students-search">
                     <input
@@ -365,43 +412,49 @@ function DashboardPage() {
                     )}
                 </div>
 
+                {/* Search result count */}
+
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
-                            ? `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"} found`
-                            : `${students.length} ${students.length === 1 ? "student" : "students"}`}
+                            ? `${filteredStudents.length} ${
+                                filteredStudents.length === 1
+                                    ? "student"
+                                    : "students"
+                            } found`
+                            : `${students.length} ${
+                                students.length === 1
+                                    ? "student"
+                                    : "students"
+                            }`}
                     </p>
                 )}
 
+                {/* Student table */}
+
                 <div className="students-card">
-
                     {loading ? (
-
                         <div className="students-loading">
                             Loading students...
                         </div>
-
                     ) : students.length === 0 ? (
-
                         <div className="students-empty">
-                            <h3>
-                                No students found
-                            </h3>
+                            <h3>No students found</h3>
 
                             <p>
                                 Add your first student to get started.
                             </p>
                         </div>
-
                     ) : filteredStudents.length === 0 ? (
-
                         <div className="students-empty">
                             <h3>
                                 No matching students found
                             </h3>
 
                             <p>
-                                No students match &quot;{searchTerm.trim()}&quot;.
+                                No students match &quot;
+                                {searchTerm.trim()}
+                                &quot;.
                             </p>
 
                             <button
@@ -412,109 +465,131 @@ function DashboardPage() {
                                 Clear Search
                             </button>
                         </div>
-
                     ) : (
-
                         <div className="students-table-wrapper">
-
                             <table className="students-table">
+
+                                {/* All column headings in ONE row */}
 
                                 <thead>
                                     <tr>
-                                        <th>
-                                            Registration No.
-                                        </th>
-
-                                        <th>
-                                            Name
-                                        </th>
-
-                                        <th>
-                                            Email
-                                        </th>
-
-                                        <th>
-                                            Phone
-                                        </th>
-
-                                        <th>
-                                            Actions
-                                        </th>
+                                        <th>Profile</th>
+                                        <th>Registration No.</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
 
-
                                 <tbody>
+                                    {filteredStudents.map((student) => {
+                                        const photoUrl =
+                                            getProfilePhotoUrl(
+                                                student.profile_photo
+                                            );
 
-                                    {filteredStudents.map((student) => (
-                                        <tr
-                                            key={student.student_id}
-                                        >
+                                        return (
+                                            <tr
+                                                key={student.student_id}
+                                            >
+                                                {/* CR-010: Profile photo */}
 
-                                            <td>
-                                                <strong>
-                                                    {student.registration_no}
-                                                </strong>
-                                            </td>
+                                                <td>
+                                                    <div
+                                                        className="student-profile-cell"
+                                                        title={`${student.first_name ?? ""} ${student.last_name ?? ""}`}
+                                                    >
+                                                        {photoUrl && (
+                                                            <img
+                                                                className="student-profile-image"
+                                                                src={photoUrl}
+                                                                alt={`${student.first_name ?? "Student"} ${student.last_name ?? ""} profile`}
+                                                                loading="lazy"
+                                                                onError={(event) => {
+                                                                    event.currentTarget.style.display =
+                                                                        "none";
+                                                                }}
+                                                            />
+                                                        )}
 
-                                            <td>
-                                                {student.first_name}{" "}
-                                                {student.last_name}
-                                            </td>
-
-                                            <td>
-                                                {student.email}
-                                            </td>
-
-                                            <td>
-                                                {student.phone_number}
-                                            </td>
-
-                                            <td>
-
-                                                <div className="student-actions">
-
-                                                    <button
-                                                        className="edit-button"
-                                                        onClick={() =>
-                                                            openEditForm(
+                                                        <span
+                                                            className="student-profile-placeholder"
+                                                        >
+                                                            {getStudentInitials(
                                                                 student
-                                                            )
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </button>
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </td>
 
-                                                    <button
-                                                        className="delete-button"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                student.student_id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                {/* Registration number */}
 
-                                                </div>
+                                                <td>
+                                                    <strong>
+                                                        {student.registration_no}
+                                                    </strong>
+                                                </td>
 
-                                            </td>
+                                                {/* Student name */}
 
-                                        </tr>
-                                    ))}
+                                                <td>
+                                                    {student.first_name}{" "}
+                                                    {student.last_name}
+                                                </td>
 
+                                                {/* Email */}
+
+                                                <td>
+                                                    {student.email}
+                                                </td>
+
+                                                {/* Phone */}
+
+                                                <td>
+                                                    {student.phone_number}
+                                                </td>
+
+                                                {/* Actions */}
+
+                                                <td>
+                                                    <div className="student-actions">
+                                                        <button
+                                                            type="button"
+                                                            className="edit-button"
+                                                            onClick={() =>
+                                                                openEditForm(
+                                                                    student
+                                                                )
+                                                            }
+                                                        >
+                                                            Edit
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="delete-button"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    student.student_id
+                                                                )
+                                                            }
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
 
                             </table>
-
                         </div>
-
                     )}
-
                 </div>
 
             </main>
-
         </div>
     );
 }

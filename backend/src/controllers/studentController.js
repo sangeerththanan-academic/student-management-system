@@ -1,4 +1,7 @@
+
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 
 const pool = require("../config/db");
 
@@ -11,39 +14,17 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
-
-// ============================================================
-// CR-004 VALIDATION RULES
-// ============================================================
+const { removeFile } = require("../middleware/uploadMiddleware");
 
 const registrationNumberRegex =
     /^[A-Za-z0-9]+(?:[-/][A-Za-z0-9]+)*$/;
-
-const nameRegex =
-    /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
-
-const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const phoneRegex =
-    /^\d{10}$/;
-
-const uppercaseRegex =
-    /[A-Z]/;
-
-const lowercaseRegex =
-    /[a-z]/;
-
-const numberRegex =
-    /[0-9]/;
-
-const specialCharacterRegex =
-    /[^A-Za-z0-9]/;
-
-
-// ============================================================
-// COMMON STUDENT VALIDATION
-// ============================================================
+const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^\d{10}$/;
+const uppercaseRegex = /[A-Z]/;
+const lowercaseRegex = /[a-z]/;
+const numberRegex = /[0-9]/;
+const specialCharacterRegex = /[^A-Za-z0-9]/;
 
 const validateStudentInput = ({
     registrationNo,
@@ -54,172 +35,113 @@ const validateStudentInput = ({
     password,
     requirePassword = false
 }) => {
-
     const errors = {};
 
-    // --------------------------------------------------------
-    // Registration Number
-    // --------------------------------------------------------
+    const registration = String(registrationNo || "").trim();
+    const first = String(firstName || "").trim();
+    const last = String(lastName || "").trim();
+    const cleanEmail = String(email || "").trim();
+    const phone = String(phoneNumber || "").trim();
 
-    const trimmedRegistrationNo =
-        String(registrationNo || "").trim();
-
-    if (!trimmedRegistrationNo) {
-
-        errors.registrationNo =
-            "Registration number is required.";
-
-    } else if (
-        !registrationNumberRegex.test(trimmedRegistrationNo)
-    ) {
-
+    if (!registration) {
+        errors.registrationNo = "Registration number is required.";
+    } else if (!registrationNumberRegex.test(registration)) {
         errors.registrationNo =
             "Registration number contains invalid characters.";
     }
 
-
-    // --------------------------------------------------------
-    // First Name
-    // --------------------------------------------------------
-
-    const trimmedFirstName =
-        String(firstName || "").trim();
-
-    if (!trimmedFirstName) {
-
-        errors.firstName =
-            "First name is required.";
-
-    } else if (trimmedFirstName.length < 3) {
-
+    if (!first) {
+        errors.firstName = "First name is required.";
+    } else if (first.length < 3) {
         errors.firstName =
             "First name must contain at least 3 characters.";
-
-    } else if (!nameRegex.test(trimmedFirstName)) {
-
+    } else if (!nameRegex.test(first)) {
         errors.firstName =
             "First name can contain only valid alphabetic characters.";
     }
 
-
-    // --------------------------------------------------------
-    // Last Name
-    // --------------------------------------------------------
-
-    const trimmedLastName =
-        String(lastName || "").trim();
-
-    if (!trimmedLastName) {
-
-        errors.lastName =
-            "Last name is required.";
-
-    } else if (trimmedLastName.length < 3) {
-
+    if (!last) {
+        errors.lastName = "Last name is required.";
+    } else if (last.length < 3) {
         errors.lastName =
             "Last name must contain at least 3 characters.";
-
-    } else if (!nameRegex.test(trimmedLastName)) {
-
+    } else if (!nameRegex.test(last)) {
         errors.lastName =
             "Last name can contain only valid alphabetic characters.";
     }
 
-
-    // --------------------------------------------------------
-    // Email
-    // --------------------------------------------------------
-
-    const trimmedEmail =
-        String(email || "").trim();
-
-    if (!trimmedEmail) {
-
-        errors.email =
-            "Email address is required.";
-
-    } else if (!emailRegex.test(trimmedEmail)) {
-
-        errors.email =
-            "Please enter a valid email address.";
+    if (!cleanEmail) {
+        errors.email = "Email address is required.";
+    } else if (!emailRegex.test(cleanEmail)) {
+        errors.email = "Please enter a valid email address.";
     }
 
-
-    // --------------------------------------------------------
-    // Phone Number
-    // --------------------------------------------------------
-
-    const trimmedPhoneNumber =
-        String(phoneNumber || "").trim();
-
-    if (!trimmedPhoneNumber) {
-
-        errors.phoneNumber =
-            "Phone number is required.";
-
-    } else if (!/^\d+$/.test(trimmedPhoneNumber)) {
-
+    if (!phone) {
+        errors.phoneNumber = "Phone number is required.";
+    } else if (!/^\d+$/.test(phone)) {
         errors.phoneNumber =
             "Phone number must contain numeric characters only.";
-
-    } else if (!phoneRegex.test(trimmedPhoneNumber)) {
-
+    } else if (!phoneRegex.test(phone)) {
         errors.phoneNumber =
             "Phone number must contain exactly 10 digits.";
     }
 
-
-    // --------------------------------------------------------
-    // Password
-    // Password required only while creating a student
-    // --------------------------------------------------------
-
     if (requirePassword) {
-
         if (!password) {
-
-            errors.password =
-                "Password is required for a new student.";
-
+            errors.password = "Password is required for a new student.";
         } else if (password.length < 8) {
-
-            errors.password =
-                "Password must contain at least 8 characters.";
-
+            errors.password = "Password must contain at least 8 characters.";
         } else if (!uppercaseRegex.test(password)) {
-
             errors.password =
                 "Password must contain at least one uppercase letter.";
-
         } else if (!lowercaseRegex.test(password)) {
-
             errors.password =
                 "Password must contain at least one lowercase letter.";
-
         } else if (!numberRegex.test(password)) {
-
             errors.password =
                 "Password must contain at least one number.";
-
         } else if (!specialCharacterRegex.test(password)) {
-
             errors.password =
                 "Password must contain at least one special character.";
         }
     }
 
-
     return errors;
 };
 
+const getUploadedPhotoPath = (file) => {
+    if (!file) return null;
 
-// ============================================================
+    // This is the relative URL saved in MySQL.
+    return `/uploads/students/${path.basename(file.filename)}`;
+};
+
+const getDiskPathFromPhotoUrl = (photoUrl) => {
+    if (
+        !photoUrl ||
+        !photoUrl.startsWith("/uploads/students/")
+    ) {
+        return null;
+    }
+
+    const filename = path.basename(photoUrl);
+    return path.join(
+        __dirname,
+        "..",
+        "uploads",
+        "students",
+        filename
+    );
+};
+
+const removeOldPhotoIfDifferent = async (oldPhoto, newPhoto) => {
+    if (!oldPhoto || oldPhoto === newPhoto) return;
+
+    await removeFile(getDiskPathFromPhotoUrl(oldPhoto));
+};
+
 // CREATE STUDENT
-// POST /api/students/
-// ============================================================
-
 const addStudent = async (req, res) => {
-
     const {
         registrationNo,
         firstName,
@@ -229,345 +151,176 @@ const addStudent = async (req, res) => {
         password
     } = req.body;
 
-    let connection = null;
+    let connection;
 
     try {
+        const validationErrors = validateStudentInput({
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            password,
+            requirePassword: true
+        });
 
-        // ====================================================
-        // CR-004 SERVER-SIDE VALIDATION
-        // ====================================================
-
-        const validationErrors =
-            validateStudentInput({
-                registrationNo,
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
-                password,
-                requirePassword: true
-            });
-
-
-        // If validation fails, stop request
         if (Object.keys(validationErrors).length > 0) {
+            await removeFile(req.file?.path);
 
             return res.status(400).json({
                 success: false,
-                message:
-                    "Please correct the invalid student information.",
+                message: "Please correct the invalid student information.",
                 errors: validationErrors
             });
         }
 
+        const cleanRegistrationNo = registrationNo.trim();
+        const cleanFirstName = firstName.trim();
+        const cleanLastName = lastName.trim();
+        const cleanEmail = email.trim();
+        const cleanPhoneNumber = phoneNumber.trim();
+        const profilePhoto = getUploadedPhotoPath(req.file);
 
-        // ====================================================
-        // Trim validated values
-        // ====================================================
-
-        const cleanRegistrationNo =
-            registrationNo.trim();
-
-        const cleanFirstName =
-            firstName.trim();
-
-        const cleanLastName =
-            lastName.trim();
-
-        const cleanEmail =
-            email.trim();
-
-        const cleanPhoneNumber =
-            phoneNumber.trim();
-
-
-        // ====================================================
-        // Get database connection
-        // ====================================================
-
-        connection =
-            await pool.getConnection();
-
-
-        // ====================================================
-        // Start transaction
-        // ====================================================
-
+        connection = await pool.getConnection();
         await connection.beginTransaction();
 
-
-        // ====================================================
-        // Check duplicate registration number
-        // ====================================================
-
-        const [existingUser] =
-            await connection.execute(
-                `SELECT user_id
-                 FROM users
-                 WHERE username = ?
-                 LIMIT 1`,
-                [cleanRegistrationNo]
-            );
-
+        const [existingUser] = await connection.execute(
+            `SELECT user_id FROM users WHERE username = ? LIMIT 1`,
+            [cleanRegistrationNo]
+        );
 
         if (existingUser.length > 0) {
-
             await connection.rollback();
+            await removeFile(req.file?.path);
 
             return res.status(409).json({
                 success: false,
-                message:
-                    "Registration number is already registered"
+                message: "Registration number is already registered."
             });
         }
 
-
-        // ====================================================
-        // Check duplicate email
-        // ====================================================
-
-        const [existingStudent] =
-            await connection.execute(
-                `SELECT student_id
-                 FROM students
-                 WHERE email = ?
-                 LIMIT 1`,
-                [cleanEmail]
-            );
-
+        const [existingStudent] = await connection.execute(
+            `SELECT student_id FROM students WHERE email = ? LIMIT 1`,
+            [cleanEmail]
+        );
 
         if (existingStudent.length > 0) {
-
             await connection.rollback();
+            await removeFile(req.file?.path);
 
             return res.status(409).json({
                 success: false,
-                message:
-                    "Email address is already registered"
+                message: "Email address is already registered."
             });
         }
 
+        const passwordHash = await bcrypt.hash(password, 10);
 
-        // ====================================================
-        // Hash student password
-        // ====================================================
+        const [userResult] = await connection.execute(
+            `INSERT INTO users (username, password_hash, role)
+             VALUES (?, ?, 'STUDENT')`,
+            [cleanRegistrationNo, passwordHash]
+        );
 
-        const passwordHash =
-            await bcrypt.hash(password, 10);
+        const userId = userResult.insertId;
 
-
-        // ====================================================
-        // Create user account
-        // ====================================================
-
-        const [userResult] =
-            await connection.execute(
-                `INSERT INTO users
-                (
-                    username,
-                    password_hash,
-                    role
-                )
-                VALUES (?, ?, 'STUDENT')`,
-                [
-                    cleanRegistrationNo,
-                    passwordHash
-                ]
-            );
-
-
-        const userId =
-            userResult.insertId;
-
-
-        // ====================================================
-        // Create student profile
-        // ====================================================
-
-        const studentId =
-            await createStudent(
-                connection,
-                userId,
-                cleanRegistrationNo,
-                cleanFirstName,
-                cleanLastName,
-                cleanEmail,
-                cleanPhoneNumber
-            );
-
-
-        // ====================================================
-        // Commit transaction
-        // ====================================================
+        const studentId = await createStudent(
+            connection,
+            userId,
+            cleanRegistrationNo,
+            cleanFirstName,
+            cleanLastName,
+            cleanEmail,
+            cleanPhoneNumber,
+            profilePhoto
+        );
 
         await connection.commit();
 
-
-        // ====================================================
-        // Success response
-        // ====================================================
-
         return res.status(201).json({
             success: true,
-            message:
-                "Student account and profile created successfully",
-
+            message: "Student account and profile created successfully.",
             student: {
-                studentId,
-                userId,
-                registrationNo:
-                    cleanRegistrationNo,
-                firstName:
-                    cleanFirstName,
-                lastName:
-                    cleanLastName,
-                email:
-                    cleanEmail,
-                phoneNumber:
-                    cleanPhoneNumber,
+                student_id: studentId,
+                user_id: userId,
+                registration_no: cleanRegistrationNo,
+                first_name: cleanFirstName,
+                last_name: cleanLastName,
+                email: cleanEmail,
+                phone_number: cleanPhoneNumber,
+                profile_photo: profilePhoto,
                 role: "STUDENT"
             }
         });
-
-
     } catch (error) {
-
-        // Rollback only when connection exists
         if (connection) {
-
             try {
                 await connection.rollback();
             } catch (rollbackError) {
-                console.error(
-                    "Rollback error:",
-                    rollbackError
-                );
+                console.error("Rollback error:", rollbackError);
             }
         }
 
+        await removeFile(req.file?.path);
 
-        console.error(
-            "Create student error:",
-            error
-        );
-
+        console.error("Create student error:", error);
 
         return res.status(500).json({
             success: false,
-            message:
-                "Failed to create student"
+            message: "Failed to create student."
         });
-
-
     } finally {
-
-        // Release connection
-        if (connection) {
-            connection.release();
-        }
+        if (connection) connection.release();
     }
 };
 
-
-// ============================================================
 // GET ALL STUDENTS
-// GET /api/students/
-// ============================================================
-
-const getStudents = async (req, res) => {
-
+const getStudents = async (_req, res) => {
     try {
-
-        const students =
-            await getAllStudents();
-
+        const students = await getAllStudents();
 
         return res.status(200).json({
             success: true,
             count: students.length,
             students
         });
-
-
     } catch (error) {
-
-        console.error(
-            "Get students error:",
-            error
-        );
-
+        console.error("Get students error:", error);
 
         return res.status(500).json({
             success: false,
-            message:
-                "Failed to retrieve students"
+            message: "Failed to retrieve students."
         });
     }
 };
 
-
-// ============================================================
 // GET STUDENT BY ID
-// GET /api/students/:id
-// ============================================================
-
 const getStudent = async (req, res) => {
-
     try {
-
-        const studentId =
-            req.params.id;
-
-
-        const student =
-            await getStudentById(studentId);
-
+        const student = await getStudentById(req.params.id);
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
-                message:
-                    "Student not found"
+                message: "Student not found."
             });
         }
 
-
-        return res.status(200).json({
-            success: true,
-            student
-        });
-
-
+        return res.status(200).json({ success: true, student });
     } catch (error) {
-
-        console.error(
-            "Get student error:",
-            error
-        );
-
+        console.error("Get student error:", error);
 
         return res.status(500).json({
             success: false,
-            message:
-                "Failed to retrieve student"
+            message: "Failed to retrieve student."
         });
     }
 };
 
-
-// ============================================================
 // UPDATE STUDENT
-// PUT /api/students/:id
-// ============================================================
-
 const editStudent = async (req, res) => {
-
     try {
-
-        const studentId =
-            req.params.id;
-
+        const studentId = req.params.id;
 
         const {
             registrationNo,
@@ -577,222 +330,203 @@ const editStudent = async (req, res) => {
             phoneNumber
         } = req.body;
 
-
-        // ====================================================
-        // CR-004 SERVER-SIDE VALIDATION
-        // Password is NOT required during edit
-        // ====================================================
-
-        const validationErrors =
-            validateStudentInput({
-                registrationNo,
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
-                requirePassword: false
-            });
-
+        const validationErrors = validateStudentInput({
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            requirePassword: false
+        });
 
         if (Object.keys(validationErrors).length > 0) {
+            await removeFile(req.file?.path);
 
             return res.status(400).json({
                 success: false,
-                message:
-                    "Please correct the invalid student information.",
+                message: "Please correct the invalid student information.",
                 errors: validationErrors
             });
         }
 
-
-        // ====================================================
-        // Clean validated values
-        // ====================================================
-
-        const cleanRegistrationNo =
-            registrationNo.trim();
-
-        const cleanFirstName =
-            firstName.trim();
-
-        const cleanLastName =
-            lastName.trim();
-
-        const cleanEmail =
-            email.trim();
-
-        const cleanPhoneNumber =
-            phoneNumber.trim();
-
-
-        // ====================================================
-        // Check student exists
-        // ====================================================
-
-        const existingStudent =
-            await getStudentById(studentId);
-
+        const existingStudent = await getStudentById(studentId);
 
         if (!existingStudent) {
+            await removeFile(req.file?.path);
 
             return res.status(404).json({
                 success: false,
-                message:
-                    "Student not found"
+                message: "Student not found."
             });
         }
 
+        const cleanRegistrationNo = registrationNo.trim();
+        const cleanFirstName = firstName.trim();
+        const cleanLastName = lastName.trim();
+        const cleanEmail = email.trim();
+        const cleanPhoneNumber = phoneNumber.trim();
 
-        // ====================================================
-        // Update student
-        // ====================================================
+        // Preserve the existing image if no new image is selected.
+        const newPhoto = req.file
+            ? getUploadedPhotoPath(req.file)
+            : existingStudent.profile_photo || null;
 
-        const result =
-            await updateStudent(
-                studentId,
-                cleanRegistrationNo,
-                cleanFirstName,
-                cleanLastName,
-                cleanEmail,
-                cleanPhoneNumber
+        // Check registration number isn't used by another student.
+        const [duplicateUsername] = await pool.execute(
+            `SELECT user_id
+             FROM users
+             WHERE username = ?
+               AND user_id <> ?
+             LIMIT 1`,
+            [cleanRegistrationNo, existingStudent.user_id]
+        );
+
+        if (duplicateUsername.length > 0) {
+            await removeFile(req.file?.path);
+
+            return res.status(409).json({
+                success: false,
+                message: "Registration number is already registered."
+            });
+        }
+
+        const [duplicateEmail] = await pool.execute(
+            `SELECT student_id
+             FROM students
+             WHERE email = ?
+               AND student_id <> ?
+             LIMIT 1`,
+            [cleanEmail, studentId]
+        );
+
+        if (duplicateEmail.length > 0) {
+            await removeFile(req.file?.path);
+
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered."
+            });
+        }
+
+        // Keep the login username aligned with the registration number.
+        const connection = await pool.getConnection();
+
+        try {
+            await connection.beginTransaction();
+
+            await connection.execute(
+                `UPDATE users SET username = ? WHERE user_id = ?`,
+                [cleanRegistrationNo, existingStudent.user_id]
             );
 
+            await connection.execute(
+                `UPDATE students
+                 SET registration_no = ?,
+                     first_name = ?,
+                     last_name = ?,
+                     email = ?,
+                     phone_number = ?,
+                     profile_photo = ?
+                 WHERE student_id = ?`,
+                [
+                    cleanRegistrationNo,
+                    cleanFirstName,
+                    cleanLastName,
+                    cleanEmail,
+                    cleanPhoneNumber,
+                    newPhoto,
+                    studentId
+                ]
+            );
+
+            await connection.commit();
+        } catch (error) {
+            await connection.rollback();
+            await removeFile(req.file?.path);
+            throw error;
+        } finally {
+            connection.release();
+        }
+
+        if (req.file) {
+            await removeOldPhotoIfDifferent(
+                existingStudent.profile_photo,
+                newPhoto
+            );
+        }
 
         return res.status(200).json({
             success: true,
-            message:
-                "Student updated successfully",
-            affectedRows:
-                result.affectedRows
+            message: "Student updated successfully.",
+            profile_photo: newPhoto
         });
-
-
     } catch (error) {
-
-        console.error(
-            "Update student error:",
-            error
-        );
-
+        console.error("Update student error:", error);
 
         return res.status(500).json({
             success: false,
-            message:
-                "Failed to update student"
+            message: "Failed to update student."
         });
     }
 };
 
-
-// ============================================================
 // DELETE STUDENT
-// DELETE /api/students/:id
-// ============================================================
-
 const removeStudent = async (req, res) => {
-
     try {
-
-        const studentId =
-            req.params.id;
-
-
-        // Check student exists
-        const student =
-            await getStudentById(studentId);
-
+        const student = await getStudentById(req.params.id);
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
-                message:
-                    "Student not found"
+                message: "Student not found."
             });
         }
 
+        const result = await deleteStudent(req.params.id);
 
-        // Delete student
-        const result =
-            await deleteStudent(studentId);
-
-
-        return res.status(200).json({
-            success: true,
-            message:
-                "Student deleted successfully",
-            affectedRows:
-                result.affectedRows
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Delete student error:",
-            error
-        );
-
-
-        return res.status(500).json({
-            success: false,
-            message:
-                "Failed to delete student"
-        });
-    }
-};
-
-
-// ============================================================
-// GET CURRENT STUDENT PROFILE
-// ============================================================
-
-const getMyProfile = async (req, res) => {
-
-    try {
-
-        const student =
-            await getStudentByUserId(
-                req.user.userId
+        if (result.affectedRows > 0) {
+            await removeFile(
+                getDiskPathFromPhotoUrl(student.profile_photo)
             );
-
-
-        if (!student) {
-
-            return res.status(404).json({
-                success: false,
-                message:
-                    "Student profile not found"
-            });
         }
-
 
         return res.status(200).json({
             success: true,
-            student
+            message: "Student deleted successfully.",
+            affectedRows: result.affectedRows
         });
-
-
     } catch (error) {
-
-        console.error(
-            "Get my profile error:",
-            error
-        );
-
+        console.error("Delete student error:", error);
 
         return res.status(500).json({
             success: false,
-            message:
-                "Failed to retrieve profile"
+            message: "Failed to delete student."
         });
     }
 };
 
+// GET CURRENT STUDENT PROFILE
+const getMyProfile = async (req, res) => {
+    try {
+        const student = await getStudentByUserId(req.user.userId);
 
-// ============================================================
-// EXPORTS
-// ============================================================
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found."
+            });
+        }
+
+        return res.status(200).json({ success: true, student });
+    } catch (error) {
+        console.error("Get my profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to retrieve profile."
+        });
+    }
+};
 
 module.exports = {
     addStudent,
