@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import ThemeToggle from "../components/ThemeToggle";
 
 import {
@@ -8,7 +10,6 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
-
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
@@ -18,6 +19,7 @@ function StudentDashboardPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [imageError, setImageError] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -32,8 +34,8 @@ function StudentDashboardPage() {
 
                 if (data.student) {
                     setStudent(data.student);
+                    setImageError(false);
                 }
-
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
@@ -59,33 +61,46 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    // Photo paths are served by the backend, while VITE_API_URL may include /api.
+    const configuredApiUrl = (
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+    ).replace(/\/+$/, "");
+    const backendBaseUrl = configuredApiUrl.replace(/\/api$/i, "");
+
+    const profileImageUrl = student?.profile_photo
+        ? /^https?:\/\//i.test(student.profile_photo)
+            ? student.profile_photo
+            : `${backendBaseUrl}/${student.profile_photo
+                .replace(/\\/g, "/")
+                .replace(/^\/+/, "")}`
+        : "";
+
+    const initials = `${student?.first_name?.charAt(0) || ""}${student?.last_name?.charAt(0) || ""}`;
+
     return (
         <div className="student-dashboard-page">
+            <header className="student-dashboard-header">
+                <div>
+                    <h1>Student Portal</h1>
+                    <p>Welcome, {user?.username}</p>
+                </div>
 
-<header className="student-dashboard-header">
-    <div>
-        <h1>Student Portal</h1>
-        <p>Welcome, {user?.username}</p>
-    </div>
+                <div className="student-header-actions">
+                    <span className="role-badge">STUDENT</span>
 
-    <div className="student-header-actions">
-        <span className="role-badge">STUDENT</span>
+                    <button
+                        type="button"
+                        className="logout-button"
+                        onClick={handleLogout}
+                    >
+                        Logout
+                    </button>
 
-        <button
-            type="button"
-            className="logout-button"
-            onClick={handleLogout}
-        >
-            Logout
-        </button>
+                    <ThemeToggle />
+                </div>
+            </header>
 
-        <ThemeToggle />
-    </div>
-</header>
-
-            {/* Main Content */}
             <main className="student-dashboard-main">
-
                 <h2 className="section-title">My Profile</h2>
 
                 {error && (
@@ -100,12 +115,19 @@ function StudentDashboardPage() {
                     </div>
                 ) : student ? (
                     <div className="profile-card">
-
                         <div className="profile-header">
-                            <div className="profile-avatar">
-                                {student.first_name?.charAt(0)}
-                                {student.last_name?.charAt(0)}
+                            <div className="profile-avatar profile-photo">
+                                {profileImageUrl && !imageError ? (
+                                    <img
+                                        src={profileImageUrl}
+                                        alt={`${student.first_name} ${student.last_name}`}
+                                        onError={() => setImageError(true)}
+                                    />
+                                ) : (
+                                    <span>{initials}</span>
+                                )}
                             </div>
+
                             <div className="profile-name">
                                 <h3>
                                     {student.first_name} {student.last_name}
@@ -115,7 +137,6 @@ function StudentDashboardPage() {
                         </div>
 
                         <div className="profile-details">
-
                             <div className="detail-row">
                                 <span className="detail-label">
                                     Registration No
@@ -157,14 +178,14 @@ function StudentDashboardPage() {
                                     Member Since
                                 </span>
                                 <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
+                                    {student.created_at
+                                        ? new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()
+                                        : "N/A"}
                                 </span>
                             </div>
-
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -173,9 +194,7 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
-
             </main>
-
         </div>
     );
 }

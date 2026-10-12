@@ -370,7 +370,8 @@
 }
 
 .cancel-button,
-.save-button {
+.save-button,
+.submit-button {
     border: none;
 
     padding: 11px 18px;
@@ -398,6 +399,15 @@
 }
 
 .save-button:hover {
+    background: #1d4ed8;
+}
+
+.submit-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.submit-button:hover:not(:disabled) {
     background: #1d4ed8;
 }
 
