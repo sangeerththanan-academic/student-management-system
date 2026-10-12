@@ -115,7 +115,6 @@ const updateStudent = async (
 };
 
 
-// DELETE STUDENT + LINKED USER ACCOUNT
 // Deletes both rows so registration_no / username can be reused.
 const deleteStudent = async (studentId) => {
 
