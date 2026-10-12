@@ -676,65 +676,90 @@ const editStudent = async (req, res) => {
 // ============================================================
 
 const removeStudent = async (req, res) => {
+    let connection;
 
     try {
+        const studentId = req.params.id;
 
-        const studentId =
-            req.params.id;
+        // Get database connection
+        connection = await pool.getConnection();
 
+        // Start transaction
+        await connection.beginTransaction();
+
+        // Find student and corresponding user
+        const [students] = await connection.execute(
+            `SELECT student_id, user_id
+             FROM students
+             WHERE student_id = ?
+             LIMIT 1`,
+            [studentId]
+        );
 
         // Check student exists
-        const student =
-            await getStudentById(studentId);
-
-
-        if (!student) {
+        if (students.length === 0) {
+            await connection.rollback();
 
             return res.status(404).json({
-
                 success: false,
-
-                message:
-                    "Student not found"
+                message: "Student not found"
             });
         }
 
+        const userId = students[0].user_id;
 
-        // Delete student
-        const result =
-            await deleteStudent(studentId);
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            message:
-                "Student deleted successfully",
-
-            affectedRows:
-                result.affectedRows
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Delete student error:",
-            error
+        // Delete student record first
+        const [studentResult] = await connection.execute(
+            `DELETE FROM students
+             WHERE student_id = ?`,
+            [studentId]
         );
 
+        if (studentResult.affectedRows === 0) {
+            throw new Error("Failed to delete student record");
+        }
+
+        // Delete corresponding STUDENT user account only
+        const [userResult] = await connection.execute(
+            `DELETE FROM users
+             WHERE user_id = ?
+             AND role = 'STUDENT'`,
+            [userId]
+        );
+
+        if (userResult.affectedRows === 0) {
+            throw new Error(
+                "Student account not found or is not a student account"
+            );
+        }
+
+        // Commit transaction
+        await connection.commit();
+
+        return res.status(200).json({
+            success: true,
+            message: "Student and corresponding user account deleted successfully",
+            affectedRows: studentResult.affectedRows
+        });
+
+    } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+
+        console.error("Delete student error:", error);
 
         return res.status(500).json({
-
             success: false,
-
-            message:
-                "Failed to delete student"
+            message: "Failed to delete student and user account"
         });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 };
-
 
 // ============================================================
 // GET CURRENT STUDENT PROFILE
