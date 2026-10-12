@@ -55,6 +55,9 @@ CREATE TABLE IF NOT EXISTS students (
 
     phone_number VARCHAR(20) NOT NULL,
 
+    -- CR-010: Student profile image path
+    profile_image VARCHAR(255) NULL,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -673,3 +673,53 @@
         max-height: 95vh;
     }
 }
+
+
+.profile-image-preview {
+    margin-top: 12px;
+}
+
+.profile-image-preview img {
+    display: block;
+    border: 2px solid var(--border-color, #d1d5db);
+}
+
+.profile-image-preview p {
+    margin-top: 8px;
+    overflow-wrap: anywhere;
+}
+
+.image-validation-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+
+/* CR-010: Student profile image in the admin list */
+.student-profile-thumbnail,
+.student-profile-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.student-profile-thumbnail {
+    border: 1px solid var(--border-color, #d1d5db);
+}
+
+.student-profile-placeholder {
+    background: var(--hover-bg, #e5e7eb);
+    color: var(--text-color, #374151);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.student-profile-placeholder-hidden {
+    display: none;
+}
