@@ -674,29 +674,24 @@ const editStudent = async (req, res) => {
 // DELETE STUDENT
 // DELETE /api/students/:id
 // ============================================================
-
 const removeStudent = async (req, res) => {
     let connection;
 
     try {
         const studentId = req.params.id;
 
-        // Get database connection
         connection = await pool.getConnection();
 
-        // Start transaction
         await connection.beginTransaction();
 
-        // Find student and corresponding user
+        // 1. Find the student and their linked user account
         const [students] = await connection.execute(
             `SELECT student_id, user_id
              FROM students
-             WHERE student_id = ?
-             LIMIT 1`,
+             WHERE student_id = ?`,
             [studentId]
         );
 
-        // Check student exists
         if (students.length === 0) {
             await connection.rollback();
 
@@ -708,50 +703,43 @@ const removeStudent = async (req, res) => {
 
         const userId = students[0].user_id;
 
-        // Delete student record first
-        const [studentResult] = await connection.execute(
+        // 2. Delete the student record first
+        await connection.execute(
             `DELETE FROM students
              WHERE student_id = ?`,
             [studentId]
         );
 
-        if (studentResult.affectedRows === 0) {
-            throw new Error("Failed to delete student record");
-        }
-
-        // Delete corresponding STUDENT user account only
-        const [userResult] = await connection.execute(
+        // 3. Delete the linked student user account
+        await connection.execute(
             `DELETE FROM users
              WHERE user_id = ?
              AND role = 'STUDENT'`,
             [userId]
         );
 
-        if (userResult.affectedRows === 0) {
-            throw new Error(
-                "Student account not found or is not a student account"
-            );
-        }
-
-        // Commit transaction
+        // 4. Save both deletions together
         await connection.commit();
 
         return res.status(200).json({
             success: true,
-            message: "Student and corresponding user account deleted successfully",
-            affectedRows: studentResult.affectedRows
+            message: "Student and linked user account deleted successfully"
         });
 
     } catch (error) {
         if (connection) {
-            await connection.rollback();
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error("Rollback error:", rollbackError);
+            }
         }
 
         console.error("Delete student error:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to delete student and user account"
+            message: "Failed to delete student"
         });
 
     } finally {
@@ -760,6 +748,7 @@ const removeStudent = async (req, res) => {
         }
     }
 };
+
 
 // ============================================================
 // GET CURRENT STUDENT PROFILE
