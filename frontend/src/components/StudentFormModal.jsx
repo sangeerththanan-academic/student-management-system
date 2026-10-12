@@ -20,6 +20,8 @@ function StudentFormModal({
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [profileImage, setProfileImage] = useState(null);
+    const [profileImageError, setProfileImageError] = useState("");
 
     // Validation states
     const [fieldErrors, setFieldErrors] = useState({});
@@ -53,7 +55,41 @@ function StudentFormModal({
         setFieldErrors({});
         setTouched({});
         setShowPassword(false);
+        setProfileImage(null);
+        setProfileImageError("");
     }, [editingStudent, show]);
+
+    // CR-010: Optional student profile image validation.
+    const handleProfileImageChange = (event) => {
+        const file = event.target.files?.[0] || null;
+        setProfileImageError("");
+
+        if (!file) {
+            setProfileImage(null);
+            return;
+        }
+
+        const extension = file.name.split(".").pop()?.toLowerCase();
+        const allowedExtensions = ["png", "jpg", "jpeg"];
+        const allowedMimeTypes = ["image/png", "image/jpeg"];
+
+        if (!allowedExtensions.includes(extension) ||
+            !allowedMimeTypes.includes(file.type.toLowerCase())) {
+            setProfileImage(null);
+            event.target.value = "";
+            setProfileImageError("Only PNG, JPG and JPEG images are allowed.");
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            setProfileImage(null);
+            event.target.value = "";
+            setProfileImageError("Profile image must be 2 MB or smaller.");
+            return;
+        }
+
+        setProfileImage(file);
+    };
 
     // ============================================================
     // FIELD VALIDATION
@@ -349,6 +385,11 @@ function StudentFormModal({
 
         setFormError("");
 
+        if (profileImageError) {
+            setFormError(profileImageError);
+            return;
+        }
+
         // Validate all fields
         const validationError = validateStudentForm();
 
@@ -378,26 +419,22 @@ function StudentFormModal({
             // ====================================================
 
             if (editingStudent) {
+                const studentFormData = new FormData();
+                studentFormData.append("registrationNo", formData.registrationNo.trim());
+                studentFormData.append("firstName", formData.firstName.trim());
+                studentFormData.append("lastName", formData.lastName.trim());
+                studentFormData.append("email", formData.email.trim());
+                studentFormData.append("phoneNumber", formData.phoneNumber.trim());
+
+                if (profileImage) {
+                    studentFormData.append("profileImage", profileImage);
+                }
+
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim()
-                        })
+                        body: studentFormData
                     }
                 );
             }
@@ -407,29 +444,23 @@ function StudentFormModal({
             // ====================================================
 
             else {
+                const studentFormData = new FormData();
+                studentFormData.append("registrationNo", formData.registrationNo.trim());
+                studentFormData.append("firstName", formData.firstName.trim());
+                studentFormData.append("lastName", formData.lastName.trim());
+                studentFormData.append("email", formData.email.trim());
+                studentFormData.append("phoneNumber", formData.phoneNumber.trim());
+                studentFormData.append("password", formData.password);
+
+                if (profileImage) {
+                    studentFormData.append("profileImage", profileImage);
+                }
+
                 await apiRequest(
                     "/api/students/",
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim(),
-
-                            password:
-                                formData.password
-                        })
+                        body: studentFormData
                     }
                 );
             }
@@ -658,6 +689,33 @@ function StudentFormModal({
                             </span>
                         ) : null}
 
+                    </div>
+
+                    {/* CR-010: Optional Profile Image */}
+                    <div className="form-group">
+                        <label htmlFor="sf-profileImage">
+                            Profile Image (Optional)
+                        </label>
+                        <input
+                            id="sf-profileImage"
+                            type="file"
+                            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                            onChange={handleProfileImageChange}
+                            disabled={formLoading}
+                        />
+                        <span className="field-hint">
+                            Supported formats: PNG, JPG, JPEG. Maximum size: 2 MB.
+                        </span>
+                        {profileImage && (
+                            <span className="field-hint">
+                                Selected: {profileImage.name}
+                            </span>
+                        )}
+                        {profileImageError && (
+                            <span className="field-error-msg" role="alert">
+                                {profileImageError}
+                            </span>
+                        )}
                     </div>
 
                     {/* Password - Add Student Only */}

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,17 +7,20 @@ import {
     logout
 } from "../services/authService";
 
-import apiRequest from "../services/api";
+import apiRequest, {
+    API_BASE_URL
+} from "../services/api";
 
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [profileImageError, setProfileImageError] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -31,8 +35,8 @@ function StudentDashboardPage() {
 
                 if (data.student) {
                     setStudent(data.student);
+                    setProfileImageError(false);
                 }
-
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
@@ -58,10 +62,27 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const getProfileImageUrl = () => {
+        if (!student?.profile_photo) {
+            return "";
+        }
+
+        const photo = student.profile_photo;
+
+        if (/^https?:\/\//i.test(photo)) {
+            return photo;
+        }
+
+        return `${API_BASE_URL}/${photo.replace(/^\/+/, "")}`;
+    };
+
+    const initials = (
+        `${student?.first_name?.charAt(0) || ""}` +
+        `${student?.last_name?.charAt(0) || ""}`
+    ) || "?";
+
     return (
         <div className="student-dashboard-page">
-
-            {/* Header */}
             <header className="student-dashboard-header">
                 <div>
                     <h1>Student Portal</h1>
@@ -70,6 +91,7 @@ function StudentDashboardPage() {
 
                 <div className="student-header-actions">
                     <span className="role-badge">STUDENT</span>
+
                     <button
                         className="logout-button"
                         onClick={handleLogout}
@@ -79,9 +101,7 @@ function StudentDashboardPage() {
                 </div>
             </header>
 
-            {/* Main Content */}
             <main className="student-dashboard-main">
-
                 <h2 className="section-title">My Profile</h2>
 
                 {error && (
@@ -96,22 +116,37 @@ function StudentDashboardPage() {
                     </div>
                 ) : student ? (
                     <div className="profile-card">
-
                         <div className="profile-header">
-                            <div className="profile-avatar">
-                                {student.first_name?.charAt(0)}
-                                {student.last_name?.charAt(0)}
-                            </div>
+                            {student.profile_photo &&
+                            !profileImageError ? (
+                                <img
+                                    className="profile-avatar-image"
+                                    src={getProfileImageUrl()}
+                                    alt={`${student.first_name} ${student.last_name}`}
+                                    onError={() => {
+                                        console.error(
+                                            "Profile image could not be loaded:",
+                                            getProfileImageUrl()
+                                        );
+                                        setProfileImageError(true);
+                                    }}
+                                />
+                            ) : (
+                                <div className="profile-avatar">
+                                    {initials}
+                                </div>
+                            )}
+
                             <div className="profile-name">
                                 <h3>
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </h3>
                                 <p>{student.registration_no}</p>
                             </div>
                         </div>
 
                         <div className="profile-details">
-
                             <div className="detail-row">
                                 <span className="detail-label">
                                     Registration No
@@ -126,7 +161,8 @@ function StudentDashboardPage() {
                                     Full Name
                                 </span>
                                 <span className="detail-value">
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </span>
                             </div>
 
@@ -153,14 +189,14 @@ function StudentDashboardPage() {
                                     Member Since
                                 </span>
                                 <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
+                                    {student.created_at
+                                        ? new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()
+                                        : "N/A"}
                                 </span>
                             </div>
-
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -169,9 +205,7 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
-
             </main>
-
         </div>
     );
 }

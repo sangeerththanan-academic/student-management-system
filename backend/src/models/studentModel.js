@@ -1,3 +1,4 @@
+
 const pool = require("../config/db");
 
 // CREATE STUDENT
@@ -8,9 +9,9 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto = null
 ) => {
-
     const [result] = await connection.execute(
         `INSERT INTO students
         (
@@ -19,16 +20,18 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_photo
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profilePhoto
         ]
     );
 
@@ -38,7 +41,6 @@ const createStudent = async (
 
 // GET ALL STUDENTS
 const getAllStudents = async () => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -48,6 +50,7 @@ const getAllStudents = async () => {
             last_name,
             email,
             phone_number,
+            profile_photo,
             created_at,
             updated_at
         FROM students
@@ -60,7 +63,6 @@ const getAllStudents = async () => {
 
 // GET STUDENT BY ID
 const getStudentById = async (studentId) => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -70,6 +72,7 @@ const getStudentById = async (studentId) => {
             last_name,
             email,
             phone_number,
+            profile_photo,
             created_at,
             updated_at
         FROM students
@@ -89,27 +92,53 @@ const updateStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto
 ) => {
+    let query;
+    let values;
 
-    const [result] = await pool.execute(
-        `UPDATE students
-        SET
-            registration_no = ?,
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            phone_number = ?
-        WHERE student_id = ?`,
-        [
+    if (profilePhoto !== undefined) {
+        query = `UPDATE students
+            SET
+                registration_no = ?,
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone_number = ?,
+                profile_photo = ?
+            WHERE student_id = ?`;
+
+        values = [
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            profilePhoto,
+            studentId
+        ];
+    } else {
+        query = `UPDATE students
+            SET
+                registration_no = ?,
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone_number = ?
+            WHERE student_id = ?`;
+
+        values = [
             registrationNo,
             firstName,
             lastName,
             email,
             phoneNumber,
             studentId
-        ]
-    );
+        ];
+    }
+
+    const [result] = await pool.execute(query, values);
 
     return result;
 };
@@ -117,7 +146,6 @@ const updateStudent = async (
 
 // DELETE STUDENT
 const deleteStudent = async (studentId) => {
-
     const [result] = await pool.execute(
         `DELETE FROM students
         WHERE student_id = ?`,
@@ -130,7 +158,6 @@ const deleteStudent = async (studentId) => {
 
 // GET STUDENT BY USER ID
 const getStudentByUserId = async (userId) => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -140,6 +167,7 @@ const getStudentByUserId = async (userId) => {
             last_name,
             email,
             phone_number,
+            profile_photo,
             created_at,
             updated_at
         FROM students

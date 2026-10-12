@@ -783,3 +783,42 @@
     width: 17px;
     height: 17px;
 }
+
+
+/* CR-010: Student profile images */
+.student-profile-cell {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+.student-list-photo,
+.student-list-photo-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.student-list-photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e8edf5;
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.profile-avatar-image {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    background: #ffffff;
+    display: block;
+}

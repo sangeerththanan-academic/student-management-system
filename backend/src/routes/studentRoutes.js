@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const {
@@ -14,6 +15,9 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
+// CR-010: Student profile image upload middleware
+const uploadProfileImage = require("../middleware/uploadMiddleware");
+
 const router = express.Router();
 
 
@@ -29,10 +33,12 @@ router.get(
 
 // Create student
 // Administrator only
+// CR-010: Allow optional profile image upload
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfileImage,
     addStudent
 );
 
@@ -59,10 +65,12 @@ router.get(
 
 // Update student
 // Administrator only
+// CR-010: Allow optional profile image update
 router.put(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfileImage,
     editStudent
 );
 

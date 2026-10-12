@@ -226,15 +226,22 @@ const addStudent = async (req, res) => {
         const userId = userResult.insertId;
 
         // Create student profile
-        const studentId = await createStudent(
-            connection,
-            userId,
-            cleanRegistrationNo,
-            cleanFirstName,
-            cleanLastName,
-            cleanEmail,
-            cleanPhoneNumber
-        );
+
+const profilePhoto = req.file
+  ? `/uploads/students/${req.file.filename}`
+  : null;
+
+const studentId = await createStudent(
+  connection,
+  userId,
+  cleanRegistrationNo,
+  cleanFirstName,
+  cleanLastName,
+  cleanEmail,
+  cleanPhoneNumber,
+  profilePhoto
+);
+
 
         // Commit transaction
         await connection.commit();
@@ -388,14 +395,20 @@ const editStudent = async (req, res) => {
         }
 
         // Update student
-        const result = await updateStudent(
-            studentId,
-            cleanRegistrationNo,
-            cleanFirstName,
-            cleanLastName,
-            cleanEmail,
-            cleanPhoneNumber
-        );
+       
+const profilePhoto = req.file
+  ? `/uploads/students/${req.file.filename}`
+  : undefined;
+
+const result = await updateStudent(
+  studentId,
+  cleanRegistrationNo,
+  cleanFirstName,
+  cleanLastName,
+  cleanEmail,
+  cleanPhoneNumber,
+  profilePhoto
+);
 
         return res.status(200).json({
             success: true,

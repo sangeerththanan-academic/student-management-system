@@ -1,10 +1,18 @@
+
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
+
 
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
+
+app.use(
+    "/uploads",
+    express.static(path.join(__dirname, "../uploads"))
+);
 
 // Middleware
 app.use(cors());
