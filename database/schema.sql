@@ -31,7 +31,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    -- CR033: Tracks the most recent successful student login
+    last_login DATETIME NULL DEFAULT NULL
 );
 
 
@@ -69,5 +72,12 @@ CREATE TABLE IF NOT EXISTS students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- CR033 MIGRATION (run on existing databases)
+-- ============================================================
+
+-- ALTER TABLE users ADD COLUMN last_login DATETIME NULL DEFAULT NULL;
+
+
+-- ============================================================
+-- DATABASE SCHEMA - VERSION 1.1 COMPLETE
 -- ============================================================

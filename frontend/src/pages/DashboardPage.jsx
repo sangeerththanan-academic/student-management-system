@@ -23,6 +23,22 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
+
+// CR033: Format last_login timestamp into a readable date/time string.
+// Returns "Never" for accounts that have not yet logged in (FR-006 fallback).
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) return "Never";
+    const date = new Date(lastLogin);
+    if (isNaN(date.getTime())) return "Never";
+    return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+};
+
 function DashboardPage() {
     const navigate = useNavigate();
     const { theme } = useTheme("admin");
@@ -447,6 +463,11 @@ function DashboardPage() {
                                             Phone
                                         </th>
 
+                                        {/* CR033: Last Login column (FR-005) */}
+                                        <th>
+                                            Last Login
+                                        </th>
+
                                         <th>
                                             Actions
                                         </th>
@@ -478,6 +499,11 @@ function DashboardPage() {
 
                                             <td>
                                                 {student.phone_number}
+                                            </td>
+
+                                            {/* CR033: Display formatted last login timestamp */}
+                                            <td className={!student.last_login ? "last-login-never" : ""}>
+                                                {formatLastLogin(student.last_login)}
                                             </td>
 
                                             <td>

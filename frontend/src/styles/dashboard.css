@@ -991,3 +991,18 @@
     color: #fca5a5;
 }
 
+
+/* =========================================================
+   CR033: Last Login column
+   ========================================================= */
+
+.last-login-never {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.dashboard-page[data-theme="dark"] .last-login-never,
+.dashboard-page.dark .last-login-never {
+    color: #475569;
+}
