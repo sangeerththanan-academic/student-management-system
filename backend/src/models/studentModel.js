@@ -8,7 +8,8 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto = null
 ) => {
 
     const [result] = await connection.execute(
@@ -19,16 +20,18 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_photo
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profilePhoto
         ]
     );
 
@@ -48,6 +51,7 @@ const getAllStudents = async () => {
             s.last_name,
             s.email,
             s.phone_number,
+            s.profile_photo,
             s.created_at,
             s.updated_at,
             u.last_login
@@ -72,6 +76,7 @@ const getStudentById = async (studentId) => {
             s.last_name,
             s.email,
             s.phone_number,
+            s.profile_photo,
             s.created_at,
             s.updated_at,
             u.last_login
@@ -144,6 +149,7 @@ const getStudentByUserId = async (userId) => {
             s.last_name,
             s.email,
             s.phone_number,
+            s.profile_photo,
             s.created_at,
             s.updated_at,
             u.last_login
@@ -156,6 +162,7 @@ const getStudentByUserId = async (userId) => {
 
     return rows[0];
 };
+
 
 
 module.exports = {

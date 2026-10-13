@@ -117,6 +117,17 @@
     font-weight: 700;
 }
 
+/* CR-010: Student profile image in student portal */
+.profile-avatar-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+
 .profile-name h3 {
     color: #ffffff;
     font-size: 20px;

@@ -102,7 +102,23 @@ function StudentDashboardPage() {
                     <div className="profile-card">
 
                         <div className="profile-header">
-                            <div className="profile-avatar">
+                            {/* CR-010: Display student profile image or initials avatar */}
+                            {student.profile_photo ? (
+                                <img
+                                    src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${student.profile_photo}`}
+                                    alt={`${student.first_name} ${student.last_name}`}
+                                    className="profile-avatar-img"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                        const fallback = e.currentTarget.parentElement?.querySelector(".profile-avatar");
+                                        if (fallback) fallback.style.display = "flex";
+                                    }}
+                                />
+                            ) : null}
+                            <div
+                                className="profile-avatar"
+                                style={{ display: student.profile_photo ? "none" : "flex" }}
+                            >
                                 {student.first_name?.charAt(0)}
                                 {student.last_name?.charAt(0)}
                             </div>
@@ -113,6 +129,7 @@ function StudentDashboardPage() {
                                 <p>{student.registration_no}</p>
                             </div>
                         </div>
+
 
                         <div className="profile-details">
 

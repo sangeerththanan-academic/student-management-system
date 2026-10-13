@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const bcrypt = require("bcryptjs");
 
 const pool = require("../config/db");
@@ -14,6 +16,22 @@ const {
 const { validateStudentData } = require("../utils/validation");
 
 
+// Helper to delete an uploaded file safely
+const removeUploadedFile = (filePath) => {
+    if (!filePath) return;
+    try {
+        const fullPath = path.isAbsolute(filePath)
+            ? filePath
+            : path.resolve(__dirname, "../../", filePath.replace(/^\//, ""));
+        if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+        }
+    } catch (err) {
+        console.error("Failed to clean up file:", err.message);
+    }
+};
+
+
 // CREATE STUDENT
 const addStudent = async (req, res) => {
 
@@ -27,12 +45,14 @@ const addStudent = async (req, res) => {
     } = req.body;
 
     let connection;
+    const uploadedFile = req.file;
 
     try {
 
         // Validate input data (CR-004)
         const validation = validateStudentData(req.body, false);
         if (!validation.isValid) {
+            if (uploadedFile) removeUploadedFile(uploadedFile.path);
             return res.status(400).json({
                 success: false,
                 message: validation.firstError,
@@ -61,6 +81,7 @@ const addStudent = async (req, res) => {
         if (existingUser.length > 0) {
 
             await connection.rollback();
+            if (uploadedFile) removeUploadedFile(uploadedFile.path);
 
             return res.status(409).json({
                 success: false,
@@ -81,6 +102,7 @@ const addStudent = async (req, res) => {
         if (existingStudent.length > 0) {
 
             await connection.rollback();
+            if (uploadedFile) removeUploadedFile(uploadedFile.path);
 
             return res.status(409).json({
                 success: false,
@@ -110,6 +132,10 @@ const addStudent = async (req, res) => {
 
         const userId = userResult.insertId;
 
+        // Profile photo path (CR-010)
+        const profilePhotoPath = uploadedFile
+            ? `/uploads/students/${uploadedFile.filename}`
+            : null;
 
         // Create student profile
         const studentId = await createStudent(
@@ -119,7 +145,8 @@ const addStudent = async (req, res) => {
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profilePhotoPath
         );
 
 
@@ -139,6 +166,7 @@ const addStudent = async (req, res) => {
                 lastName,
                 email,
                 phoneNumber,
+                profilePhoto: profilePhotoPath,
                 role: "STUDENT"
             }
         });
@@ -149,6 +177,8 @@ const addStudent = async (req, res) => {
         if (connection) {
             await connection.rollback();
         }
+
+        if (uploadedFile) removeUploadedFile(uploadedFile.path);
 
         console.error("Create student error:", error);
 
@@ -165,6 +195,7 @@ const addStudent = async (req, res) => {
         }
     }
 };
+
 
 
 // GET ALL STUDENTS
@@ -337,11 +368,17 @@ const removeStudent = async (req, res) => {
         // Delete student
         const result = await deleteStudent(studentId);
 
+        // Remove profile photo from disk if one exists (CR-010)
+        if (student.profile_photo) {
+            removeUploadedFile(student.profile_photo);
+        }
+
         return res.status(200).json({
             success: true,
             message: "Student deleted successfully",
             affectedRows: result.affectedRows
         });
+
 
     } catch (error) {
 

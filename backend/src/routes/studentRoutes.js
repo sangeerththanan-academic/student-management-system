@@ -14,6 +14,10 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
+const {
+    uploadStudentPhoto
+} = require("../middleware/uploadMiddleware");
+
 const router = express.Router();
 
 
@@ -28,13 +32,15 @@ router.get(
 
 
 // Create student
-// Administrator only
+// Administrator only (CR-010: supports profile photo upload)
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentPhoto,
     addStudent
 );
+
 
 
 // Get all students

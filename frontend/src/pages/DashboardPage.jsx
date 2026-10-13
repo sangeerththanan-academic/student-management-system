@@ -447,6 +447,11 @@ function DashboardPage() {
 
                                 <thead>
                                     <tr>
+                                        {/* CR-010: Profile Image Column */}
+                                        <th>
+                                            Image
+                                        </th>
+
                                         <th>
                                             Registration No.
                                         </th>
@@ -481,6 +486,31 @@ function DashboardPage() {
                                         <tr
                                             key={student.student_id}
                                         >
+
+                                            {/* CR-010: Profile Image / Placeholder */}
+                                            <td className="student-photo-cell">
+                                                {student.profile_photo ? (
+                                                    <img
+                                                        src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${student.profile_photo}`}
+                                                        alt={`${student.first_name} ${student.last_name}`}
+                                                        className="student-table-photo"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = "none";
+                                                            const fallback = e.currentTarget.parentElement?.querySelector(".student-table-photo-placeholder");
+                                                            if (fallback) fallback.style.display = "flex";
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div
+                                                    className="student-table-photo-placeholder"
+                                                    style={{ display: student.profile_photo ? "none" : "flex" }}
+                                                    title={`${student.first_name} ${student.last_name}`}
+                                                >
+                                                    <span>
+                                                        {(student.first_name?.charAt(0) || "S").toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            </td>
 
                                             <td>
                                                 <strong>
@@ -542,6 +572,7 @@ function DashboardPage() {
                                 </tbody>
 
                             </table>
+
 
                         </div>
 
