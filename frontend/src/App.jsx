@@ -1,14 +1,7 @@
-
 import AppRoutes from "./routes/AppRoutes";
-import ThemeToggle from "./components/ThemeToggle";
 
 function App() {
-    return (
-        <>
-            <ThemeToggle />
-            <AppRoutes />
-        </>
-    );
+    return <AppRoutes />;
 }
 
 export default App;

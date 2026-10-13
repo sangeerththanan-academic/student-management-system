@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> JFICT32/CR012
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext(null);
@@ -52,8 +48,4 @@ export function useTheme() {
     }
 
     return context;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> JFICT32/CR012
