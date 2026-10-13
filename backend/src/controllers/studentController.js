@@ -1,6 +1,5 @@
 
 const bcrypt = require("bcryptjs");
-const fs = require("fs");
 const path = require("path");
 
 const pool = require("../config/db");
@@ -11,13 +10,16 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash
 } = require("../models/studentModel");
 
 const { removeFile } = require("../middleware/uploadMiddleware");
 
 const registrationNumberRegex =
     /^[A-Za-z0-9]+(?:[-/][A-Za-z0-9]+)*$/;
+
 const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\d{10}$/;
@@ -25,6 +27,10 @@ const uppercaseRegex = /[A-Z]/;
 const lowercaseRegex = /[a-z]/;
 const numberRegex = /[0-9]/;
 const specialCharacterRegex = /[^A-Za-z0-9]/;
+
+// ============================================================
+// VALIDATE STUDENT INPUT
+// ============================================================
 
 const validateStudentInput = ({
     registrationNo,
@@ -44,7 +50,8 @@ const validateStudentInput = ({
     const phone = String(phoneNumber || "").trim();
 
     if (!registration) {
-        errors.registrationNo = "Registration number is required.";
+        errors.registrationNo =
+            "Registration number is required.";
     } else if (!registrationNumberRegex.test(registration)) {
         errors.registrationNo =
             "Registration number contains invalid characters.";
@@ -88,9 +95,11 @@ const validateStudentInput = ({
 
     if (requirePassword) {
         if (!password) {
-            errors.password = "Password is required for a new student.";
+            errors.password =
+                "Password is required for a new student.";
         } else if (password.length < 8) {
-            errors.password = "Password must contain at least 8 characters.";
+            errors.password =
+                "Password must contain at least 8 characters.";
         } else if (!uppercaseRegex.test(password)) {
             errors.password =
                 "Password must contain at least one uppercase letter.";
@@ -109,10 +118,13 @@ const validateStudentInput = ({
     return errors;
 };
 
+// ============================================================
+// PROFILE PHOTO HELPERS
+// ============================================================
+
 const getUploadedPhotoPath = (file) => {
     if (!file) return null;
 
-    // This is the relative URL saved in MySQL.
     return `/uploads/students/${path.basename(file.filename)}`;
 };
 
@@ -125,6 +137,7 @@ const getDiskPathFromPhotoUrl = (photoUrl) => {
     }
 
     const filename = path.basename(photoUrl);
+
     return path.join(
         __dirname,
         "..",
@@ -140,7 +153,10 @@ const removeOldPhotoIfDifferent = async (oldPhoto, newPhoto) => {
     await removeFile(getDiskPathFromPhotoUrl(oldPhoto));
 };
 
+// ============================================================
 // CREATE STUDENT
+// ============================================================
+
 const addStudent = async (req, res) => {
     const {
         registrationNo,
@@ -169,7 +185,8 @@ const addStudent = async (req, res) => {
 
             return res.status(400).json({
                 success: false,
-                message: "Please correct the invalid student information.",
+                message:
+                    "Please correct the invalid student information.",
                 errors: validationErrors
             });
         }
@@ -179,13 +196,17 @@ const addStudent = async (req, res) => {
         const cleanLastName = lastName.trim();
         const cleanEmail = email.trim();
         const cleanPhoneNumber = phoneNumber.trim();
+
         const profilePhoto = getUploadedPhotoPath(req.file);
 
         connection = await pool.getConnection();
         await connection.beginTransaction();
 
         const [existingUser] = await connection.execute(
-            `SELECT user_id FROM users WHERE username = ? LIMIT 1`,
+            `SELECT user_id
+             FROM users
+             WHERE username = ?
+             LIMIT 1`,
             [cleanRegistrationNo]
         );
 
@@ -195,12 +216,16 @@ const addStudent = async (req, res) => {
 
             return res.status(409).json({
                 success: false,
-                message: "Registration number is already registered."
+                message:
+                    "Registration number is already registered."
             });
         }
 
         const [existingStudent] = await connection.execute(
-            `SELECT student_id FROM students WHERE email = ? LIMIT 1`,
+            `SELECT student_id
+             FROM students
+             WHERE email = ?
+             LIMIT 1`,
             [cleanEmail]
         );
 
@@ -239,7 +264,8 @@ const addStudent = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Student account and profile created successfully.",
+            message:
+                "Student account and profile created successfully.",
             student: {
                 student_id: studentId,
                 user_id: userId,
@@ -274,7 +300,10 @@ const addStudent = async (req, res) => {
     }
 };
 
+// ============================================================
 // GET ALL STUDENTS
+// ============================================================
+
 const getStudents = async (_req, res) => {
     try {
         const students = await getAllStudents();
@@ -294,7 +323,10 @@ const getStudents = async (_req, res) => {
     }
 };
 
+// ============================================================
 // GET STUDENT BY ID
+// ============================================================
+
 const getStudent = async (req, res) => {
     try {
         const student = await getStudentById(req.params.id);
@@ -306,7 +338,10 @@ const getStudent = async (req, res) => {
             });
         }
 
-        return res.status(200).json({ success: true, student });
+        return res.status(200).json({
+            success: true,
+            student
+        });
     } catch (error) {
         console.error("Get student error:", error);
 
@@ -317,7 +352,10 @@ const getStudent = async (req, res) => {
     }
 };
 
+// ============================================================
 // UPDATE STUDENT
+// ============================================================
+
 const editStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
@@ -344,7 +382,8 @@ const editStudent = async (req, res) => {
 
             return res.status(400).json({
                 success: false,
-                message: "Please correct the invalid student information.",
+                message:
+                    "Please correct the invalid student information.",
                 errors: validationErrors
             });
         }
@@ -366,12 +405,12 @@ const editStudent = async (req, res) => {
         const cleanEmail = email.trim();
         const cleanPhoneNumber = phoneNumber.trim();
 
-        // Preserve the existing image if no new image is selected.
+        // Preserve the existing photo when no new photo is selected.
         const newPhoto = req.file
             ? getUploadedPhotoPath(req.file)
             : existingStudent.profile_photo || null;
 
-        // Check registration number isn't used by another student.
+        // Check duplicate username.
         const [duplicateUsername] = await pool.execute(
             `SELECT user_id
              FROM users
@@ -386,10 +425,12 @@ const editStudent = async (req, res) => {
 
             return res.status(409).json({
                 success: false,
-                message: "Registration number is already registered."
+                message:
+                    "Registration number is already registered."
             });
         }
 
+        // Check duplicate email.
         const [duplicateEmail] = await pool.execute(
             `SELECT student_id
              FROM students
@@ -408,14 +449,15 @@ const editStudent = async (req, res) => {
             });
         }
 
-        // Keep the login username aligned with the registration number.
         const connection = await pool.getConnection();
 
         try {
             await connection.beginTransaction();
 
             await connection.execute(
-                `UPDATE users SET username = ? WHERE user_id = ?`,
+                `UPDATE users
+                 SET username = ?
+                 WHERE user_id = ?`,
                 [cleanRegistrationNo, existingStudent.user_id]
             );
 
@@ -470,7 +512,10 @@ const editStudent = async (req, res) => {
     }
 };
 
+// ============================================================
 // DELETE STUDENT
+// ============================================================
+
 const removeStudent = async (req, res) => {
     try {
         const student = await getStudentById(req.params.id);
@@ -505,7 +550,10 @@ const removeStudent = async (req, res) => {
     }
 };
 
+// ============================================================
 // GET CURRENT STUDENT PROFILE
+// ============================================================
+
 const getMyProfile = async (req, res) => {
     try {
         const student = await getStudentByUserId(req.user.userId);
@@ -517,7 +565,10 @@ const getMyProfile = async (req, res) => {
             });
         }
 
-        return res.status(200).json({ success: true, student });
+        return res.status(200).json({
+            success: true,
+            student
+        });
     } catch (error) {
         console.error("Get my profile error:", error);
 
@@ -528,11 +579,199 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+// ============================================================
+// CR-020: CHANGE STUDENT PASSWORD
+// ============================================================
+
+const changeMyPassword = async (req, res) => {
+    try {
+        const {
+            currentPassword,
+            newPassword,
+            confirmPassword
+        } = req.body || {};
+
+        // User ID must come from the authenticated token.
+        const authenticatedUserId = req.user?.userId;
+
+        if (!authenticatedUserId) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication is required."
+            });
+        }
+
+        // Validate required fields.
+        if (
+            typeof currentPassword !== "string" ||
+            typeof newPassword !== "string" ||
+            typeof confirmPassword !== "string" ||
+            !currentPassword ||
+            !newPassword ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill in all password fields."
+            });
+        }
+
+        // Verify new password confirmation.
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New passwords do not match."
+            });
+        }
+
+        // Apply the password policy.
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least 8 characters."
+            });
+        }
+
+        if (!uppercaseRegex.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least one uppercase letter."
+            });
+        }
+
+        if (!lowercaseRegex.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least one lowercase letter."
+            });
+        }
+
+        if (!numberRegex.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least one number."
+            });
+        }
+
+        if (!specialCharacterRegex.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least one special character."
+            });
+        }
+
+        // Get the profile belonging to the authenticated user.
+        const student = await getStudentByUserId(
+            authenticatedUserId
+        );
+
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found."
+            });
+        }
+
+        // Ensure the URL student ID matches the authenticated student.
+        if (
+            String(student.student_id) !== String(req.params.id)
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "You can only change your own password."
+            });
+        }
+
+        // Retrieve the current account and password hash.
+        const user = await getPasswordHashByUserId(
+            authenticatedUserId
+        );
+
+        if (!user || user.role !== "STUDENT") {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Only student accounts can change passwords."
+            });
+        }
+
+        // Verify the current password.
+        const currentPasswordIsValid = await bcrypt.compare(
+            currentPassword,
+            user.password_hash
+        );
+
+        if (!currentPasswordIsValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        // Ensure the new password is different from the current one.
+        const sameAsCurrent = await bcrypt.compare(
+            newPassword,
+            user.password_hash
+        );
+
+        if (sameAsCurrent) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "New password must be different from the current password."
+            });
+        }
+
+        // Hash before saving. Never store a plain-text password.
+        const newPasswordHash = await bcrypt.hash(
+            newPassword,
+            10
+        );
+
+        const updateResult = await updatePasswordHash(
+            authenticatedUserId,
+            newPasswordHash
+        );
+
+        if (!updateResult.affectedRows) {
+            return res.status(500).json({
+                success: false,
+                message: "Password could not be updated."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        // Do not log passwords or password hashes.
+        console.error("Change student password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message:
+                "Failed to change password. Please try again."
+        });
+    }
+};
+
+// ============================================================
+// EXPORT CONTROLLER FUNCTIONS
+// ============================================================
+
 module.exports = {
     addStudent,
     getStudents,
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 };

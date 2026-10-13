@@ -183,3 +183,143 @@
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+
+/* CR-020: Change Password Section */
+
+.change-password-card {
+    width: 100%;
+    max-width: 650px;
+    margin: 30px 0;
+    padding: 25px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+}
+
+.change-password-heading h2 {
+    margin: 0 0 8px;
+    color: #1e293b;
+    font-size: 22px;
+}
+
+.change-password-heading p {
+    margin: 0 0 22px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.password-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.password-form-group label {
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.password-form-group input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 15px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.password-form-group input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.password-form-group input:disabled {
+    background: #f1f5f9;
+    cursor: not-allowed;
+}
+
+.password-button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.change-password-button,
+.clear-password-button {
+    min-height: 42px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 7px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.change-password-button {
+    color: #ffffff;
+    background: #2563eb;
+}
+
+.change-password-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.clear-password-button {
+    color: #334155;
+    background: #e2e8f0;
+}
+
+.clear-password-button:hover:not(:disabled) {
+    background: #cbd5e1;
+}
+
+.change-password-button:disabled,
+.clear-password-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.password-notification {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 7px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.password-notification.success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+
+.password-notification.error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+@media (max-width: 600px) {
+    .change-password-card {
+        padding: 18px;
+        margin-top: 20px;
+    }
+
+    .password-button-group {
+        flex-direction: column;
+    }
+
+    .change-password-button,
+    .clear-password-button {
+        width: 100%;
+    }
+}

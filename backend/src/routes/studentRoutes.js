@@ -7,7 +7,8 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 } = require("../controllers/studentController");
 
 const {
@@ -25,7 +26,16 @@ const router = express.Router();
 router.get(
     "/me",
     authenticate,
+    authorizeRoles("STUDENT"),
     getMyProfile
+);
+
+// CR-020: Change own password
+router.patch(
+    "/:id/password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
 );
 
 // Create student — Admin only

@@ -1,9 +1,7 @@
+
 const pool = require("../config/db");
 
-// ============================================================
 // CREATE STUDENT
-// ============================================================
-
 const createStudent = async (
     connection,
     userId,
@@ -39,10 +37,7 @@ const createStudent = async (
     return result.insertId;
 };
 
-// ============================================================
-// CR-033: GET ALL STUDENTS WITH LAST LOGIN
-// ============================================================
-
+// GET ALL STUDENTS
 const getAllStudents = async () => {
     const [rows] = await pool.execute(
         `SELECT
@@ -58,18 +53,14 @@ const getAllStudents = async () => {
             s.updated_at,
             u.last_login
         FROM students AS s
-        INNER JOIN users AS u
-            ON s.user_id = u.user_id
+        INNER JOIN users AS u ON s.user_id = u.user_id
         ORDER BY s.student_id DESC`
     );
 
     return rows;
 };
 
-// ============================================================
 // GET STUDENT BY ID
-// ============================================================
-
 const getStudentById = async (studentId) => {
     const [rows] = await pool.execute(
         `SELECT
@@ -85,8 +76,7 @@ const getStudentById = async (studentId) => {
             s.updated_at,
             u.last_login
         FROM students AS s
-        INNER JOIN users AS u
-            ON s.user_id = u.user_id
+        INNER JOIN users AS u ON s.user_id = u.user_id
         WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
@@ -95,10 +85,7 @@ const getStudentById = async (studentId) => {
     return rows[0];
 };
 
-// ============================================================
-// UPDATE STUDENT
-// ============================================================
-
+// UPDATE STUDENT PROFILE
 const updateStudent = async (
     studentId,
     registrationNo,
@@ -110,14 +97,13 @@ const updateStudent = async (
 ) => {
     const [result] = await pool.execute(
         `UPDATE students
-        SET
-            registration_no = ?,
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            phone_number = ?,
-            profile_photo = ?
-        WHERE student_id = ?`,
+         SET registration_no = ?,
+             first_name = ?,
+             last_name = ?,
+             email = ?,
+             phone_number = ?,
+             profile_photo = ?
+         WHERE student_id = ?`,
         [
             registrationNo,
             firstName,
@@ -132,24 +118,17 @@ const updateStudent = async (
     return result;
 };
 
-// ============================================================
 // DELETE STUDENT
-// ============================================================
-
 const deleteStudent = async (studentId) => {
     const [result] = await pool.execute(
-        `DELETE FROM students
-        WHERE student_id = ?`,
+        `DELETE FROM students WHERE student_id = ?`,
         [studentId]
     );
 
     return result;
 };
 
-// ============================================================
 // GET STUDENT BY USER ID
-// ============================================================
-
 const getStudentByUserId = async (userId) => {
     const [rows] = await pool.execute(
         `SELECT
@@ -165,8 +144,7 @@ const getStudentByUserId = async (userId) => {
             s.updated_at,
             u.last_login
         FROM students AS s
-        INNER JOIN users AS u
-            ON s.user_id = u.user_id
+        INNER JOIN users AS u ON s.user_id = u.user_id
         WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
@@ -175,11 +153,39 @@ const getStudentByUserId = async (userId) => {
     return rows[0];
 };
 
+// CR-020: GET USER PASSWORD HASH
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT user_id, password_hash, role
+         FROM users
+         WHERE user_id = ?
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0];
+};
+
+// CR-020: UPDATE STUDENT PASSWORD HASH
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?
+           AND role = 'STUDENT'`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash
 };
