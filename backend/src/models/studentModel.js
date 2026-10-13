@@ -1,6 +1,8 @@
 const pool = require("../config/db");
 
+// =====================================================
 // CREATE STUDENT
+// =====================================================
 const createStudent = async (
     connection,
     userId,
@@ -10,7 +12,6 @@ const createStudent = async (
     email,
     phoneNumber
 ) => {
-
     const [result] = await connection.execute(
         `INSERT INTO students
         (
@@ -19,16 +20,18 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_image
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            null
         ]
     );
 
@@ -36,9 +39,10 @@ const createStudent = async (
 };
 
 
+// =====================================================
 // GET ALL STUDENTS
+// =====================================================
 const getAllStudents = async () => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -48,6 +52,7 @@ const getAllStudents = async () => {
             last_name,
             email,
             phone_number,
+            profile_image,
             created_at,
             updated_at
         FROM students
@@ -58,9 +63,10 @@ const getAllStudents = async () => {
 };
 
 
+// =====================================================
 // GET STUDENT BY ID
+// =====================================================
 const getStudentById = async (studentId) => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -70,6 +76,7 @@ const getStudentById = async (studentId) => {
             last_name,
             email,
             phone_number,
+            profile_image,
             created_at,
             updated_at
         FROM students
@@ -82,7 +89,9 @@ const getStudentById = async (studentId) => {
 };
 
 
+// =====================================================
 // UPDATE STUDENT
+// =====================================================
 const updateStudent = async (
     studentId,
     registrationNo,
@@ -91,7 +100,6 @@ const updateStudent = async (
     email,
     phoneNumber
 ) => {
-
     const [result] = await pool.execute(
         `UPDATE students
         SET
@@ -115,10 +123,10 @@ const updateStudent = async (
 };
 
 
+// =====================================================
 // DELETE STUDENT + LINKED USER ACCOUNT
-// Deletes both rows so registration_no / username can be reused.
+// =====================================================
 const deleteStudent = async (studentId) => {
-
     const connection = await pool.getConnection();
 
     try {
@@ -139,15 +147,14 @@ const deleteStudent = async (studentId) => {
 
         const userId = rows[0].user_id;
 
-        // Must delete child first (FK is ON DELETE RESTRICT)
+        // Delete the student before deleting the linked user.
         const [studentResult] = await connection.execute(
             `DELETE FROM students
             WHERE student_id = ?`,
             [studentId]
         );
 
-        // Delete orphan login, otherwise users.username UNIQUE
-        // blocks reusing the same registration number.
+        // Delete the linked login account.
         await connection.execute(
             `DELETE FROM users
             WHERE user_id = ?`,
@@ -166,9 +173,10 @@ const deleteStudent = async (studentId) => {
 };
 
 
+// =====================================================
 // GET STUDENT BY USER ID
+// =====================================================
 const getStudentByUserId = async (userId) => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -178,6 +186,7 @@ const getStudentByUserId = async (userId) => {
             last_name,
             email,
             phone_number,
+            profile_image,
             created_at,
             updated_at
         FROM students
@@ -190,11 +199,33 @@ const getStudentByUserId = async (userId) => {
 };
 
 
+// =====================================================
+// UPDATE STUDENT PROFILE IMAGE
+// =====================================================
+const updateStudentProfileImage = async (
+    studentId,
+    profileImage
+) => {
+    const [result] = await pool.execute(
+        `UPDATE students
+        SET profile_image = ?
+        WHERE student_id = ?`,
+        [profileImage, studentId]
+    );
+
+    return result;
+};
+
+
+// =====================================================
+// EXPORT FUNCTIONS
+// =====================================================
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateStudentProfileImage
 };

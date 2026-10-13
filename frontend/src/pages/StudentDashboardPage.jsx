@@ -10,6 +10,25 @@ import apiRequest from "../services/api";
 
 import "../styles/studentDashboard.css";
 
+const API_BASE_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Convert the saved image path into a complete URL.
+const getProfileImageUrl = (profileImage) => {
+    if (!profileImage) {
+        return null;
+    }
+
+    if (
+        profileImage.startsWith("http://") ||
+        profileImage.startsWith("https://")
+    ) {
+        return profileImage;
+    }
+
+    return `${API_BASE_URL}${profileImage.startsWith("/") ? "" : "/"}${profileImage}`;
+};
+
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
@@ -17,6 +36,7 @@ function StudentDashboardPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [imageError, setImageError] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -31,8 +51,8 @@ function StudentDashboardPage() {
 
                 if (data.student) {
                     setStudent(data.student);
+                    setImageError(false);
                 }
-
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
@@ -58,6 +78,20 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const profileImageUrl = getProfileImageUrl(
+        student?.profile_image
+    );
+
+    const showProfileImage =
+        Boolean(profileImageUrl) && !imageError;
+
+    const getInitials = () => {
+        const firstInitial = student?.first_name?.charAt(0) || "";
+        const lastInitial = student?.last_name?.charAt(0) || "";
+
+        return `${firstInitial}${lastInitial}`.toUpperCase();
+    };
+
     return (
         <div className="student-dashboard-page">
 
@@ -70,6 +104,7 @@ function StudentDashboardPage() {
 
                 <div className="student-header-actions">
                     <span className="role-badge">STUDENT</span>
+
                     <button
                         className="logout-button"
                         onClick={handleLogout}
@@ -97,25 +132,45 @@ function StudentDashboardPage() {
                 ) : student ? (
                     <div className="profile-card">
 
+                        {/* Profile Image and Name */}
                         <div className="profile-header">
+
                             <div className="profile-avatar">
-                                {student.first_name?.charAt(0)}
-                                {student.last_name?.charAt(0)}
+                                {showProfileImage ? (
+                                    <img
+                                        src={profileImageUrl}
+                                        alt={`${student.first_name} ${student.last_name}`}
+                                        className="student-profile-image"
+                                        onError={() => {
+                                            setImageError(true);
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="profile-avatar-initials">
+                                        {getInitials()}
+                                    </span>
+                                )}
                             </div>
+
                             <div className="profile-name">
                                 <h3>
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </h3>
+
                                 <p>{student.registration_no}</p>
                             </div>
+
                         </div>
 
+                        {/* Profile Details */}
                         <div className="profile-details">
 
                             <div className="detail-row">
                                 <span className="detail-label">
                                     Registration No
                                 </span>
+
                                 <span className="detail-value">
                                     {student.registration_no}
                                 </span>
@@ -125,8 +180,10 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Full Name
                                 </span>
+
                                 <span className="detail-value">
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </span>
                             </div>
 
@@ -134,6 +191,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Email
                                 </span>
+
                                 <span className="detail-value">
                                     {student.email}
                                 </span>
@@ -143,6 +201,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Phone
                                 </span>
+
                                 <span className="detail-value">
                                     {student.phone_number}
                                 </span>
@@ -152,10 +211,13 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Member Since
                                 </span>
+
                                 <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
+                                    {student.created_at
+                                        ? new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()
+                                        : "-"}
                                 </span>
                             </div>
 
