@@ -617,6 +617,31 @@
     transition: color var(--theme-transition);
 }
 
+.student-list-name {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 180px;
+}
+
+.student-list-avatar {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--accent-bg);
+}
+
+.student-list-avatar-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-text);
+    font-size: 13px;
+    font-weight: 700;
+}
+
 
 /* =========================================================
    Student Actions

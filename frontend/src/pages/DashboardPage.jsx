@@ -14,6 +14,8 @@ import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/dashboard.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 // Normalizes text for case-insensitive search with space handling.
 const normalizeSearchValue = (value) => {
     return String(value ?? "")
@@ -461,8 +463,24 @@ function DashboardPage() {
                                             </td>
 
                                             <td>
-                                                {student.first_name}{" "}
-                                                {student.last_name}
+                                                <div className="student-list-name">
+                                                    {student.profile_img_url ? (
+                                                        <img
+                                                            className="student-list-avatar"
+                                                            src={new URL(student.profile_img_url, API_BASE_URL).toString()}
+                                                            alt={`${student.first_name} ${student.last_name}`}
+                                                        />
+                                                    ) : (
+                                                        <span className="student-list-avatar student-list-avatar-fallback" aria-hidden="true">
+                                                            {student.first_name?.charAt(0)}
+                                                            {student.last_name?.charAt(0)}
+                                                        </span>
+                                                    )}
+                                                    <span>
+                                                        {student.first_name}{" "}
+                                                        {student.last_name}
+                                                    </span>
+                                                </div>
                                             </td>
 
                                             <td>

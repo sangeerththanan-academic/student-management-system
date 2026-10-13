@@ -23,6 +23,7 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [profileImage, setProfileImage] = useState(null);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -48,6 +49,7 @@ function StudentFormModal({
             });
         }
 
+        setProfileImage(null);
         setFormError("");
     }, [editingStudent, show]);
 
@@ -59,6 +61,27 @@ function StudentFormModal({
             ...previous,
             [name]: value
         }));
+    };
+
+
+    const handleProfileImageChange = (event) => {
+        const selectedFile = event.target.files?.[0] || null;
+        setProfileImage(selectedFile);
+        setFormError("");
+
+        if (!selectedFile) return;
+
+        const extension = selectedFile.name.split(".").pop().toLowerCase();
+        const allowedTypes = ["png", "jpg", "jpeg"];
+
+        if (!allowedTypes.includes(extension) || !["image/png", "image/jpeg"].includes(selectedFile.type)) {
+            setFormError("Profile image must be a PNG, JPG, or JPEG file.");
+            return;
+        }
+
+        if (selectedFile.size > 10 * 1024 * 1024) {
+            setFormError("Profile image must be 10 MB or smaller.");
+        }
     };
 
 
@@ -90,6 +113,37 @@ function StudentFormModal({
             return;
         }
 
+        if (profileImage) {
+            const extension = profileImage.name.split(".").pop().toLowerCase();
+            if (
+                !["png", "jpg", "jpeg"].includes(extension) ||
+                !["image/png", "image/jpeg"].includes(profileImage.type)
+            ) {
+                setFormError("Profile image must be a PNG, JPG, or JPEG file.");
+                return;
+            }
+
+            if (profileImage.size > 10 * 1024 * 1024) {
+                setFormError("Profile image must be 10 MB or smaller.");
+                return;
+            }
+        }
+
+        const requestData = new FormData();
+        requestData.append("registrationNo", formData.registrationNo.trim());
+        requestData.append("firstName", formData.firstName.trim());
+        requestData.append("lastName", formData.lastName.trim());
+        requestData.append("email", formData.email.trim());
+        requestData.append("phoneNumber", formData.phoneNumber.trim());
+
+        if (!editingStudent) {
+            requestData.append("password", formData.password);
+        }
+
+        if (profileImage) {
+            requestData.append("profileImage", profileImage);
+        }
+
         try {
             setFormLoading(true);
 
@@ -98,13 +152,7 @@ function StudentFormModal({
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim()
-                        })
+                        body: requestData
                     }
                 );
             } else {
@@ -112,14 +160,7 @@ function StudentFormModal({
                     "/api/students/",
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim(),
-                            password: formData.password
-                        })
+                        body: requestData
                     }
                 );
             }
@@ -277,6 +318,21 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
+                    </div>
+
+                    <div className="form-group">
+                        <label>
+                            Profile Img
+                        </label>
+
+                        <input
+                            type="file"
+                            name="profileImage"
+                            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                            onChange={handleProfileImageChange}
+                            disabled={formLoading}
+                        />
+                        <small>PNG, JPG, or JPEG; 10 MB maximum</small>
                     </div>
 
 

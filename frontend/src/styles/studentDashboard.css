@@ -132,8 +132,8 @@
 }
 
 .profile-avatar {
-    width: 60px;
-    height: 60px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.25);
     color: #ffffff;
@@ -142,6 +142,174 @@
     justify-content: center;
     font-size: 22px;
     font-weight: 700;
+    overflow: hidden;
+}
+
+.profile-avatar-wrap {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    flex: 0 0 68px;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-actions {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: 50%;
+    background: rgba(13, 24, 38, 0.62);
+    opacity: 0;
+    transition: opacity 0.16s ease;
+}
+
+.profile-avatar-wrap:hover .profile-avatar-actions,
+.profile-avatar-wrap:focus-within .profile-avatar-actions {
+    opacity: 1;
+}
+
+.profile-avatar-actions button,
+.profile-image-dialog-close {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1f2937;
+    cursor: pointer;
+}
+
+.profile-avatar-actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.profile-avatar-actions button:focus-visible,
+.profile-image-dialog button:focus-visible,
+.profile-image-dialog input:focus-visible {
+    outline: 3px solid #fbbf24;
+    outline-offset: 2px;
+}
+
+.profile-image-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8, 17, 29, 0.58);
+}
+
+.profile-image-dialog {
+    width: min(100%, 430px);
+    padding: 22px;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+}
+
+.profile-image-dialog-header,
+.profile-image-dialog-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.profile-image-dialog-header {
+    margin-bottom: 20px;
+}
+
+.profile-image-dialog-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.profile-image-dialog-close {
+    flex: 0 0 30px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.profile-image-file-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-image-dialog input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+}
+
+.profile-image-file-hint,
+.profile-image-selected-name {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.profile-image-dialog-error {
+    margin: 12px 0 0;
+    color: var(--error-text);
+    font-size: 13px;
+}
+
+.profile-image-dialog-actions {
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+.profile-image-dialog-actions button {
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-image-cancel {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.profile-image-save {
+    color: #ffffff;
+    background: #176b55;
+}
+
+.profile-image-dialog-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (hover: none) {
+    .profile-avatar-actions {
+        opacity: 1;
+    }
 }
 
 .profile-name h3 {

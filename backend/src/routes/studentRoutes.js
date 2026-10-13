@@ -5,6 +5,8 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfileImage,
+    removeMyProfileImage,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -13,6 +15,7 @@ const {
     authenticate,
     authorizeRoles
 } = require("../middleware/authMiddleware");
+const uploadProfileImage = require("../middleware/profileImageUpload");
 
 const router = express.Router();
 
@@ -26,6 +29,21 @@ router.get(
     getMyProfile
 );
 
+router.put(
+    "/me/profile-image",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    uploadProfileImage,
+    updateMyProfileImage
+);
+
+router.delete(
+    "/me/profile-image",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    removeMyProfileImage
+);
+
 
 // Create student
 // Administrator only
@@ -33,6 +51,7 @@ router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfileImage,
     addStudent
 );
 
@@ -63,6 +82,7 @@ router.put(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfileImage,
     editStudent
 );
 

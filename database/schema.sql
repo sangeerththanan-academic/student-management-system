@@ -67,6 +67,10 @@ CREATE TABLE IF NOT EXISTS students (
         ON DELETE RESTRICT
 );
 
+-- img stor url
+ALTER TABLE users
+ADD COLUMN profile_img_url VARCHAR(500) DEFAULT NULL;
+
 
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
