@@ -13,9 +13,6 @@ import StudentFormModal from "../components/StudentFormModal";
 
 import "../styles/dashboard.css";
 
-// =====================================================
-// NORMALIZE SEARCH VALUE
-// =====================================================
 const normalizeSearchValue = (value) => {
     return String(value ?? "")
         .toLowerCase()
@@ -23,14 +20,13 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
-// =====================================================
-// BUILD STUDENT PROFILE IMAGE URL
-// =====================================================
+// Build the image URL from the backend's public uploads route.
 const getProfileImageUrl = (profileImage) => {
     if (!profileImage) {
         return null;
     }
 
+    // Supports either a stored filename or /uploads/students/filename.
     const imagePath = String(profileImage).replace(/\\/g, "/");
 
     if (/^https?:\/\//i.test(imagePath)) {
@@ -50,32 +46,6 @@ const getProfileImageUrl = (profileImage) => {
     return `${apiBaseUrl}/uploads/students/${encodeURIComponent(filename)}`;
 };
 
-// =====================================================
-// CR033: FORMAT LAST LOGIN
-// =====================================================
-const formatLastLogin = (lastLogin) => {
-    if (!lastLogin) {
-        return "Never logged in";
-    }
-
-    // MySQL DATETIME is normally returned as
-    // YYYY-MM-DD HH:mm:ss.
-    const value = String(lastLogin);
-
-    const date = new Date(
-        value.includes("T") ? value : value.replace(" ", "T")
-    );
-
-    if (Number.isNaN(date.getTime())) {
-        return "Invalid date";
-    }
-
-    return date.toLocaleString();
-};
-
-// =====================================================
-// ADMIN DASHBOARD
-// =====================================================
 function DashboardPage() {
     const navigate = useNavigate();
 
@@ -89,9 +59,6 @@ function DashboardPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // =================================================
-    // LOAD CURRENT USER
-    // =================================================
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -117,9 +84,6 @@ function DashboardPage() {
         loadUser();
     }, [navigate]);
 
-    // =================================================
-    // LOAD STUDENTS
-    // =================================================
     const loadStudents = async () => {
         try {
             setLoading(true);
@@ -154,9 +118,6 @@ function DashboardPage() {
         loadStudents();
     }, []);
 
-    // =================================================
-    // SEARCH STUDENTS
-    // =================================================
     const normalizedSearchTerm = normalizeSearchValue(searchTerm);
     const isSearching = normalizedSearchTerm !== "";
 
@@ -166,17 +127,9 @@ function DashboardPage() {
         }
 
         return students.filter((student) => {
-            const registrationNo = normalizeSearchValue(
-                student.registration_no
-            );
-
-            const firstName = normalizeSearchValue(
-                student.first_name
-            );
-
-            const lastName = normalizeSearchValue(
-                student.last_name
-            );
+            const registrationNo = normalizeSearchValue(student.registration_no);
+            const firstName = normalizeSearchValue(student.first_name);
+            const lastName = normalizeSearchValue(student.last_name);
 
             const fullName = normalizeSearchValue(
                 `${student.first_name ?? ""} ${student.last_name ?? ""}`
@@ -194,48 +147,30 @@ function DashboardPage() {
         });
     }, [students, normalizedSearchTerm, isSearching]);
 
-    // =================================================
-    // CLEAR SEARCH
-    // =================================================
     const handleClearSearch = () => {
         setSearchTerm("");
     };
 
-    // =================================================
-    // OPEN ADD STUDENT FORM
-    // =================================================
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
     };
 
-    // =================================================
-    // OPEN EDIT STUDENT FORM
-    // =================================================
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
     };
 
-    // =================================================
-    // CLOSE STUDENT FORM
-    // =================================================
     const handleFormClose = () => {
         setShowForm(false);
         setEditingStudent(null);
     };
 
-    // =================================================
-    // HANDLE AUTHENTICATION ERROR
-    // =================================================
     const handleFormAuthError = () => {
         logout();
         navigate("/login", { replace: true });
     };
 
-    // =================================================
-    // DELETE STUDENT
-    // =================================================
     const handleDelete = async (studentId) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this student?"
@@ -266,17 +201,11 @@ function DashboardPage() {
         }
     };
 
-    // =================================================
-    // LOGOUT
-    // =================================================
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
     };
 
-    // =================================================
-    // RENDER DASHBOARD
-    // =================================================
     return (
         <div className="dashboard-page">
             <header className="dashboard-header">
@@ -336,9 +265,7 @@ function DashboardPage() {
                         placeholder="Search by registration number, name, or email..."
                         aria-label="Search students by registration number, name, or email"
                         value={searchTerm}
-                        onChange={(event) =>
-                            setSearchTerm(event.target.value)
-                        }
+                        onChange={(event) => setSearchTerm(event.target.value)}
                     />
 
                     {searchTerm !== "" && (
@@ -355,16 +282,8 @@ function DashboardPage() {
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
-                            ? `${filteredStudents.length} ${
-                                  filteredStudents.length === 1
-                                      ? "student"
-                                      : "students"
-                              } found`
-                            : `${students.length} ${
-                                  students.length === 1
-                                      ? "student"
-                                      : "students"
-                              }`}
+                            ? `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"} found`
+                            : `${students.length} ${students.length === 1 ? "student" : "students"}`}
                     </p>
                 )}
 
@@ -383,7 +302,7 @@ function DashboardPage() {
                             <h3>No matching students found</h3>
 
                             <p>
-                                No students match "{searchTerm.trim()}".
+                                No students match &quot;{searchTerm.trim()}&quot;.
                             </p>
 
                             <button
@@ -404,7 +323,6 @@ function DashboardPage() {
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
-                                        <th>Last Login</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -424,9 +342,7 @@ function DashboardPage() {
                                                             src={imageUrl}
                                                             alt={`${student.first_name} ${student.last_name}`}
                                                             onError={(event) => {
-                                                                event.currentTarget.style.display =
-                                                                    "none";
-
+                                                                event.currentTarget.style.display = "none";
                                                                 event.currentTarget.nextElementSibling?.classList.remove(
                                                                     "student-profile-placeholder-hidden"
                                                                 );
@@ -445,9 +361,7 @@ function DashboardPage() {
                                                     >
                                                         {String(
                                                             student.first_name || "S"
-                                                        )
-                                                            .charAt(0)
-                                                            .toUpperCase()}
+                                                        ).charAt(0).toUpperCase()}
                                                     </div>
                                                 </td>
 
@@ -463,15 +377,7 @@ function DashboardPage() {
                                                 </td>
 
                                                 <td>{student.email}</td>
-
                                                 <td>{student.phone_number}</td>
-
-                                                {/* CR033: Last Login */}
-                                                <td className="last-login-cell">
-                                                    {formatLastLogin(
-                                                        student.last_login
-                                                    )}
-                                                </td>
 
                                                 <td>
                                                     <div className="student-actions">
