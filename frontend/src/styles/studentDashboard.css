@@ -416,3 +416,66 @@
         font-size: 17px;
     }
 }
+/* CR-020: Change Password Button */
+.change-password-toggle {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 24px;
+    margin-bottom: 20px;
+}
+
+.change-password-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
+}
+
+.change-password-toggle-button:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+}
+
+.change-password-toggle-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.18);
+}
+
+.change-password-toggle-button:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+}
+
+.change-password-toggle-button:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .change-password-toggle {
+        width: 100%;
+    }
+
+    .change-password-toggle-button {
+        width: 100%;
+        padding: 13px 18px;
+    }
+}
+
+
