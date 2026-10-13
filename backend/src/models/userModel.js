@@ -24,14 +24,40 @@ const findUserById = async (userId) => {
     return rows[0];
 };
 
-// Update the timestamp after a successful student login.
+// CR-033: Update last login after successful student login
 const updateLastLogin = async (userId) => {
     const [result] = await pool.execute(
         `UPDATE users
          SET last_login = NOW()
+         WHERE user_id = ?`,
+        [userId]
+    );
+
+    return result;
+};
+
+// CR-020: Get the authenticated student's password hash
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+         FROM users
+         WHERE user_id = ?
+           AND role = 'STUDENT'
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0];
+};
+
+// CR-020: Update password using its bcrypt hash
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
          WHERE user_id = ?
            AND role = 'STUDENT'`,
-        [userId]
+        [passwordHash, userId]
     );
 
     return result;
@@ -40,5 +66,7 @@ const updateLastLogin = async (userId) => {
 module.exports = {
     findUserByUsername,
     findUserById,
-    updateLastLogin
+    updateLastLogin,
+    getPasswordHashByUserId,
+    updatePasswordHash
 };
