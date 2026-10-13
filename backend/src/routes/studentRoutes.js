@@ -6,7 +6,8 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 } = require("../controllers/studentController");
 
 const {
@@ -26,6 +27,12 @@ router.get(
     getMyProfile
 );
 
+router.put(
+    "/change-password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeStudentPassword
+);
 
 // Create student
 // Administrator only

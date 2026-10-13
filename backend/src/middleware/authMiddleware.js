@@ -30,18 +30,33 @@ const authenticate = (req, res, next) => {
     }
 };
 
+
 const authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
-        if (!req.user || !allowedRoles.includes(req.user.role)) {
+        if (!req.user || !req.user.role) {
             return res.status(403).json({
                 success: false,
-                message: "Access denied"
+                message: "Access denied: User role not found"
+            });
+        }
+
+        const userRole = String(req.user.role).toUpperCase();
+
+        const normalizedAllowedRoles = allowedRoles.map(
+            (role) => String(role).toUpperCase()
+        );
+
+        if (!normalizedAllowedRoles.includes(userRole)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied: Insufficient permissions"
             });
         }
 
         next();
     };
 };
+
 
 module.exports = {
     authenticate,

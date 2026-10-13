@@ -209,6 +209,32 @@ const getStudentByUserId = async (userId) => {
     return rows[0];
 };
 
+// GET PASSWORD HASH BY USER ID
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+         FROM users
+         WHERE user_id = ?
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0];
+};
+
+
+// UPDATE PASSWORD HASH
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
 
 module.exports = {
     createStudent,
@@ -216,5 +242,7 @@ module.exports = {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash
 };

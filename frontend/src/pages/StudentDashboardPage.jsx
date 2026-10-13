@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import { getStoredUser, logout } from "../services/authService";
 import apiRequest from "../services/api";
@@ -22,6 +23,11 @@ function StudentDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // Change Password popup state
+    const [showChangePassword, setShowChangePassword] =
+        useState(false);
+
+    // Load student profile
     useEffect(() => {
         const loadProfile = async () => {
             try {
@@ -31,12 +37,14 @@ function StudentDashboardPage() {
                 const data = await apiRequest(
                     "/api/students/me",
                     {
-                        method: "GET"
+                        method: "GET",
                     }
                 );
 
                 if (data.student) {
                     setStudent(data.student);
+                } else {
+                    setStudent(null);
                 }
             } catch (err) {
                 console.error("Failed to load profile:", err);
@@ -58,9 +66,20 @@ function StudentDashboardPage() {
         loadProfile();
     }, [navigate]);
 
+    // Logout
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
+    };
+
+    // Open Change Password popup
+    const handleOpenChangePassword = () => {
+        setShowChangePassword(true);
+    };
+
+    // Close Change Password popup
+    const handleCloseChangePassword = () => {
+        setShowChangePassword(false);
     };
 
     return (
@@ -83,6 +102,16 @@ function StudentDashboardPage() {
                     {/* Student-specific Dark / Light Mode */}
                     <ThemeToggle scope="student" />
 
+                    {/* Change Password Button */}
+                    <button
+                        type="button"
+                        className="change-password-button"
+                        onClick={handleOpenChangePassword}
+                    >
+                        Change Password
+                    </button>
+
+                    {/* Logout Button */}
                     <button
                         type="button"
                         className="logout-button"
@@ -93,7 +122,7 @@ function StudentDashboardPage() {
                 </div>
             </header>
 
-            {/* Main content */}
+            {/* Main Content */}
             <main className="student-dashboard-main">
                 <h2 className="section-title">
                     My Profile
@@ -111,7 +140,7 @@ function StudentDashboardPage() {
                     </div>
                 ) : student ? (
                     <div className="profile-card">
-                        {/* Profile header */}
+                        {/* Profile Header */}
                         <div className="profile-header">
                             <div className="profile-avatar">
                                 {student.first_name?.charAt(0)}
@@ -130,7 +159,7 @@ function StudentDashboardPage() {
                             </div>
                         </div>
 
-                        {/* Profile details */}
+                        {/* Profile Details */}
                         <div className="profile-details">
                             <div className="detail-row">
                                 <span className="detail-label">
@@ -196,9 +225,15 @@ function StudentDashboardPage() {
                     )
                 )}
             </main>
+
+            {/* Change Password Popup */}
+            {showChangePassword && (
+                <ChangeStudentPassword
+                    onClose={handleCloseChangePassword}
+                />
+            )}
         </div>
     );
 }
 
 export default StudentDashboardPage;
-

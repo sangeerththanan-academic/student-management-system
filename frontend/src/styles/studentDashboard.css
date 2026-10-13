@@ -423,3 +423,323 @@
     }
 }
 
+
+
+/* ========================================
+   CHANGE PASSWORD BUTTON
+======================================== */
+
+.change-password-button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.change-password-button:hover {
+    background-color: #1d4ed8;
+}
+
+.change-password-button:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 3px;
+}
+
+
+/* ========================================
+   POPUP OVERLAY
+======================================== */
+
+.change-password-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 16px;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+}
+
+
+/* ========================================
+   POPUP FORM
+======================================== */
+
+.change-password-modal {
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    padding: 26px;
+    border-radius: 14px;
+
+    background-color: var(--card-bg, #ffffff);
+    color: var(--text-color, #1f2937);
+
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    animation: passwordPopupIn 0.2s ease-out;
+}
+
+@keyframes passwordPopupIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* ========================================
+   POPUP HEADER
+======================================== */
+
+.change-password-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 24px;
+}
+
+.change-password-heading h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.change-password-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: transparent;
+    color: inherit;
+
+    font-size: 28px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.change-password-close:hover {
+    background-color: rgba(128, 128, 128, 0.15);
+}
+
+
+/* ========================================
+   PASSWORD INPUT FIELDS
+======================================== */
+
+.change-password-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin-bottom: 18px;
+}
+
+.change-password-field label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.change-password-field input {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+
+    background-color: var(--input-bg, transparent);
+    color: inherit;
+
+    font-family: inherit;
+    font-size: 15px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.change-password-field input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+
+/* ========================================
+   SUCCESS AND ERROR MESSAGES
+======================================== */
+
+.change-password-message {
+    margin: 8px 0 16px;
+    padding: 12px;
+
+    border-radius: 7px;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.change-password-message.error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.change-password-message.success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+
+/* ========================================
+   POPUP ACTION BUTTONS
+======================================== */
+
+.change-password-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-top: 24px;
+}
+
+.change-password-actions button {
+    min-height: 42px;
+    padding: 10px 16px;
+
+    border: none;
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.change-password-cancel {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.change-password-cancel:hover {
+    background-color: #d1d5db;
+}
+
+.change-password-submit {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.change-password-submit:hover {
+    background-color: #1d4ed8;
+}
+
+.change-password-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ========================================
+   DARK MODE SUPPORT
+======================================== */
+
+.student-dashboard-page[data-theme="dark"]
+.change-password-modal {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+
+.student-dashboard-page[data-theme="dark"]
+.change-password-field input {
+    border-color: #475569;
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+.student-dashboard-page[data-theme="dark"]
+.change-password-field input:focus {
+    border-color: #60a5fa;
+}
+
+.student-dashboard-page[data-theme="dark"]
+.change-password-cancel {
+    background-color: #334155;
+    color: #f1f5f9;
+}
+
+.student-dashboard-page[data-theme="dark"]
+.change-password-cancel:hover {
+    background-color: #475569;
+}
+
+
+/* ========================================
+   MOBILE RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 600px) {
+    .change-password-modal {
+        max-width: 100%;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .change-password-heading h2 {
+        font-size: 20px;
+    }
+
+    .change-password-actions {
+        flex-direction: column-reverse;
+    }
+
+    .change-password-actions button {
+        width: 100%;
+    }
+
+    .change-password-button {
+        padding: 9px 12px;
+        font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .change-password-modal {
+        animation: none;
+    }
+}

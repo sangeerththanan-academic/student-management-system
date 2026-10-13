@@ -8,7 +8,9 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash
 } = require("../models/studentModel");
 
 
@@ -753,6 +755,83 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+// CHANGE STUDENT PASSWORD
+const changeStudentPassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+
+        // Validate required fields
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required."
+            });
+        }
+
+        // Check whether new password and confirm password match
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and confirm password do not match."
+            });
+        }
+
+        // Validate new password
+        const passwordError = validatePassword(newPassword);
+
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
+        // Get the currently logged-in user's ID from JWT
+        const userId = req.user.userId;
+
+        // Retrieve the existing password hash from database
+        const user = await getPasswordHashByUserId(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found."
+            });
+        }
+
+        // Compare entered old password with stored hash
+        const isOldPasswordValid = await bcrypt.compare(
+            oldPassword,
+            user.password_hash
+        );
+
+        if (!isOldPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Old password is incorrect."
+            });
+        }
+
+        // Hash the new password before saving
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update database
+        await updatePasswordHash(userId, newPasswordHash);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+
+    } catch (error) {
+        console.error("Change student password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password."
+        });
+    }
+};
 
 // =====================================================
 // EXPORT CONTROLLERS
@@ -764,5 +843,6 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 };
