@@ -18,7 +18,28 @@ const findUserById = async (userId) => {
     return rows[0];
 };
 
+// CR-006: Update last successful login time
+const updateLastLogin = async (userId) => {
+    try {
+        const [result] = await pool.execute(
+            "UPDATE users SET last_login = NOW() WHERE user_id = ?",
+            [userId]
+        );
+
+        console.log("Last login update:", {
+            userId,
+            affectedRows: result.affectedRows
+        });
+
+        return result;
+    } catch (error) {
+        console.error("Last login update error:", error);
+        throw error;
+    }
+};
+
 module.exports = {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 };

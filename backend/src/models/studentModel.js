@@ -39,21 +39,24 @@ const createStudent = async (
 };
 
 // GET ALL STUDENTS
+// CR-006: Include last login timestamp
 const getAllStudents = async () => {
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            profile_photo,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students s
+        LEFT JOIN users u ON s.user_id = u.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;

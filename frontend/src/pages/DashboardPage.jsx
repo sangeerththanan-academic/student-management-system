@@ -22,6 +22,21 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
+// CR-006: Format last login timestamp.
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) {
+        return "Never logged in";
+    }
+
+    const date = new Date(lastLogin);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Never logged in";
+    }
+
+    return date.toLocaleString();
+};
+
 function DashboardPage() {
     const navigate = useNavigate();
 
@@ -38,7 +53,7 @@ function DashboardPage() {
 
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // Load current user
+    // Load current user.
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -51,12 +66,12 @@ function DashboardPage() {
                         role: data.user.role
                     });
                 }
-
             } catch (error) {
                 console.error("Failed to load current user:", error);
 
                 if (error.status === 401) {
                     logout();
+
                     navigate("/login", {
                         replace: true
                     });
@@ -67,8 +82,7 @@ function DashboardPage() {
         loadUser();
     }, [navigate]);
 
-
-    // Load students
+    // Load students.
     const loadStudents = async () => {
         try {
             setLoading(true);
@@ -114,15 +128,12 @@ function DashboardPage() {
         }
     };
 
-
     useEffect(() => {
         loadStudents();
     }, []);
 
-
-    // Client-side search (CR-001)
-    // Filters the already-loaded students only.
-    // No API request is made for search keystrokes.
+    // Client-side search (CR-001).
+    // Filters already-loaded student records.
     const normalizedSearchTerm = normalizeSearchValue(searchTerm);
 
     const isSearching = normalizedSearchTerm !== "";
@@ -163,38 +174,32 @@ function DashboardPage() {
         });
     }, [students, normalizedSearchTerm, isSearching]);
 
-
     const handleClearSearch = () => {
         setSearchTerm("");
     };
 
-
-    // Form handling
+    // Form handling.
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
     };
-
 
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
     };
 
-
     const handleFormClose = () => {
         setShowForm(false);
         setEditingStudent(null);
     };
-
 
     const handleFormAuthError = () => {
         logout();
         navigate("/login", { replace: true });
     };
 
-
-    // Delete student
+    // Delete student.
     const handleDelete = async (studentId) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this student?"
@@ -217,10 +222,7 @@ function DashboardPage() {
             await loadStudents();
 
         } catch (error) {
-            console.error(
-                "Delete student error:",
-                error
-            );
+            console.error("Delete student error:", error);
 
             if (error.status === 401) {
                 logout();
@@ -239,21 +241,16 @@ function DashboardPage() {
         }
     };
 
-
-    // Logout
+    // Logout.
     const handleLogout = () => {
         logout();
 
-        navigate(
-            "/login",
-            {
-                replace: true
-            }
-        );
+        navigate("/login", {
+            replace: true
+        });
     };
 
-
-    // Render
+    // Render.
     return (
         <div className="dashboard-page">
 
@@ -269,33 +266,25 @@ function DashboardPage() {
                     </p>
                 </div>
 
+                <div className="dashboard-header-actions">
 
+                    <div className="admin-info">
+                        <strong>{user?.username}</strong>
+                    </div>
 
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="logout-button"
+                    >
+                        Logout
+                    </button>
 
+                    <ThemeToggle />
 
-                
-<div className="dashboard-header-actions">
-
-    <div className="admin-info">
-        <strong>{user?.username}</strong>
-        
-    </div>
-
-    <button
-        type="button"
-        onClick={handleLogout}
-        className="logout-button"
-    >
-        Logout
-    </button>
-
-    <ThemeToggle />
-
-</div>
-
+                </div>
 
             </header>
-
 
             <main className="dashboard-content">
 
@@ -313,7 +302,6 @@ function DashboardPage() {
                         </p>
                     </div>
 
-
                     <button
                         className="add-student-button"
                         onClick={openAddForm}
@@ -323,7 +311,6 @@ function DashboardPage() {
 
                 </div>
 
-
                 {/* Error */}
 
                 {error && (
@@ -331,7 +318,6 @@ function DashboardPage() {
                         {error}
                     </div>
                 )}
-
 
                 {/* Student form modal */}
 
@@ -343,10 +329,10 @@ function DashboardPage() {
                     onAuthError={handleFormAuthError}
                 />
 
-
-                {/* Students */}
+                {/* Student search */}
 
                 <div className="students-search">
+
                     <input
                         type="text"
                         className="students-search-input"
@@ -367,6 +353,7 @@ function DashboardPage() {
                             Clear
                         </button>
                     )}
+
                 </div>
 
                 {!loading && students.length > 0 && (
@@ -376,6 +363,8 @@ function DashboardPage() {
                             : `${students.length} ${students.length === 1 ? "student" : "students"}`}
                     </p>
                 )}
+
+                {/* Students table */}
 
                 <div className="students-card">
 
@@ -388,6 +377,7 @@ function DashboardPage() {
                     ) : students.length === 0 ? (
 
                         <div className="students-empty">
+
                             <h3>
                                 No students found
                             </h3>
@@ -395,11 +385,13 @@ function DashboardPage() {
                             <p>
                                 Add your first student to get started.
                             </p>
+
                         </div>
 
                     ) : filteredStudents.length === 0 ? (
 
                         <div className="students-empty">
+
                             <h3>
                                 No matching students found
                             </h3>
@@ -415,6 +407,7 @@ function DashboardPage() {
                             >
                                 Clear Search
                             </button>
+
                         </div>
 
                     ) : (
@@ -425,35 +418,22 @@ function DashboardPage() {
 
                                 <thead>
                                     <tr>
-                                        <th>
-                                            Registration No.
-                                        </th>
+                                        <th>Registration No.</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
 
-                                        <th>
-                                            Name
-                                        </th>
+                                        {/* CR-006 */}
+                                        <th>Last Login</th>
 
-                                        <th>
-                                            Email
-                                        </th>
-
-                                        <th>
-                                            Phone
-                                        </th>
-
-                                        <th>
-                                            Actions
-                                        </th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
-
 
                                 <tbody>
 
                                     {filteredStudents.map((student) => (
-                                        <tr
-                                            key={student.student_id}
-                                        >
+                                        <tr key={student.student_id}>
 
                                             <td>
                                                 <strong>
@@ -474,6 +454,13 @@ function DashboardPage() {
                                                 {student.phone_number}
                                             </td>
 
+                                            {/* CR-006: Last Login display */}
+                                            <td>
+                                                {formatLastLogin(
+                                                    student.last_login
+                                                )}
+                                            </td>
+
                                             <td>
 
                                                 <div className="student-actions">
@@ -481,9 +468,7 @@ function DashboardPage() {
                                                     <button
                                                         className="edit-button"
                                                         onClick={() =>
-                                                            openEditForm(
-                                                                student
-                                                            )
+                                                            openEditForm(student)
                                                         }
                                                     >
                                                         Edit
