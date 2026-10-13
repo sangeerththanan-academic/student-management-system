@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import apiRequest from "../services/api";
 
 import PasswordInput from "./PasswordInput";
@@ -11,7 +10,6 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-
     const [formData, setFormData] = useState({
         registrationNo: "",
         firstName: "",
@@ -26,7 +24,7 @@ function StudentFormModal({
     const [fieldErrors, setFieldErrors] = useState({});
 
 
-    // Reset form when editingStudent changes or modal opens
+    // Load student details and current image when the modal opens.
     useEffect(() => {
 
         if (!show) return;
@@ -52,6 +50,8 @@ function StudentFormModal({
                 phoneNumber: "",
                 password: ""
             });
+
+            setImagePreview("");
         }
 
         setFormError("");
@@ -286,7 +286,6 @@ function StudentFormModal({
         return Object.keys(errors).length === 0;
     };
 
-
     const handleClose = () => {
 
         setFormError("");
@@ -295,11 +294,9 @@ function StudentFormModal({
         onClose();
     };
 
-
     const handleSubmit = async (event) => {
 
         event.preventDefault();
-
         setFormError("");
 
         // Stop submission when frontend validation fails
@@ -452,44 +449,7 @@ function StudentFormModal({
         }
     };
 
-
     if (!show) return null;
-
-    // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
-
-            <input
-                id={`sf-${name}`}
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
-                aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
-            />
-
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
-
 
     return (
         <div
