@@ -9,17 +9,30 @@ import {
 } from "../services/authService";
 
 import apiRequest, { API_BASE_URL } from "../services/api";
-
 import StudentFormModal from "../components/StudentFormModal";
-
 import "../styles/dashboard.css";
 
-// Normalizes text for case-insensitive search.
+// Normalize text for case-insensitive search.
 const normalizeSearchValue = (value) => {
     return String(value ?? "")
         .toLowerCase()
         .trim()
         .replace(/\s+/g, " ");
+};
+
+// Format the last login date and time.
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) {
+        return "Never logged in";
+    }
+
+    const date = new Date(lastLogin);
+
+    if (Number.isNaN(date.getTime())) {
+        return "N/A";
+    }
+
+    return date.toLocaleString();
 };
 
 function DashboardPage() {
@@ -33,7 +46,7 @@ function DashboardPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // Load current user
+    // Load current user.
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -47,7 +60,10 @@ function DashboardPage() {
                     });
                 }
             } catch (error) {
-                console.error("Failed to load current user:", error);
+                console.error(
+                    "Failed to load current user:",
+                    error
+                );
 
                 if (error.status === 401) {
                     logout();
@@ -59,7 +75,7 @@ function DashboardPage() {
         loadUser();
     }, [navigate]);
 
-    // Load students
+    // Load students.
     const loadStudents = async () => {
         try {
             setLoading(true);
@@ -86,7 +102,9 @@ function DashboardPage() {
                 return;
             }
 
-            setError(error.message || "Failed to retrieve students.");
+            setError(
+                error.message || "Failed to retrieve students."
+            );
         } finally {
             setLoading(false);
         }
@@ -96,8 +114,10 @@ function DashboardPage() {
         loadStudents();
     }, []);
 
-    // Client-side search (CR-001)
-    const normalizedSearchTerm = normalizeSearchValue(searchTerm);
+    // Client-side search (CR-001).
+    const normalizedSearchTerm =
+        normalizeSearchValue(searchTerm);
+
     const isSearching = normalizedSearchTerm !== "";
 
     const filteredStudents = useMemo(() => {
@@ -138,7 +158,7 @@ function DashboardPage() {
         setSearchTerm("");
     };
 
-    // Form handling
+    // Form handling.
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
@@ -159,7 +179,7 @@ function DashboardPage() {
         navigate("/login", { replace: true });
     };
 
-    // Delete student
+    // Delete student.
     const handleDelete = async (studentId) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this student?"
@@ -186,20 +206,25 @@ function DashboardPage() {
                 return;
             }
 
-            setError(error.message || "Failed to delete student.");
+            setError(
+                error.message || "Failed to delete student."
+            );
         }
     };
 
-    // Logout
+    // Logout.
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
     };
 
-    // CR-010: Student profile image with initials fallback
+    // CR-010: Student profile image with initials fallback.
     const getStudentInitials = (student) => {
-        const firstInitial = student.first_name?.trim()?.charAt(0) || "";
-        const lastInitial = student.last_name?.trim()?.charAt(0) || "";
+        const firstInitial =
+            student.first_name?.trim()?.charAt(0) || "";
+
+        const lastInitial =
+            student.last_name?.trim()?.charAt(0) || "";
 
         return `${firstInitial}${lastInitial}`.toUpperCase() || "?";
     };
@@ -217,7 +242,6 @@ function DashboardPage() {
         return `${API_BASE_URL}${profilePhoto.startsWith("/") ? "" : "/"}${profilePhoto}`;
     };
 
-    // Render
     return (
         <div className="dashboard-page">
             <header className="dashboard-header">
@@ -246,7 +270,9 @@ function DashboardPage() {
                 <div className="students-heading">
                     <div>
                         <h2>Students</h2>
-                        <p>Manage student accounts and profiles.</p>
+                        <p>
+                            Manage student accounts and profiles.
+                        </p>
                     </div>
 
                     <button
@@ -259,7 +285,10 @@ function DashboardPage() {
 
                 {/* Error */}
                 {error && (
-                    <div className="dashboard-error" role="alert">
+                    <div
+                        className="dashboard-error"
+                        role="alert"
+                    >
                         {error}
                     </div>
                 )}
@@ -297,6 +326,7 @@ function DashboardPage() {
                     )}
                 </div>
 
+                {/* Student count */}
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
@@ -321,14 +351,16 @@ function DashboardPage() {
                     ) : students.length === 0 ? (
                         <div className="students-empty">
                             <h3>No students found</h3>
-                            <p>Add your first student to get started.</p>
+                            <p>
+                                Add your first student to get started.
+                            </p>
                         </div>
                     ) : filteredStudents.length === 0 ? (
                         <div className="students-empty">
                             <h3>No matching students found</h3>
 
                             <p>
-                                No students match "{searchTerm.trim()}".
+                                No students match "{searchTerm.trim()}."
                             </p>
 
                             <button
@@ -349,6 +381,7 @@ function DashboardPage() {
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
+                                        <th>Last Login</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -356,7 +389,7 @@ function DashboardPage() {
                                 <tbody>
                                     {filteredStudents.map((student) => (
                                         <tr key={student.student_id}>
-                                            {/* CR-010: Profile Image */}
+                                            {/* Profile Image */}
                                             <td>
                                                 <div className="student-profile-cell">
                                                     {student.profile_photo ? (
@@ -396,21 +429,33 @@ function DashboardPage() {
                                                 </div>
                                             </td>
 
+                                            {/* Registration Number */}
                                             <td>
                                                 <strong>
                                                     {student.registration_no}
                                                 </strong>
                                             </td>
 
+                                            {/* Student Name */}
                                             <td>
                                                 {student.first_name}{" "}
                                                 {student.last_name}
                                             </td>
 
+                                            {/* Email */}
                                             <td>{student.email}</td>
 
+                                            {/* Phone */}
                                             <td>{student.phone_number}</td>
 
+                                            {/* Last Login */}
+                                            <td>
+                                                {formatLastLogin(
+                                                    student.last_login
+                                                )}
+                                            </td>
+
+                                            {/* Actions */}
                                             <td>
                                                 <div className="student-actions">
                                                     <button
@@ -447,3 +492,4 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+
