@@ -723,3 +723,61 @@
 .student-profile-placeholder-hidden {
     display: none;
 }
+
+/* Password input and eye toggle */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrapper .password-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 48px;
+}
+
+.password-toggle-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: #475569;
+    padding: 5px;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.password-toggle-button:hover {
+    color: #2563eb;
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Validation messages */
+.field-validation-error {
+    display: block;
+    color: #dc2626;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 5px;
+}
+
+.student-form input[aria-invalid="true"] {
+    border-color: #dc2626;
+}
+
+.image-validation-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 6px;
+}
