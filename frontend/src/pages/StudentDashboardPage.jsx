@@ -1,6 +1,9 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
+
+
 
 import ThemeToggle from "../components/ThemeToggle";
 
@@ -194,6 +197,8 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
+            
+            <ChangeStudentPassword />
             </main>
         </div>
     );

@@ -8,7 +8,9 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash
 } = require("../models/studentModel");
 
 // Store a URL path that Express exposes for uploaded student images.
@@ -579,11 +581,137 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+
+
+
+// CR-020: Change the authenticated student's password
+// PATCH /api/students/change-password
+const changeMyPassword = async (req, res) => {
+    try {
+        const {
+            currentPassword,
+            newPassword,
+            confirmPassword
+        } = req.body;
+
+        // Validate required fields
+        if (
+            typeof currentPassword !== "string" ||
+            !currentPassword ||
+            typeof newPassword !== "string" ||
+            !newPassword ||
+            typeof confirmPassword !== "string" ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill in all password fields."
+            });
+        }
+
+        // Validate new password strength
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must contain at least 8 characters."
+            });
+        }
+
+        if (
+            !/[A-Z]/.test(newPassword) ||
+            !/[a-z]/.test(newPassword) ||
+            !/[0-9]/.test(newPassword) ||
+            !/[^A-Za-z0-9]/.test(newPassword)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "New password must contain uppercase, lowercase, number and special character."
+            });
+        }
+
+        // Verify confirmation on the backend too
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New passwords do not match."
+            });
+        }
+
+        // Use the authenticated user's ID, never a client-supplied ID
+        const userId = req.user.userId;
+
+        const user = await getPasswordHashByUserId(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found."
+            });
+        }
+
+        // Verify the old password against its database hash
+        const isCurrentPasswordValid = await bcrypt.compare(
+            currentPassword,
+            user.password_hash
+        );
+
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        // Do not allow the same password to be reused
+        const isSamePassword = await bcrypt.compare(
+            newPassword,
+            user.password_hash
+        );
+
+        if (isSamePassword) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "New password must be different from the current password."
+            });
+        }
+
+        // Hash the new password before saving
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+        const result = await updatePasswordHash(
+            userId,
+            newPasswordHash
+        );
+
+        if (result.affectedRows !== 1) {
+            return res.status(500).json({
+                success: false,
+                message: "Password could not be updated."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        console.error("Change password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password."
+        });
+    }
+};
+
 module.exports = {
     addStudent,
     getStudents,
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 };

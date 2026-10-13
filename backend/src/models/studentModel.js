@@ -178,11 +178,39 @@ const getStudentByUserId = async (userId) => {
     return rows[0];
 };
 
+
+// CR-020: Get password hash for authenticated user
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+         FROM users
+         WHERE user_id = ?
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0] || null;
+};
+
+// CR-020: Update password hash
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash,
     deleteStudent
 };

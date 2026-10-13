@@ -7,7 +7,8 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 } = require("../controllers/studentController");
 
 const {
@@ -24,6 +25,14 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+// CR-020: Change own password - authenticated students only
+router.patch(
+    "/change-password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
 );
 
 // Create student - Administrator only
