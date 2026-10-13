@@ -7,13 +7,14 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -95,7 +96,8 @@ function StudentDashboardPage() {
                         Loading your profile...
                     </div>
                 ) : student ? (
-                    <div className="profile-card">
+                    <>
+                        <div className="profile-card">
 
                         <div className="profile-header">
                             <div className="profile-avatar">
@@ -161,7 +163,10 @@ function StudentDashboardPage() {
 
                         </div>
 
-                    </div>
+                        </div>
+
+                        <ChangeStudentPassword />
+                    </>
                 ) : (
                     !error && (
                         <div className="student-loading">

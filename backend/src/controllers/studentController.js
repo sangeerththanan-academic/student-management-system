@@ -11,7 +11,12 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
-const { validateStudentData } = require("../utils/validation");
+const {
+    validateStudentData,
+    validatePassword
+} = require("../utils/validation");
+
+const { updatePasswordByUserId } = require("../models/userModel");
 
 
 // CREATE STUDENT
@@ -356,6 +361,43 @@ const removeStudent = async (req, res) => {
 
 
 // GET CURRENT STUDENT'S OWN PROFILE
+const changeMyPassword = async (req, res) => {
+    const { password, confirmPassword } = req.body || {};
+
+    if (password !== confirmPassword) {
+        return res.status(400).json({
+            success: false,
+            message: "Passwords do not match"
+        });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+        return res.status(400).json({
+            success: false,
+            message: passwordError
+        });
+    }
+
+    try {
+        const passwordHash = await bcrypt.hash(password, 10);
+        await updatePasswordByUserId(req.user.userId, passwordHash);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+    } catch (error) {
+        console.error("Change password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password"
+        });
+    }
+};
+
+
 const getMyProfile = async (req, res) => {
     try {
         const student = await getStudentByUserId(req.user.userId);
@@ -388,6 +430,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 };

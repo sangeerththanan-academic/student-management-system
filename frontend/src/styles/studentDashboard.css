@@ -96,6 +96,77 @@
     overflow: hidden;
 }
 
+.password-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-top: 24px;
+    padding: 28px;
+}
+
+.password-card h2 {
+    color: #0f172a;
+    font-size: 20px;
+    margin: 0 0 6px;
+}
+
+.password-help {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0 0 20px;
+}
+
+.student-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    color: #166534;
+    font-size: 14px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+}
+
+.password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.password-form label {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.password-form input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #0f172a;
+    font-size: 14px;
+    padding: 11px 12px;
+}
+
+.password-form input:focus {
+    border-color: #2563eb;
+    outline: 2px solid #bfdbfe;
+}
+
+.password-form button {
+    background: #2563eb;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 14px;
+    padding: 11px 16px;
+}
+
+.password-form button:hover {
+    background: #1d4ed8;
+}
+
 .profile-header {
     display: flex;
     align-items: center;
