@@ -38,6 +38,7 @@ function StudentFormModal({
         password: ""
     });
 
+    const [formErrors, setFormErrors] = useState({});
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [profileImage, setProfileImage] = useState(null);
@@ -74,6 +75,7 @@ function StudentFormModal({
             setImagePreview("");
         }
 
+        setFormErrors({});
         setFormError("");
         setImageError("");
         setProfileImage(null);
@@ -132,6 +134,8 @@ function StudentFormModal({
     };
 
     const handleClose = () => {
+        if (formLoading) return;
+
         if (formLoading) return;
 
         setFormError("");
@@ -447,8 +451,23 @@ function StudentFormModal({
                     </div>
                 </form>
             </div>
+                        <button
+                            type="submit"
+                            className="save-button"
+                            disabled={formLoading}
+                        >
+                            {formLoading
+                                ? "Saving..."
+                                : editingStudent
+                                    ? "Update Student"
+                                    : "Create Student"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
 
 export default StudentFormModal;
+

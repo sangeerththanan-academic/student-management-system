@@ -69,11 +69,13 @@ const addStudent = async (req, res) => {
         transactionStarted = true;
 
         // Check duplicate registration number
+        // Check duplicate registration number
         const [existingUser] = await connection.execute(
             `SELECT user_id
              FROM users
              WHERE username = ?
              LIMIT 1`,
+            [registrationNo.trim()]
             [registrationNo.trim()]
         );
 
@@ -86,6 +88,7 @@ const addStudent = async (req, res) => {
             return res.status(409).json({
                 success: false,
                 message: "Registration number is already registered."
+                message: "Registration number is already registered."
             });
         }
 
@@ -95,6 +98,7 @@ const addStudent = async (req, res) => {
              FROM students
              WHERE email = ?
              LIMIT 1`,
+            [email.trim()]
             [email.trim()]
         );
 
@@ -107,9 +111,11 @@ const addStudent = async (req, res) => {
             return res.status(409).json({
                 success: false,
                 message: "Email address is already registered."
+                message: "Email address is already registered."
             });
         }
 
+        // Hash password
         // Hash password
         const passwordHash = await bcrypt.hash(password, 10);
 
@@ -126,6 +132,11 @@ const addStudent = async (req, res) => {
         const studentId = await createStudent(
             connection,
             userId,
+            registrationNo.trim(),
+            firstName.trim(),
+            lastName.trim(),
+            email.trim(),
+            phoneNumber.trim()
             registrationNo.trim(),
             firstName.trim(),
             lastName.trim(),
@@ -151,6 +162,7 @@ const addStudent = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Student account and profile created successfully.",
+            message: "Student account and profile created successfully.",
             student: {
                 studentId,
                 userId,
@@ -163,7 +175,6 @@ const addStudent = async (req, res) => {
                 role: "STUDENT"
             }
         });
-
     } catch (error) {
         if (connection && transactionStarted) {
             try {
@@ -177,18 +188,29 @@ const addStudent = async (req, res) => {
 
         console.error("Create student error:", error);
 
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Registration number or email is already registered."
+            });
+        }
+
         return res.status(500).json({
             success: false,
             message: "Failed to create student."
+            message: "Failed to create student."
         });
-
     } finally {
         if (connection) connection.release();
     }
 };
 
-
+// =====================================================
 // GET ALL STUDENTS
+// GET /api/students/
+// =====================================================
+
 const getStudents = async (req, res) => {
     try {
         const students = await getAllStudents();
@@ -198,18 +220,18 @@ const getStudents = async (req, res) => {
             count: students.length,
             students
         });
-
     } catch (error) {
         console.error("Get students error:", error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to retrieve students."
+            message: "Failed to retrieve students."
         });
     }
 };
 
-
+// =====================================================
 // GET STUDENT BY ID
 const getStudent = async (req, res) => {
     try {
@@ -219,6 +241,7 @@ const getStudent = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Student not found."
+                message: "Student not found."
             });
         }
 
@@ -226,18 +249,18 @@ const getStudent = async (req, res) => {
             success: true,
             student
         });
-
     } catch (error) {
         console.error("Get student error:", error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to retrieve student."
+            message: "Failed to retrieve student."
         });
     }
 };
 
-
+// =====================================================
 // UPDATE STUDENT
 const editStudent = async (req, res) => {
     try {
@@ -270,6 +293,7 @@ const editStudent = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Student not found."
+                message: "Student not found."
             });
         }
 
@@ -280,25 +304,31 @@ const editStudent = async (req, res) => {
             lastName.trim(),
             email.trim(),
             phoneNumber.trim()
+            registrationNo.trim(),
+            firstName.trim(),
+            lastName.trim(),
+            email.trim(),
+            phoneNumber.trim()
         );
 
         return res.status(200).json({
             success: true,
             message: "Student updated successfully.",
+            message: "Student updated successfully.",
             affectedRows: result.affectedRows
         });
-
     } catch (error) {
         console.error("Update student error:", error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to update student."
+            message: "Failed to update student."
         });
     }
 };
 
-
+// =====================================================
 // DELETE STUDENT
 const removeStudent = async (req, res) => {
     try {
@@ -309,6 +339,7 @@ const removeStudent = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 success: false,
+                message: "Student not found."
                 message: "Student not found."
             });
         }
@@ -334,28 +365,43 @@ const removeStudent = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Student deleted successfully.",
+            message: "Student deleted successfully.",
             affectedRows: result.affectedRows
         });
-
     } catch (error) {
         console.error("Delete student error:", error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to delete student."
+            message: "Failed to delete student."
         });
     }
 };
 
-
+// =====================================================
 // GET CURRENT STUDENT'S OWN PROFILE
+// GET /api/students/me
+// =====================================================
+
 const getMyProfile = async (req, res) => {
     try {
-        const student = await getStudentByUserId(req.user.userId);
+        // Assumes authenticate middleware sets req.user.userId
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Authenticated user ID is missing."
+            });
+        }
+
+        const student = await getStudentByUserId(userId);
 
         if (!student) {
             return res.status(404).json({
                 success: false,
+                message: "Student profile not found."
                 message: "Student profile not found."
             });
         }
@@ -364,17 +410,20 @@ const getMyProfile = async (req, res) => {
             success: true,
             student
         });
-
     } catch (error) {
         console.error("Get my profile error:", error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to retrieve profile."
+            message: "Failed to retrieve profile."
         });
     }
 };
 
+// =====================================================
+// EXPORT CONTROLLERS
+// =====================================================
 
 module.exports = {
     addStudent,
