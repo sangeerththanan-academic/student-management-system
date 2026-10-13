@@ -269,3 +269,124 @@
     align-items: center;
     justify-content: center;
 }
+
+/* CR-020: Change Student Password */
+
+.change-password-card {
+    max-width: 650px;
+    margin: 28px 0;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.change-password-heading h2 {
+    margin: 0 0 8px;
+    color: #1e293b;
+    font-size: 22px;
+}
+
+.change-password-heading p {
+    margin: 0 0 22px;
+    color: #64748b;
+}
+
+.change-password-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.change-password-field label {
+    color: #334155;
+    font-weight: 600;
+}
+
+.change-password-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+.change-password-field input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.change-password-field small {
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.change-password-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.change-password-submit,
+.change-password-clear {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 7px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-password-submit {
+    color: #ffffff;
+    background: #2563eb;
+}
+
+.change-password-clear {
+    color: #334155;
+    background: #e2e8f0;
+}
+
+.change-password-submit:disabled,
+.change-password-clear:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.password-notification {
+    padding: 12px 14px;
+    margin: 16px 0;
+    border-radius: 7px;
+    line-height: 1.5;
+}
+
+.password-notification.success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+
+.password-notification.error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+@media (max-width: 600px) {
+    .change-password-card {
+        padding: 18px;
+    }
+
+    .change-password-actions {
+        flex-direction: column;
+    }
+
+    .change-password-submit,
+    .change-password-clear {
+        width: 100%;
+    }
+}

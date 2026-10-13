@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,18 +8,21 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import "../styles/studentDashboard.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [imageFailed, setImageFailed] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -56,14 +60,20 @@ function StudentDashboardPage() {
         loadProfile();
     }, [navigate]);
 
+    useEffect(() => {
+        setImageFailed(false);
+    }, [student?.profile_photo]);
+
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
     };
 
     const getInitials = () => {
-        const firstInitial = student?.first_name?.trim()?.charAt(0) || "";
-        const lastInitial = student?.last_name?.trim()?.charAt(0) || "";
+        const firstInitial =
+            student?.first_name?.trim()?.charAt(0) || "";
+        const lastInitial =
+            student?.last_name?.trim()?.charAt(0) || "";
 
         return `${firstInitial}${lastInitial}`.toUpperCase() || "S";
     };
@@ -80,23 +90,20 @@ function StudentDashboardPage() {
             return student.profile_photo;
         }
 
-        return `${API_BASE_URL}${student.profile_photo.startsWith("/") ? "" : "/"}${student.profile_photo}`;
+        return `${API_BASE_URL}${
+            student.profile_photo.startsWith("/") ? "" : "/"
+        }${student.profile_photo}`;
     };
-
-    const [imageFailed, setImageFailed] = useState(false);
-
-    useEffect(() => {
-        setImageFailed(false);
-    }, [student?.profile_photo]);
 
     return (
         <div className="student-dashboard-page">
-
             {/* Header */}
             <header className="student-dashboard-header">
                 <div>
                     <h1>Student Portal</h1>
-                    <p>Welcome, {user?.username || "Student"}</p>
+                    <p>
+                        Welcome, {user?.username || "Student"}
+                    </p>
                 </div>
 
                 <div className="student-header-actions">
@@ -114,7 +121,6 @@ function StudentDashboardPage() {
 
             {/* Main Content */}
             <main className="student-dashboard-main">
-
                 <h2 className="section-title">My Profile</h2>
 
                 {error && (
@@ -129,17 +135,23 @@ function StudentDashboardPage() {
                     </div>
                 ) : student ? (
                     <div className="profile-card">
-
                         {/* Profile Header */}
                         <div className="profile-header">
-
                             <div className="profile-avatar">
-                                {getProfileImageUrl() && !imageFailed ? (
+                                {getProfileImageUrl() &&
+                                !imageFailed ? (
                                     <img
                                         src={getProfileImageUrl()}
-                                        alt={`${student.first_name || ""} ${student.last_name || ""}`.trim() || "Student profile"}
+                                        alt={
+                                            `${student.first_name || ""} ${
+                                                student.last_name || ""
+                                            }`.trim() ||
+                                            "Student profile"
+                                        }
                                         className="student-profile-image"
-                                        onError={() => setImageFailed(true)}
+                                        onError={() =>
+                                            setImageFailed(true)
+                                        }
                                     />
                                 ) : (
                                     <span className="student-profile-initials">
@@ -150,22 +162,22 @@ function StudentDashboardPage() {
 
                             <div className="profile-name">
                                 <h3>
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </h3>
                                 <p>{student.registration_no}</p>
                             </div>
-
                         </div>
 
                         {/* Profile Details */}
                         <div className="profile-details">
-
                             <div className="detail-row">
                                 <span className="detail-label">
                                     Registration No
                                 </span>
                                 <span className="detail-value">
-                                    {student.registration_no || "Not available"}
+                                    {student.registration_no ||
+                                        "Not available"}
                                 </span>
                             </div>
 
@@ -174,7 +186,8 @@ function StudentDashboardPage() {
                                     Full Name
                                 </span>
                                 <span className="detail-value">
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </span>
                             </div>
 
@@ -192,7 +205,8 @@ function StudentDashboardPage() {
                                     Phone
                                 </span>
                                 <span className="detail-value">
-                                    {student.phone_number || "Not available"}
+                                    {student.phone_number ||
+                                        "Not available"}
                                 </span>
                             </div>
 
@@ -203,14 +217,12 @@ function StudentDashboardPage() {
                                 <span className="detail-value">
                                     {student.created_at
                                         ? new Date(
-                                            student.created_at
-                                        ).toLocaleDateString()
+                                              student.created_at
+                                          ).toLocaleDateString()
                                         : "Not available"}
                                 </span>
                             </div>
-
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -220,8 +232,11 @@ function StudentDashboardPage() {
                     )
                 )}
 
+                {/* CR-020: Change Password */}
+                {!loading && student && (
+                    <ChangeStudentPassword />
+                )}
             </main>
-
         </div>
     );
 }

@@ -84,7 +84,7 @@ const getStudentById = async (studentId) => {
     return rows[0];
 };
 
-// UPDATE STUDENT
+// UPDATE STUDENT PROFILE
 const updateStudent = async (
     studentId,
     registrationNo,
@@ -95,13 +95,13 @@ const updateStudent = async (
 ) => {
     const [result] = await pool.execute(
         `UPDATE students
-        SET
+         SET
             registration_no = ?,
             first_name = ?,
             last_name = ?,
             email = ?,
             phone_number = ?
-        WHERE student_id = ?`,
+         WHERE student_id = ?`,
         [
             registrationNo,
             firstName,
@@ -119,7 +119,7 @@ const updateStudent = async (
 const deleteStudent = async (studentId) => {
     const [result] = await pool.execute(
         `DELETE FROM students
-        WHERE student_id = ?`,
+         WHERE student_id = ?`,
         [studentId]
     );
 
@@ -141,14 +141,39 @@ const getStudentByUserId = async (userId) => {
             s.created_at,
             s.updated_at,
             u.last_login
-        FROM students s
-        INNER JOIN users u ON s.user_id = u.user_id
-        WHERE s.user_id = ?
-        LIMIT 1`,
+         FROM students s
+         INNER JOIN users u ON s.user_id = u.user_id
+         WHERE s.user_id = ?
+         LIMIT 1`,
         [userId]
     );
 
     return rows[0];
+};
+
+// CR-020: GET STORED PASSWORD HASH FOR AUTHENTICATED USER
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+         FROM users
+         WHERE user_id = ?
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0] || null;
+};
+
+// CR-020: UPDATE PASSWORD HASH FOR AUTHENTICATED USER
+const updatePasswordHashByUserId = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?`,
+        [passwordHash, userId]
+    );
+
+    return result;
 };
 
 module.exports = {
@@ -157,5 +182,7 @@ module.exports = {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHashByUserId
 };

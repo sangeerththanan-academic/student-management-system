@@ -8,7 +8,9 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHashByUserId
 } = require("../models/studentModel");
 
 // ============================================================
@@ -204,7 +206,6 @@ const addStudent = async (req, res) => {
         const cleanEmail = email.trim();
         const cleanPhoneNumber = phoneNumber.trim();
 
-        // The upload middleware provides req.file when an image is selected.
         const profilePhoto = req.file
             ? `/uploads/${req.file.filename}`
             : null;
@@ -214,7 +215,6 @@ const addStudent = async (req, res) => {
         await connection.beginTransaction();
         transactionStarted = true;
 
-        // Check duplicate registration number.
         const [existingUser] = await connection.execute(
             `SELECT user_id
              FROM users
@@ -233,7 +233,6 @@ const addStudent = async (req, res) => {
             });
         }
 
-        // Check duplicate email.
         const [existingStudent] = await connection.execute(
             `SELECT student_id
              FROM students
@@ -254,17 +253,14 @@ const addStudent = async (req, res) => {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Create user account.
         const [userResult] = await connection.execute(
-            `INSERT INTO users
-                (username, password_hash, role)
+            `INSERT INTO users (username, password_hash, role)
              VALUES (?, ?, 'STUDENT')`,
             [cleanRegistrationNo, passwordHash]
         );
 
         const userId = userResult.insertId;
 
-        // Create student profile with the optional image path.
         const studentId = await createStudent(
             connection,
             userId,
@@ -346,7 +342,6 @@ const getStudents = async (req, res) => {
 const getStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
-
         const student = await getStudentById(studentId);
 
         if (!student) {
@@ -494,7 +489,6 @@ const editStudent = async (req, res) => {
 const removeStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
-
         const student = await getStudentById(studentId);
 
         if (!student) {
@@ -551,6 +545,115 @@ const getMyProfile = async (req, res) => {
 };
 
 // ============================================================
+// CR-020: CHANGE CURRENT STUDENT'S PASSWORD
+// ============================================================
+
+const changeMyPassword = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        const {
+            currentPassword,
+            password,
+            confirmPassword
+        } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required."
+            });
+        }
+
+        if (
+            typeof currentPassword !== "string" ||
+            typeof password !== "string" ||
+            typeof confirmPassword !== "string" ||
+            !currentPassword ||
+            !password ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Please complete all password fields."
+            });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Password and re-entered password do not match."
+            });
+        }
+
+        const passwordError = validatePassword(password);
+
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
+        const account = await getPasswordHashByUserId(userId);
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found."
+            });
+        }
+
+        const currentPasswordMatches = await bcrypt.compare(
+            currentPassword,
+            account.password_hash
+        );
+
+        if (!currentPasswordMatches) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        if (
+            await bcrypt.compare(password, account.password_hash)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must differ from the current password."
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const result = await updatePasswordHashByUserId(
+            userId,
+            passwordHash
+        );
+
+        if (result.affectedRows !== 1) {
+            return res.status(500).json({
+                success: false,
+                message: "Password could not be updated."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        console.error("Change password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to change password. Please try again."
+        });
+    }
+};
+
+// ============================================================
 // EXPORT CONTROLLERS
 // ============================================================
 
@@ -560,5 +663,6 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 };
