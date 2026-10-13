@@ -1,3 +1,46 @@
+
+/* =========================================================
+   Global Theme Colors
+   ========================================================= */
+
+:root,
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --page-bg: #f8fafc;
+    --surface-bg: #ffffff;
+    --text-color: #0f172a;
+    --muted-text: #475569;
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --button-bg: #2563eb;
+    --button-text: #ffffff;
+    --hover-bg: #f1f5f9;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+
+    --footer-bg: #0f172a;
+    --footer-text: #cbd5e1;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --page-bg: #111827;
+    --surface-bg: #1f2937;
+    --text-color: #f9fafb;
+    --muted-text: #cbd5e1;
+    --border-color: #374151;
+    --input-bg: #111827;
+    --button-bg: #3b82f6;
+    --button-text: #ffffff;
+    --hover-bg: #374151;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+
+    --footer-bg: #030712;
+    --footer-text: #cbd5e1;
+}
+
+
 /* =========================================================
    Global
    ========================================================= */
@@ -18,10 +61,14 @@ body {
         Helvetica,
         sans-serif;
 
-    background: #f8fafc;
-    color: #0f172a;
+    background: var(--page-bg);
+    color: var(--text-color);
 
     line-height: 1.5;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 button,
@@ -54,14 +101,18 @@ img {
    ========================================================= */
 
 .navbar {
-    background: #ffffff;
+    background: var(--surface-bg);
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
 
     position: sticky;
     top: 0;
 
     z-index: 100;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .navbar-container {
@@ -80,14 +131,14 @@ img {
 }
 
 .logo {
-    color: #0f172a;
+    color: var(--text-color);
 
     font-size: 18px;
     font-weight: 800;
 }
 
 .logo:hover {
-    color: #2563eb;
+    color: var(--button-bg);
 }
 
 .nav-links {
@@ -98,7 +149,7 @@ img {
 }
 
 .nav-link {
-    color: #475569;
+    color: var(--muted-text);
 
     font-size: 14px;
     font-weight: 600;
@@ -107,12 +158,12 @@ img {
 }
 
 .nav-link:hover {
-    color: #2563eb;
+    color: var(--button-bg);
 }
 
 .login-button {
-    background: #2563eb;
-    color: #ffffff;
+    background: var(--button-bg);
+    color: var(--button-text);
 
     padding: 10px 18px;
 
@@ -144,9 +195,9 @@ img {
 
     text-align: center;
 
-    background: #0f172a;
+    background: var(--footer-bg);
 
-    color: #cbd5e1;
+    color: var(--footer-text);
 }
 
 .footer p {
@@ -165,6 +216,9 @@ img {
 
     display: flex;
     flex-direction: column;
+
+    background: var(--page-bg);
+    color: var(--text-color);
 }
 
 .container {
@@ -182,3 +236,54 @@ button,
         color 0.2s ease,
         transform 0.2s ease;
 }
+
+
+/* =========================================================
+   Global Form Elements
+   ========================================================= */
+
+input,
+textarea,
+select {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+
+    border-color: var(--border-color);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--muted-text);
+}
+
+
+/* =========================================================
+   Theme Toggle
+   ========================================================= */
+
+.theme-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+
+    padding: 10px 16px;
+}
+
+.theme-toggle {
+    padding: 9px 14px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+
+    background: var(--surface-bg);
+    color: var(--text-color);
+
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.theme-toggle:hover {
+    background: var(--hover-bg);
+}
+

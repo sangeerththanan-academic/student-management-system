@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,6 +7,7 @@ import "../styles/login.css";
 
 import LoginInfo from "../components/LoginInfo";
 import LoginFormSection from "../components/LoginFormSection";
+import ThemeToggle from "../components/ThemeToggle";
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -47,6 +49,11 @@ function LoginPage() {
 
     return (
         <div className="login-page">
+
+            {/* Dark Mode / Light Mode Toggle */}
+            <div className="theme-toggle-container">
+                <ThemeToggle />
+            </div>
 
             <div className="login-container">
 

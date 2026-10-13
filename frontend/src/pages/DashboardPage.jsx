@@ -10,18 +10,16 @@ import {
 
 import apiRequest from "../services/api";
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
 
 const DashboardPage = () => {
     const navigate = useNavigate();
 
     const [user, setUser] = useState(null);
     const [students, setStudents] = useState([]);
-
     const [searchTerm, setSearchTerm] = useState("");
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
@@ -183,9 +181,7 @@ const DashboardPage = () => {
 
             const response = await apiRequest(
                 `/api/students/${studentId}`,
-                {
-                    method: "DELETE"
-                }
+                { method: "DELETE" }
             );
 
             if (response?.success) {
@@ -349,7 +345,6 @@ const DashboardPage = () => {
                 </div>
 
                 {/* Error */}
-
                 {error && (
                     <div className="dashboard-error">
                         {error}
@@ -594,7 +589,6 @@ const DashboardPage = () => {
                             </table>
 
                         </div>
-
                     )}
 
                 </div>
@@ -620,3 +614,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
