@@ -316,3 +316,208 @@
         overflow-wrap: anywhere;
     }
 }
+
+/* =========================================================
+   Change Student Password Card (CR-020)
+   ========================================================= */
+
+.change-password-card {
+    background: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-top: 30px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.change-password-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+}
+
+.change-password-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.change-password-header h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: var(--text-color);
+}
+
+.change-password-header p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted-text);
+}
+
+.change-password-form {
+    padding: 28px;
+}
+
+.change-password-field {
+    margin-bottom: 22px;
+}
+
+.change-password-field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.field-required {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.change-password-field .password-input-wrapper input {
+    width: 100%;
+    padding: 11px 48px 11px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.change-password-field .password-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.change-password-field .password-input-wrapper input[aria-invalid="true"] {
+    border-color: #ef4444;
+}
+
+.change-password-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.change-password-submit-btn {
+    background: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.change-password-submit-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.change-password-submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.change-password-submit-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.change-password-clear-btn {
+    background: transparent;
+    color: var(--muted-text);
+    border: 1px solid var(--border-color);
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.change-password-clear-btn:hover:not(:disabled) {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.change-password-clear-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Notifications (FR-004) */
+.change-password-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 20px 28px 0;
+    font-size: 14px;
+    line-height: 1.4;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+@media (max-width: 600px) {
+    .change-password-header {
+        padding: 18px 20px;
+    }
+
+    .change-password-form {
+        padding: 20px;
+    }
+
+    .change-password-alert {
+        margin: 16px 20px 0;
+    }
+
+    .change-password-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .change-password-submit-btn,
+    .change-password-clear-btn {
+        width: 100%;
+        text-align: center;
+    }
+}

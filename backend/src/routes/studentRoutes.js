@@ -6,7 +6,8 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 } = require("../controllers/studentController");
 
 const {
@@ -74,6 +75,39 @@ router.delete(
     authenticate,
     authorizeRoles("ADMIN"),
     removeStudent
+);
+
+
+// Change student password (CR-020)
+// Support /me, /change-password, /:id, /:id/password, and root PATCH
+router.patch(
+    "/me",
+    authenticate,
+    changeStudentPassword
+);
+
+router.patch(
+    "/change-password",
+    authenticate,
+    changeStudentPassword
+);
+
+router.patch(
+    "/:id/password",
+    authenticate,
+    changeStudentPassword
+);
+
+router.patch(
+    "/:id",
+    authenticate,
+    changeStudentPassword
+);
+
+router.patch(
+    "/",
+    authenticate,
+    changeStudentPassword
 );
 
 

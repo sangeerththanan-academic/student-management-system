@@ -8,8 +8,10 @@ const {
     getAllStudents,
     getStudentById,
     getStudentByUserId,
+    getStudentWithPasswordById,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateStudentPassword
 } = require("../models/studentModel");
 
 
@@ -713,6 +715,223 @@ const getMyProfile = async (req, res) => {
 
 
 // ============================================================
+// CHANGE STUDENT PASSWORD (CR-020)
+// ============================================================
+
+const changeStudentPassword = async (req, res) => {
+
+    try {
+
+        let studentId = req.params.id;
+
+        const {
+            currentPassword,
+            oldPassword,
+            password,
+            newPassword,
+            confirmPassword,
+            reEnterPassword
+        } = req.body;
+
+        const currentPwd = currentPassword || oldPassword;
+        const targetPassword = password || newPassword;
+        const targetConfirmPassword = confirmPassword || reEnterPassword;
+
+
+        // ----------------------------------------------------
+        // 1. Resolve student ID if /me or /change-password is used
+        // ----------------------------------------------------
+
+        if (!studentId || studentId === "me" || studentId === "change-password") {
+            const currentProfile = await getStudentByUserId(req.user.userId);
+            if (!currentProfile) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Student profile not found"
+                });
+            }
+            studentId = currentProfile.student_id;
+        }
+
+        const student = await getStudentWithPasswordById(studentId);
+
+        if (!student) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Student not found"
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // 2. Authentication & Authorization check:
+        // Student can change ONLY their own password
+        // ----------------------------------------------------
+
+        if (req.user.role === "STUDENT") {
+
+            if (student.user_id !== req.user.userId) {
+
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. You can change only your own password."
+                });
+            }
+
+        } else if (req.user.role !== "ADMIN") {
+
+            return res.status(403).json({
+                success: false,
+                message: "Access denied."
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // 3. Validation: Password & Re-enter Password required
+        // ----------------------------------------------------
+
+        if (!targetPassword) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password is required."
+            });
+        }
+
+        if (!targetConfirmPassword) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Re-enter password is required."
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // FR-001: Password value must strictly match re-enter password
+        // ----------------------------------------------------
+
+        if (targetPassword !== targetConfirmPassword) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password and re-enter password must match."
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // Password complexity validation
+        // ----------------------------------------------------
+
+        if (targetPassword.length < 8) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password must contain at least 8 characters."
+            });
+        }
+
+        if (!/[A-Z]/.test(targetPassword)) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password must contain at least one uppercase letter."
+            });
+        }
+
+        if (!/[a-z]/.test(targetPassword)) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password must contain at least one lowercase letter."
+            });
+        }
+
+        if (!/[0-9]/.test(targetPassword)) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password must contain at least one number."
+            });
+        }
+
+        if (!/[^A-Za-z0-9]/.test(targetPassword)) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Password must contain at least one special character."
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // 4. Current password verification via bcrypt
+        // Strictly required: will not change password without correct current password
+        // ----------------------------------------------------
+
+        if (!currentPwd) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Current password is required."
+            });
+        }
+
+        const isMatch = await bcrypt.compare(
+            currentPwd,
+            student.password_hash
+        );
+
+        if (!isMatch) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // 5. FR-002, SEC-002: Hash the new password using bcrypt
+        // ----------------------------------------------------
+
+        const passwordHash = await bcrypt.hash(targetPassword, 10);
+
+
+        // ----------------------------------------------------
+        // 6. Update database storage (users.password_hash)
+        // ----------------------------------------------------
+
+        await updateStudentPassword(student.user_id, passwordHash);
+
+
+        // ----------------------------------------------------
+        // 7. FR-004: Display notification message response
+        // Never return or log passwords or password hashes
+        // ----------------------------------------------------
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+
+
+    } catch (error) {
+
+        console.error("Change student password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password"
+        });
+    }
+};
+
+
+// ============================================================
 // EXPORT
 // ============================================================
 
@@ -722,5 +941,7 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 };
+

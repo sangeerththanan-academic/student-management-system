@@ -192,11 +192,52 @@ const getStudentByUserId = async (userId) => {
 };
 
 
+// GET STUDENT WITH PASSWORD HASH BY ID
+const getStudentWithPasswordById = async (studentId) => {
+
+    const [rows] = await pool.execute(
+        `SELECT
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            u.password_hash
+        FROM students s
+        INNER JOIN users u ON s.user_id = u.user_id
+        WHERE s.student_id = ?
+        LIMIT 1`,
+        [studentId]
+    );
+
+    return rows[0];
+};
+
+
+// UPDATE STUDENT PASSWORD IN USERS TABLE
+const updateStudentPassword = async (userId, passwordHash) => {
+
+    const [result] = await pool.execute(
+        `UPDATE users
+        SET password_hash = ?
+        WHERE user_id = ?`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
+    getStudentWithPasswordById,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateStudentPassword
 };
+
