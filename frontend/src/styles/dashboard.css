@@ -317,6 +317,14 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.field-error {
+    color: #b91c1c;
+
+    font-size: 12px;
+
+    line-height: 1.4;
+}
+
 .form-actions {
     grid-column: 1 / -1;
 

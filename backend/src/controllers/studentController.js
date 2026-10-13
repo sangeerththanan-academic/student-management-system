@@ -11,6 +11,80 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
+const REGISTRATION_NO_REGEX = /^[A-Za-z0-9]{4,20}$/;
+const NAME_REGEX = /^[A-Za-z]{3,}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\d{10}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+// SHARED STUDENT VALIDATION (CR-004)
+const validateStudentInput = (data, { requirePassword = false } = {}) => {
+    const errors = {};
+
+    const registrationNo = (data.registrationNo || "").trim();
+    const firstName = (data.firstName || "").trim();
+    const lastName = (data.lastName || "").trim();
+    const email = (data.email || "").trim();
+    const phoneNumber = (data.phoneNumber || "").trim();
+    const password = data.password || "";
+
+    if (!registrationNo) {
+        errors.registrationNo = "Registration number is required.";
+    } else if (!REGISTRATION_NO_REGEX.test(registrationNo)) {
+        errors.registrationNo =
+            "Registration number must be 4-20 letters/numbers (e.g. REG001).";
+    }
+
+    if (!firstName) {
+        errors.firstName = "First name is required.";
+    } else if (!NAME_REGEX.test(firstName)) {
+        errors.firstName =
+            "First name must be at least 3 letters (letters only).";
+    }
+
+    if (!lastName) {
+        errors.lastName = "Last name is required.";
+    } else if (!NAME_REGEX.test(lastName)) {
+        errors.lastName =
+            "Last name must be at least 3 letters (letters only).";
+    }
+
+    if (!email) {
+        errors.email = "Email is required.";
+    } else if (!EMAIL_REGEX.test(email)) {
+        errors.email = "Enter a valid email address.";
+    }
+
+    if (!phoneNumber) {
+        errors.phoneNumber = "Phone number is required.";
+    } else if (!PHONE_REGEX.test(phoneNumber)) {
+        errors.phoneNumber = "Phone number must be exactly 10 digits.";
+    }
+
+    if (requirePassword) {
+        if (!password) {
+            errors.password = "Password is required for a new student.";
+        } else if (!PASSWORD_REGEX.test(password)) {
+            errors.password =
+                "Password must be at least 8 characters and include uppercase, lowercase, number and special character.";
+        }
+    }
+
+    return errors;
+};
+
+const firstValidationError = (errors) => {
+    return (
+        errors.registrationNo ||
+        errors.firstName ||
+        errors.lastName ||
+        errors.email ||
+        errors.phoneNumber ||
+        errors.password ||
+        null
+    );
+};
+
 
 // CREATE STUDENT
 const addStudent = async (req, res) => {
@@ -41,6 +115,28 @@ const addStudent = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "All student fields and password are required"
+            });
+        }
+
+        // Validate field formats (CR-004)
+        const validationErrors = validateStudentInput(
+            {
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                password
+            },
+            { requirePassword: true }
+        );
+
+        const validationMessage = firstValidationError(validationErrors);
+
+        if (validationMessage) {
+            return res.status(400).json({
+                success: false,
+                message: validationMessage
             });
         }
 
@@ -260,6 +356,29 @@ const editStudent = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "All student fields are required"
+            });
+        }
+
+        // Validate field formats (CR-004)
+        const editValidationErrors = validateStudentInput(
+            {
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber
+            },
+            { requirePassword: false }
+        );
+
+        const editValidationMessage = firstValidationError(
+            editValidationErrors
+        );
+
+        if (editValidationMessage) {
+            return res.status(400).json({
+                success: false,
+                message: editValidationMessage
             });
         }
 
