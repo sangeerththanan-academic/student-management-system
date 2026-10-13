@@ -1,3 +1,4 @@
+
 -- ============================================================
 -- Student Management System
 -- Database Schema - Version 1.0
@@ -5,18 +6,12 @@
 -- Database: MySQL
 -- ============================================================
 
--- ============================================================
--- DATABASE
--- ============================================================
-
 CREATE DATABASE IF NOT EXISTS student_management;
 
 USE student_management;
 
-
 -- ============================================================
 -- 1. USERS TABLE
--- Stores authentication and role information
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS users (
@@ -28,16 +23,17 @@ CREATE TABLE IF NOT EXISTS users (
 
     role ENUM('ADMIN', 'STUDENT') NOT NULL,
 
+    -- CR033: Last successful login date and time
+    last_login DATETIME NULL DEFAULT NULL,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
 );
 
-
 -- ============================================================
 -- 2. STUDENTS TABLE
--- Stores basic student information
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS students (
@@ -66,7 +62,6 @@ CREATE TABLE IF NOT EXISTS students (
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
-
 
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE

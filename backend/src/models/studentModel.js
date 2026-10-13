@@ -1,3 +1,4 @@
+
 const pool = require("../config/db");
 
 // CREATE STUDENT
@@ -10,7 +11,6 @@ const createStudent = async (
     email,
     phoneNumber
 ) => {
-
     const [result] = await connection.execute(
         `INSERT INTO students
         (
@@ -35,52 +35,53 @@ const createStudent = async (
     return result.insertId;
 };
 
-
 // GET ALL STUDENTS
 const getAllStudents = async () => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON u.user_id = s.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;
 };
 
-
 // GET STUDENT BY ID
 const getStudentById = async (studentId) => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE student_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON u.user_id = s.user_id
+        WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
     );
 
     return rows[0];
 };
-
 
 // UPDATE STUDENT
 const updateStudent = async (
@@ -91,7 +92,6 @@ const updateStudent = async (
     email,
     phoneNumber
 ) => {
-
     const [result] = await pool.execute(
         `UPDATE students
         SET
@@ -114,11 +114,9 @@ const updateStudent = async (
     return result;
 };
 
-
 // DELETE STUDENT + LINKED USER ACCOUNT
-// Deletes both rows so registration_no / username can be reused.
+// Preserve the existing transaction and foreign-key behaviour.
 const deleteStudent = async (studentId) => {
-
     const connection = await pool.getConnection();
 
     try {
@@ -139,15 +137,15 @@ const deleteStudent = async (studentId) => {
 
         const userId = rows[0].user_id;
 
-        // Must delete child first (FK is ON DELETE RESTRICT)
+        // Delete student first because the foreign key
+        // uses ON DELETE RESTRICT.
         const [studentResult] = await connection.execute(
             `DELETE FROM students
             WHERE student_id = ?`,
             [studentId]
         );
 
-        // Delete orphan login, otherwise users.username UNIQUE
-        // blocks reusing the same registration number.
+        // Delete the linked user account.
         await connection.execute(
             `DELETE FROM users
             WHERE user_id = ?`,
@@ -157,38 +155,40 @@ const deleteStudent = async (studentId) => {
         await connection.commit();
 
         return studentResult;
+
     } catch (error) {
         await connection.rollback();
         throw error;
+
     } finally {
         connection.release();
     }
 };
 
-
 // GET STUDENT BY USER ID
 const getStudentByUserId = async (userId) => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE user_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON u.user_id = s.user_id
+        WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
     );
 
     return rows[0];
 };
-
 
 module.exports = {
     createStudent,
