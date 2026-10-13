@@ -10,6 +10,7 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/dashboard.css";
 
@@ -19,6 +20,21 @@ const normalizeSearchValue = (value) => {
         .toLowerCase()
         .trim()
         .replace(/\s+/g, " ");
+};
+
+
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) {
+        return "Never logged in";
+    }
+
+    const date = new Date(lastLogin);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Invalid date";
+    }
+
+    return date.toLocaleString();
 };
 
 function DashboardPage() {
@@ -270,6 +286,7 @@ function DashboardPage() {
 
 
                 <div className="dashboard-header-actions">
+                    <ThemeToggle/>
 
                     <div className="admin-info">
                         <strong>
@@ -438,8 +455,13 @@ function DashboardPage() {
                                         </th>
 
                                         <th>
+                                            Last Login
+                                        </th>
+
+                                        <th>
                                             Actions
                                         </th>
+
                                     </tr>
                                 </thead>
 
@@ -468,6 +490,9 @@ function DashboardPage() {
 
                                             <td>
                                                 {student.phone_number}
+                                            </td>
+                                            <td>
+                                                {formatLastLogin(student.last_login)}
                                             </td>
 
                                             <td>

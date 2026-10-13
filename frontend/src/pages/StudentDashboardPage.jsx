@@ -10,6 +10,9 @@ import apiRequest from "../services/api";
 
 import "../styles/studentDashboard.css";
 
+import ThemeToggle from "../components/ThemeToggle";
+
+
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
@@ -68,15 +71,18 @@ function StudentDashboardPage() {
                     <p>Welcome, {user?.username}</p>
                 </div>
 
-                <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
-                    <button
-                        className="logout-button"
-                        onClick={handleLogout}
-                    >
-                        Logout
-                    </button>
-                </div>
+<div className="student-header-actions">
+    <span className="role-badge">STUDENT</span>
+
+    <ThemeToggle />
+
+    <button
+        className="logout-button"
+        onClick={handleLogout}
+    >
+        Logout
+    </button>
+</div>
             </header>
 
             {/* Main Content */}

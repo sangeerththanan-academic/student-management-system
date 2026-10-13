@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ThemeToggle from "../components/ThemeToggle";
 
 import "../styles/landing.css";
 
@@ -19,6 +20,10 @@ function LandingPage() {
         <div className="landing-page">
 
             <Navbar />
+
+             <div className="landing-theme-toggle">
+        <ThemeToggle />
+    </div>
 
 
             <main>

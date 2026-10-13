@@ -6,6 +6,8 @@ import "../styles/login.css";
 
 import LoginInfo from "../components/LoginInfo";
 import LoginFormSection from "../components/LoginFormSection";
+import ThemeToggle from "../components/ThemeToggle";
+
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -47,6 +49,9 @@ function LoginPage() {
 
     return (
         <div className="login-page">
+            <div className="login-theme-toggle">
+      <ThemeToggle />
+    </div>
 
             <div className="login-container">
 
