@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 // CREATE STUDENT
 const createStudent = async (
     connection,

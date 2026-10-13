@@ -317,6 +317,46 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* ── CR-004: Inline field validation ── */
+
+.student-form .form-group.field-error input {
+    border-color: #dc2626;
+
+    box-shadow:
+        0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.student-form .form-group.field-error input:focus {
+    border-color: #dc2626;
+}
+
+.field-error-msg {
+    color: #dc2626;
+
+    font-size: 11.5px;
+
+    font-weight: 600;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+.field-error-msg::before {
+    content: "⚠";
+
+    font-size: 11px;
+}
+
+.field-hint {
+    color: #94a3b8;
+
+    font-size: 11.5px;
+}
+
+
 .form-actions {
     grid-column: 1 / -1;
 
