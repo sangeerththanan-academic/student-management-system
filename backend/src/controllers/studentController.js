@@ -44,6 +44,58 @@ const addStudent = async (req, res) => {
             });
         }
 
+        //CR-004
+        const trimmedFirstName = firstName.trim();
+        const trimmedLastName = lastName.trim();
+        const trimmedphoneNumber = phoneNumber.trim();
+        const trimmedPassword = password.trim();
+
+        const alphabetRegex = /^[A-Za-z\s]+$/;
+        const symbolOrNumberRegex = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/;
+        const phoneRegex = /^\+?[0-9]{10,15}$/;
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+        if (trimmedFirstName.length < 3 || trimmedLastName.length < 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Require first name and last name to contain at least 3 characters"
+            });
+        }
+
+        if (symbolOrNumberRegex.test(trimmedFirstName) || symbolOrNumberRegex.test(trimmedLastName)) {
+            return res.status(400).json({
+                success: false,
+                message: "Numbers and symbols are not allowed in first name and last name"
+            });
+        }
+
+        if (!alphabetRegex.test(trimmedFirstName) || !alphabetRegex.test(trimmedLastName)) {
+            return res.status(400).json({
+                success: false,
+                message: "Alphabetic characters only allowed in first name and last name"
+            });
+        }
+
+        if (trimmedphoneNumber.length < 10 || trimmedphoneNumber.length > 10) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number to contain exactly 10 digits"
+            });
+        }
+
+        if (!phoneRegex.test(trimmedphoneNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: "Alphabetic characters and symbols are not allowed in PhoneNumber"
+            });
+        }
+
+        if (!passwordRegex.test(trimmedPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+            });
+        }
 
         // Get database connection
         connection = await pool.getConnection();
@@ -263,6 +315,49 @@ const editStudent = async (req, res) => {
             });
         }
 
+        //CR-004
+        const trimmedFirstName = firstName.trim();
+        const trimmedLastName = lastName.trim();
+        const trimmedphoneNumber = phoneNumber.trim();
+
+        const alphabetRegex = /^[A-Za-z\s]+$/;
+        const symbolOrNumberRegex = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/;
+        const phoneRegex = /^\+?[0-9]{10,15}$/;
+
+        if (trimmedFirstName.length < 3 || trimmedLastName.length < 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Require first name and last name to contain at least 3 characters"
+            });
+        }
+
+        if (symbolOrNumberRegex.test(trimmedFirstName) || symbolOrNumberRegex.test(trimmedLastName)) {
+            return res.status(400).json({
+                success: false,
+                message: "Numbers and symbols are not allowed in first name and last name"
+            });
+        }
+
+        if (!alphabetRegex.test(trimmedFirstName) || !alphabetRegex.test(trimmedLastName)) {
+            return res.status(400).json({
+                success: false,
+                message: "Alphabetic characters in first name and last name"
+            });
+        }
+
+        if (trimmedphoneNumber.length < 10 || trimmedphoneNumber.length > 10) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number to contain exactly 10 digits"
+            });
+        }
+
+        if (!phoneRegex.test(trimmedphoneNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: "Alphabetic characters and symbols are not allowed in PhoneNumber"
+            });
+        }
 
         // Check student exists
         const existingStudent = await getStudentById(studentId);

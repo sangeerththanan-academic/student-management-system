@@ -323,3 +323,45 @@
         font-size: 25px;
     }
 }
+
+/* Container must have relative positioning */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Ensure the input stretches completely and leaves padding on the right for the icon */
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+    /* Crucial: prevents long passwords from slipping under the eye icon */
+    box-sizing: border-box;
+}
+
+/* Absolute positioning aligns the button relative to the wrapper bounds */
+.password-toggle-button {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #6b7280;
+    /* Neutral gray icon color */
+    transition: color 0.2s ease;
+}
+
+.password-toggle-button:hover {
+    color: #374151;
+    /* Darker grey hover state */
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}

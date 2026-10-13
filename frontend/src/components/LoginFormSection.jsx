@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PasswordShowHide from "./PasswordShowHide";
 
 function LoginFormSection({ onSubmit, loading, error }) {
 
@@ -72,18 +73,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             Password
                         </label>
 
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                            disabled={loading}
-                            required
-                        />
+                        <PasswordShowHide password={password} setPassword={setPassword} loadingVal={loading} />
 
                     </div>
 
