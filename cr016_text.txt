@@ -1,0 +1,4578 @@
+SOFTWA
+RE CHAN
+G
+E
+IMPLE
+ME
+NT
+ATIO
+N REPORT
+CR
+-
+016: 
+Sh
+ow /
+Hi
+de
+Passw
+ord 
+Visib
+il
+ity
+Toggle
+in t
+he 
+Login M
+odu
+le
+Fie
+l
+d
+D
+et
+ai
+l
+s
+C
+han
+ge R
+eques
+t
+ I
+D
+CR
+-
+0
+16
+C
+han
+ge R
+eques
+t
+Tit
+l
+e
+Sho
+w
+ /
+ H
+i
+de
+ Pass
+w
+or
+d 
+V
+i
+si
+b
+i
+l
+i
+t
+y Toggle
+ i
+n t
+he Lo
+gi
+n Mo
+dul
+e
+St
+udent
+N
+am
+e
+MH 
+A
+nus
+h
+St
+udent
+ I
+D
+JFI
+C
+T
+2416
+I
+m
+pl
+em
+ent
+at
+i
+on St
+at
+us
+C
+om
+pl
+et
+ed
+D
+at
+e
+9 O
+ct
+o
+ber
+ 202
+6
+1. Chan
+ge 
+Request Summar
+y
+1.
+1 
+Bu
+sin
+ess Requ
+ir
+em
+ent
+Use
+rs a
+nd 
+a
+dmi
+nist
+ra
+tors pr
+e
+vious
+ly ente
+re
+d p
+a
+ssw
+ords into a ma
+ske
+d input
+ fie
+ld wit
+hout an 
+opti
+on to vi
+e
+w or
+ ve
+rif
+y e
+nter
+e
+d text. As pa
+sswo
+rd
+s ofte
+n c
+ontain c
+ompl
+e
+x 
+c
+ombi
+na
+ti
+ons of 
+number
+s, sym
+bols, 
+a
+nd c
+a
+sing, 
+use
+rs f
+r
+e
+que
+ntl
+y made
+ typogra
+phic
+a
+l er
+ror
+s 
+wi
+thout
+ re
+a
+li
+z
+ing i
+t. 
+The
+ lac
+k of v
+isi
+bil
+it
+y incr
+e
+a
+se
+d f
+a
+il
+e
+d logi
+n a
+tt
+e
+mpt
+s a
+nd re
+pe
+a
+ted e
+ntrie
+s. T
+he
+ c
+ha
+ng
+e
+ wa
+s 
+re
+quire
+d to provide
+a
+n int
+uit
+ive c
+li
+e
+nt
+-
+side pa
+sswor
+d toggl
+e
+ a
+ll
+owing use
+rs to view
+ or ma
+sk 
+c
+re
+de
+nti
+a
+ls b
+e
+for
+e
+ subm
+it
+ti
+ng.
+1.
+2 
+Existing B
+e
+haviou
+r
+B
+e
+for
+e
+ im
+pleme
+ntation:
+LoginPage.jsx
+re
+nde
+re
+d 
+LoginFormSection.jsx
+with us
+e
+rna
+me a
+nd p
+a
+sswor
+d fie
+lds.
+The
+ pa
+sswor
+d input
+ wa
+s 
+statica
+ll
+y c
+onfigur
+e
+d with
+type="password"
+.
+P
+a
+sswor
+d input
+ c
+ha
+ra
+c
+ter
+s we
+re
+ mask
+e
+d unc
+ondit
+ionally wit
+h bull
+e
+ts.
+No visi
+bil
+it
+y togg
+le butto
+n or e
+ye
+ icon 
+e
+xist
+e
+d to r
+e
+ve
+a
+l ent
+e
+re
+d text.
+Exist
+ing authe
+nti
+c
+a
+ti
+on se
+nt cr
+e
+d
+e
+nti
+a
+ls vi
+a
+PO
+ST
+/a
+pi
+/a
+ut
+h/
+lo
+gi
+n
+.
+StudentFormModal.jsx
+did not
+ prov
+ide pa
+sswor
+d visi
+bil
+it
+y 
+toggl
+e
+ func
+ti
+ona
+li
+ty i
+n 
+student a
+c
+c
+ount m
+a
+na
+g
+e
+ment.
+1.
+3 
+Requ
+este
+d 
+Ch
+ange
+A c
+li
+e
+nt
+-
+side show/hide 
+pa
+sswor
+d toggl
+e
+ wa
+s 
+re
+q
+uire
+d on the login passw
+a
+nd 
+student for
+m m
+oda
+The
+ im
+pleme
+ntation m
+ust:
+Toggle pa
+sswor
+d input
+ type dyna
+mi
+c
+a
+ll
+y be
+tw
+e
+e
+n 
+"password"
+a
+nd 
+"text"
+.
+De
+fa
+ult
+ to m
+a
+ske
+d/hi
+dde
+n st
+a
+te upon c
+omponent 
+mount
+ a
+nd pa
+ge
+ load.
+Displ
+a
+y int
+uit
+ive e
+ye
+ a
+nd
+ e
+ye
+-
+slash vis
+ua
+l i
+ndica
+to
+r ic
+ons.
+I
+n
+c
+lude a
+c
+c
+e
+ssi
+ble 
+aria
+-
+label
+a
+nd 
+aria
+-
+pr
+es
+se
+d
+a
+tt
+ribute
+s.
+Ensur
+e
+ toggl
+e
+ butt
+on use
+s 
+type="button"
+to pre
+v
+e
+nt ac
+c
+id
+e
+ntal f
+orm subm
+iss
+ion.
+Adjust
+ layout in 
+login.css
+a
+nd 
+dashboard.css
+s
+o pa
+sswor
+d text doe
+s not
+ove
+rla
+p the 
+icon.
+S
+uppor
+t keyboa
+rd a
+c
+ti
+va
+ti
+on via Spac
+e
+ a
+nd Ente
+r 
+ke
+ys.
+P
+re
+se
+rve
+e
+xist
+ing l
+ogin validation and e
+rr
+o
+r a
+ler
+t b
+a
+nne
+rs.
+P
+a
+ss ente
+re
+d c
+re
+d
+e
+nti
+a
+ls ac
+c
+ur
+a
+tely to 
+use
+.
+Ma
+int
+a
+in exist
+ing admini
+stra
+tor a
+nd st
+ude
+nt authe
+nti
+c
+a
+ti
+on a
+nd na
+vigation flows.
+2. Im
+pleme
+ntat
+ion
+2.
+1 
+Imp
+le
+me
+nta
+tion 
+Su
+mmar
+y
+The
+ C
+R
+-
+016 r
+e
+quire
+m
+e
+nts we
+re
+ im
+pleme
+nted in th
+e
+ fr
+ontend login m
+odule 
+a
+nd e
+xtende
+d to 
+the stude
+nt for
+m m
+oda
+l. A loca
+l R
+e
+a
+c
+t st
+a
+t
+e
+show
+P
+a
+sswor
+a
+s int
+roduc
+e
+d in 
+LoginF
+ormS
+e
+c
+ti
+on.jsx
+ to m
+a
+na
+ge
+ visi
+bil
+it
+y st
+a
+te. Th
+e
+ pa
+sswor
+d input
+ type 
+dyna
+mi
+c
+a
+ll
+y 
+switche
+s
+be
+twe
+e
+n "passw
+ord" a
+nd "t
+e
+xt"
+. I
+nt
+e
+ra
+c
+ti
+ve
+ S
+VG
+Eye
+a
+nd 
+Eye
+Of
+f
+rom 
+lucide
+-
+re
+a
+c
+t w
+e
+re
+ int
+e
+gr
+a
+t
+e
+d with ac
+c
+e
+ssi
+ble a
+ria
+-
+la
+be
+l and a
+ria
+-
+pre
+ss
+e
+d a
+tt
+ri
+butes.
+I
+nput s
+tyl
+ing wa
+s upda
+te
+d with a de
+dica
+ted p
+a
+ssw
+ord
+-
+input
+-
+wr
+a
+pp
+e
+r 
+a
+nd 4
+4px r
+ight
+ pa
+dding t
+o 
+e
+nsure
+ e
+nt
+e
+re
+d 
+c
+ha
+r
+a
+c
+te
+rs
+ ne
+ve
+r c
+oll
+ide w
+it
+h or h
+id
+e
+ be
+hind t
+he
+ toggl
+e
+ butt
+on. I
+n 
+a
+ddit
+ion, t
+he
+pa
+sswor
+d toggl
+e
+ fe
+a
+ture
+wa
+s e
+xtende
+d to S
+tudent
+F
+ormModa
+l.j
+sx, e
+na
+bli
+ng
+ a
+dmi
+nist
+ra
+tors to 
+ve
+rif
+y pa
+sswo
+rds w
+he
+n a
+dding or upda
+ti
+ng st
+ude
+nt re
+c
+ords.
+2.
+2 
+Affe
+cte
+d F
+iles
+F
+ile
+Cha
+ng
+e
+P
+urpo
+s
+e
+f
+r
+o
+n
+ten
+d
+/s
+r
+c/co
+m
+p
+o
+n
+e
+n
+ts
+/Lo
+g
+i
+n
+Fo
+r
+m
+Sectio
+n
+.
+js
+x
+Mo
+d
+if
+ied
+I
+m
+p
+lem
+en
+ted
+s
+h
+o
+w/h
+id
+e t
+o
+g
+g
+le
+s
+tate, 
+d
+y
+n
+am
+ic 
+in
+p
+u
+t 
+t
+y
+p
+e 
+s
+witch
+in
+g
+,
+acce
+s
+s
+ib
+le
+SVG
+b
+u
+tto
+n
+s
+,
+an
+d
+k
+e
+y
+b
+o
+ar
+d
+s
+u
+p
+p
+o
+r
+t.
+f
+r
+o
+n
+ten
+d
+/s
+r
+c/st
+y
+les/
+l
+o
+g
+in
+.
+css
+Mo
+d
+if
+ied
+Ad
+d
+ed
+.
+p
+ass
+wo
+r
+d
+-
+in
+p
+u
+t
+-
+wr
+ap
+p
+e
+r
+an
+d
+.
+p
+as
+s
+wo
+r
+d
+-
+to
+g
+g
+le
+-
+b
+t
+n
+s
+ty
+les
+with
+4
+4
+p
+x
+p
+a
+d
+d
+in
+g
+-
+r
+ig
+h
+t
+to
+p
+r
+ev
+en
+t 
+tex
+t 
+o
+v
+er
+lap
+.
+f
+r
+o
+n
+ten
+d
+/s
+r
+c/co
+m
+p
+o
+n
+e
+n
+ts
+/Stu
+d
+e
+n
+tFo
+r
+m
+Mo
+d
+al.j
+s
+x
+Mo
+d
+if
+ied
+E
+x
+ten
+d
+ed
+s
+h
+o
+w/h
+i
+d
+e p
+as
+s
+wo
+r
+d
+t
+o
+g
+g
+le t
+o
+Ad
+d
+Stu
+d
+en
+t 
+a
+n
+d
+E
+d
+it/Up
+d
+ate St
+u
+d
+en
+t 
+p
+ass
+wo
+r
+d
+in
+p
+u
+ts
+.
+F
+ile
+Cha
+ng
+e
+P
+urpo
+s
+e
+f
+r
+o
+n
+ten
+d
+/s
+r
+c/st
+y
+les/
+d
+ash
+b
+o
+ar
+d
+.
+cs
+s
+Mo
+d
+if
+ied
+Ad
+d
+ed
+s
+t
+y
+lin
+g
+f
+o
+r
+p
+ass
+w
+o
+r
+d
+wr
+ap
+p
+er
+an
+d
+t
+o
+g
+g
+le 
+b
+u
+tto
+n
+in
+t
+h
+e s
+t
+u
+d
+en
+t 
+m
+o
+d
+al car
+d
+.
+b
+ack
+en
+d
+/s
+r
+c/co
+n
+tr
+o
+ller
+s
+/s
+tu
+d
+e
+n
+t
+C
+o
+n
+tr
+o
+ller
+.
+js
+Mo
+d
+if
+ied
+Up
+d
+ated
+ed
+itSt
+u
+d
+en
+t
+co
+n
+tr
+o
+ller
+t
+o
+h
+ash
+an
+d
+u
+p
+d
+ate s
+t
+u
+d
+en
+t
+p
+ass
+w
+o
+r
+d
+if
+p
+r
+o
+v
+id
+ed
+.
+b
+ack
+en
+d
+/s
+r
+c/u
+til
+s
+/v
+alid
+ati
+o
+n
+.
+js
+Mo
+d
+if
+ied
+Up
+d
+ated
+v
+ali
+d
+atio
+n
+u
+tility
+to
+all
+o
+w o
+p
+ti
+o
+n
+al 
+p
+ass
+wo
+r
+d
+u
+p
+d
+ate 
+d
+u
+r
+in
+g
+s
+tu
+d
+en
+t
+ed
+its
+.
+Additi
+ona
+l fil
+e
+s: None
+ / [List
+ a
+ny a
+ddit
+ional f
+il
+e
+s if modi
+fie
+d]
+2.
+3 
+Te
+chnical
+C
+han
+ges
+V
+i
+s
+i
+bi
+l
+i
+ty
+ State M
+a
+n
+a
+g
+em
+ent
+A loc
+a
+l st
+a
+te w
+a
+s im
+plem
+e
+nted in LoginF
+ormS
+e
+c
+ti
+on.jsx
+:
+W
+he
+n fa
+ls
+e
+de
+fa
+ult
+ty
+pe
+="
+pa
+ss
+wo
+rd
+"
+, 
+aria
+-
+label="Show password"
+, Eye
+ icon 
+displ
+a
+ye
+d.
+W
+he
+n true
+: 
+type="text"
+, 
+aria
+-
+label="Hide password"
+, Eye
+Of
+f i
+c
+on dis
+playe
+d.
+La
+y
+o
+ut 
+a
+nd 
+Sp
+a
+c
+i
+ng
+A f
+lex c
+ontaine
+r w
+it
+h re
+l
+a
+ti
+ve
+ posi
+ti
+oning wa
+s im
+pleme
+nted:
+The
+ input
+ re
+c
+e
+ives 
+pa
+dd
+i
+ng
+-
+right: 44px
+so pa
+sswor
+d text r
+e
+mains fully l
+e
+gibl
+e
+.
+The
+ toggl
+e
+ butt
+on is 
+posi
+t
+ioned a
+bsol
+utely on the r
+i
+ght wit
+h ve
+rtic
+a
+l ce
+nte
+r a
+l
+ignm
+e
+nt.
+B
+utt
+on use
+s 
+type="button"
+to ensur
+e
+ a
+c
+ti
+va
+ti
+ng it
+ doe
+s not
+ subm
+it
+ the logi
+n for
+m.
+A
+cce
+s
+s
+i
+b
+i
+l
+i
+ty
+ an
+d S
+e
+curi
+ty
+F
+ull
+ ke
+yboa
+rd op
+e
+ra
+bil
+it
+y
+: Ta
+b ke
+y na
+vigate
+s to t
+h
+e
+ butt
+on, a
+nd S
+pa
+c
+e
+/Ent
+e
+r a
+c
+ti
+va
+tes the
+toggl
+e
+.
+S
+c
+re
+e
+n r
+e
+a
+d
+e
+r suppor
+t wi
+th dynamic 
+aria
+-
+label
+a
+nd 
+aria
+-
+pressed
+a
+tt
+rib
+utes.
+P
+a
+sswor
+ds a
+re
+ n
+e
+ve
+r stor
+e
+d in 
+localStorage
+, 
+sessionStorage
+, or b
+row
+se
+r c
+ookies.
+De
+fa
+ult
+ maske
+d st
+a
+t
+e
+ on load pr
+otec
+ts ag
+a
+inst
+ shoul
+de
+r
+-
+surf
+ing risks
+.
+2.
+4 
+Imp
+le
+me
+nta
+tion 
+Logic
+1. C
+omponent mount
+s wi
+th sho
+wPasswor
+d ini
+ti
+a
+li
+z
+e
+d to fa
+lse 
+ma
+ske
+d st
+a
+t
+e
+2. Use
+r type
+s pa
+sswo
+rd c
+re
+de
+nti
+a
+ls i
+nto t
+he
+ maske
+d input
+ fie
+ld.
+3. Use
+r c
+li
+c
+ks t
+he
+ toggl
+e
+butt
+on or
+ pre
+sses Spac
+e
+ / Ent
+e
+r w
+hil
+e
+ foc
+us
+e
+d.
+4. S
+tate
+ toggl
+e
+s to t
+rue
+; i
+nput t
+ype
+ inst
+a
+ntl
+y swit
+c
+he
+s to "
+text".
+5. S
+VG
+ icon dyna
+mi
+c
+a
+ll
+y
+ switche
+s fr
+om Eye
+ to Ey
+e
+Of
+f.
+6. P
+a
+sswor
+d text r
+e
+mains
+ c
+ompl
+e
+tely vis
+ibl
+e
+ without
+ c
+li
+pping or ove
+rla
+ppin
+g the button.
+7. Use
+r c
+li
+c
+ks t
+oggle a
+g
+a
+i
+n; st
+a
+te toggles to fa
+lse; input
+ type r
+e
+ve
+rts to "
+pa
+ss
+wor
+d".
+8. F
+orm submi
+ssi
+on pa
+sses c
+re
+d
+e
+nti
+a
+ls unalt
+e
+re
+d to l
+use
+rna
+me, pa
+ss
+w
+.
+9. Exist
+ing JWT toke
+n st
+ora
+ge
+ a
+nd 
+role
+-
+b
+a
+se
+d r
+e
+dire
+c
+/da
+shbo
+a
+rd or
+ /st
+ude
+nt
+-
+da
+shboa
+oc
+c
+ur se
+a
+ml
+e
+ssl
+y.
+2.
+5 
+Er
+ror and
+Data H
+and
+li
+ng
+The
+ e
+xist
+ing authe
+nti
+c
+a
+ti
+on e
+rr
+or h
+a
+ndli
+ng re
+main
+s c
+ompl
+e
+tely int
+a
+c
+t:
+Empt
+y use
+rna
+me or
+ p
+a
+sswor
+d subm
+iss
+ion t
+rigge
+rs e
+xist
+ing re
+quire
+d
+-
+fi
+e
+ld validation 
+ba
+nne
+rs.
+I
+nv
+a
+li
+d c
+re
+d
+e
+nti
+a
+ls re
+turn
+ HT
+TP
+ 401 a
+nd dis
+play the
+ standa
+rd 
+e
+rr
+or 
+a
+ler
+t b
+a
+nne
+r.
+S
+ubmi
+tt
+ing valid cr
+e
+de
+nti
+a
+ls i
+n e
+it
+he
+r ma
+ske
+d or v
+i
+sibl
+e
+ state
+ c
+ompl
+e
+tes logi
+n suc
+c
+e
+ssfull
+y.
+3. Testi
+ng 
+& V
+er
+ification
+3.
+1 
+Testing 
+Ap
+proach
+The
+ im
+pleme
+ntation wa
+s 
+ve
+rif
+ied thr
+ough manu
+a
+l fr
+ontend te
+sti
+ng a
+nd br
+o
+wse
+r ve
+rif
+ica
+ti
+on.
+Te
+sti
+ng Type
+s:
+F
+unc
+ti
+ona
+l t
+e
+sti
+ng
+P
+osit
+ive te
+sti
+ng
+Va
+li
+da
+ti
+on testi
+ng
+U
+I
+ testing
+Ac
+c
+e
+ssi
+bil
+it
+y / keyboa
+rd 
+testing
+R
+e
+gre
+ssi
+on testi
+ng
+Authe
+nti
+c
+a
+ti
+on ve
+rif
+ic
+a
+ti
+on
+Environme
+nt:
+ De
+ve
+lopm
+e
+nt
+B
+row
+se
+r: [
+C
+hrome
+ / Edg
+e
+ / F
+ire
+fox]
+Te
+st R
+ole: Admini
+stra
+tor & S
+tudent
+3.
+2 
+Test
+Cas
+es
+T
+est I
+D
+T
+est Ca
+s
+e
+E
+x
+pect
+ed 
+Resul
+t
+Act
+ua
+l 
+Resul
+t
+Sta
+t
+us
+TC
+-
+01
+De
+fa
+u
+lt
+m
+a
+sk
+e
+d
+sta
+te o
+n
+lo
+a
+d
+P
+a
+ss
+wo
+rd
+in
+p
+u
+t 
+h
+a
+s 
+ty
+p
+e
+=
+"
+p
+a
+ss
+wo
+r
+d
+"
+,
+c
+h
+a
+ra
+c
+ters
+m
+a
+sk
+e
+d
+with
+b
+u
+ll
+e
+ts,
+Ey
+e
+ic
+o
+n
+v
+isib
+le
+In
+p
+u
+t 
+is t
+y
+p
+e
+=
+"
+p
+a
+ss
+wo
+rd
+"
+,
+b
+u
+ll
+e
+ts 
+d
+isp
+la
+y
+e
+d
+,
+E
+y
+e
+ico
+n
+sh
+o
+wn
+P
+a
+ss
+TC
+-
+02
+Cli
+c
+k
+to
+g
+g
+le b
+u
+tt
+o
+n
+t
+o
+re
+v
+e
+a
+l 
+p
+a
+ss
+wo
+rd
+In
+p
+u
+t 
+t
+y
+p
+e
+c
+h
+a
+n
+g
+e
+s to
+"
+tex
+t"
+,
+p
+lain
+tex
+t 
+c
+h
+a
+ra
+c
+ters
+re
+v
+e
+a
+led
+,
+Ey
+e
+Off i
+c
+o
+n
+d
+is
+p
+lay
+e
+d
+In
+p
+u
+t 
+sw
+it
+c
+h
+e
+s t
+o
+"
+te
+x
+t"
+,
+tex
+t 
+re
+v
+e
+a
+led
+,
+Ey
+e
+Off sh
+o
+wn
+P
+a
+ss
+TC
+-
+03
+Cli
+c
+k
+to
+g
+g
+le b
+u
+tt
+o
+n
+t
+o
+h
+id
+e
+p
+a
+ss
+wo
+rd
+In
+p
+u
+t 
+t
+y
+p
+e
+re
+v
+e
+rts 
+t
+o
+"
+p
+a
+ss
+wo
+rd
+"
+,
+c
+h
+a
+ra
+c
+ters
+m
+a
+sk
+e
+d
+with
+b
+u
+ll
+e
+ts, 
+Ey
+e
+ico
+n
+d
+isp
+lay
+e
+d
+In
+p
+u
+t 
+re
+v
+e
+rts 
+t
+o
+"
+p
+a
+ss
+wo
+rd
+"
+,
+c
+h
+a
+ra
+c
+ters
+m
+a
+sk
+e
+d
+,
+Ey
+e
+s
+h
+o
+wn
+P
+a
+ss
+TC
+-
+04
+In
+p
+u
+t 
+l
+o
+n
+g
+p
+a
+ss
+wo
+r
+d
+strin
+g
+P
+a
+ss
+wo
+rd
+tex
+t 
+d
+o
+e
+s 
+n
+o
+t
+c
+o
+ll
+i
+d
+e
+with
+o
+r
+h
+i
+d
+e
+u
+n
+d
+e
+r 
+t
+o
+g
+g
+le i
+c
+o
+n
+d
+u
+e
+t
+o
+ri
+g
+h
+t 
+p
+a
+d
+d
+in
+g
+Tex
+t 
+c
+lea
+rly
+leg
+ib
+le wit
+h
+4
+4
+p
+x
+rig
+h
+t
+p
+a
+d
+d
+in
+g
+P
+a
+ss
+T
+est I
+D
+T
+est Ca
+s
+e
+E
+x
+pect
+ed 
+Resul
+t
+Act
+ua
+l 
+Resul
+t
+Sta
+t
+us
+TC
+-
+05
+Cli
+c
+k
+to
+g
+g
+le d
+o
+e
+s n
+o
+t
+su
+b
+m
+it
+f
+o
+rm
+Ac
+ti
+v
+a
+ti
+n
+g
+to
+g
+g
+le 
+b
+u
+tt
+o
+n
+d
+o
+e
+s 
+n
+o
+t 
+tri
+g
+g
+e
+r 
+lo
+g
+i
+n
+su
+b
+m
+issio
+n
+o
+r 
+e
+rro
+r 
+b
+a
+n
+n
+e
+rs
+F
+o
+rm
+d
+o
+e
+s n
+o
+t 
+su
+b
+m
+it
+; 
+ty
+p
+e
+=
+"
+b
+u
+tt
+o
+n
+"
+p
+re
+v
+e
+n
+ts 
+su
+b
+m
+issio
+n
+P
+a
+ss
+TC
+-
+06
+Ke
+y
+b
+o
+a
+rd
+n
+a
+v
+i
+g
+a
+ti
+o
+n
+a
+n
+d
+a
+c
+ti
+v
+a
+ti
+o
+n
+Bu
+tt
+o
+n
+is f
+o
+c
+u
+sa
+b
+le 
+v
+ia T
+a
+b
+a
+n
+d
+to
+g
+g
+les
+sta
+te v
+ia S
+p
+a
+c
+e
+a
+n
+d
+En
+ter k
+e
+y
+s
+Bu
+tt
+o
+n
+re
+c
+e
+iv
+e
+s fo
+c
+u
+s a
+n
+d
+to
+g
+g
+les
+with
+S
+p
+a
+c
+e
+a
+n
+d
+En
+ter
+P
+a
+ss
+TC
+-
+07
+S
+u
+b
+m
+it
+v
+a
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls i
+n
+re
+v
+e
+a
+led
+sta
+te
+Va
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls su
+b
+m
+it
+ted
+wh
+il
+e
+p
+a
+ss
+wo
+rd
+is i
+n
+tex
+t 
+m
+o
+d
+e
+lo
+g
+in
+s
+u
+c
+c
+e
+ss
+fu
+ll
+y
+Lo
+g
+i
+n
+su
+c
+c
+e
+e
+d
+s, 
+re
+d
+irec
+ts t
+o
+d
+a
+sh
+b
+o
+a
+rd
+P
+a
+ss
+TC
+-
+08
+S
+u
+b
+m
+it
+v
+a
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls i
+n
+m
+a
+sk
+e
+d
+sta
+te
+Va
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls su
+b
+m
+it
+ted
+wh
+il
+e
+p
+a
+ss
+wo
+rd
+is ma
+sk
+e
+d
+l
+o
+g
+i
+n
+su
+c
+c
+e
+ss
+fu
+ll
+y
+Lo
+g
+i
+n
+su
+c
+c
+e
+e
+d
+s, 
+re
+d
+irec
+ts t
+o
+d
+a
+sh
+b
+o
+a
+rd
+P
+a
+ss
+TC
+-
+09
+S
+u
+b
+m
+it
+in
+v
+a
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls 
+with
+t
+o
+g
+g
+le ac
+ti
+v
+e
+In
+v
+a
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls 
+d
+isp
+la
+y
+e
+rro
+r 
+a
+lert 
+b
+a
+n
+n
+e
+r 
+wit
+h
+o
+u
+t 
+b
+re
+a
+k
+in
+g
+to
+g
+g
+le
+Err
+o
+r 
+b
+a
+n
+n
+e
+r 
+d
+isp
+la
+y
+e
+d
+c
+o
+rre
+c
+tl
+y
+; 
+t
+o
+g
+g
+le co
+n
+ti
+n
+u
+e
+s 
+wo
+rk
+i
+n
+g
+P
+a
+ss
+3.
+3 
+Test
+Su
+mmar
+y
+T
+es
+t
+R
+es
+ul
+t
+C
+ou
+nt
+T
+o
+tal 
+T
+est C
+ases
+9
+Pas
+s
+ed
+9
+Failed
+0
+Pas
+s
+R
+ate
+100%
+Ove
+ra
+ll
+ Te
+st R
+e
+sult
+: P
+a
+ss /
+ P
+a
+rtia
+ll
+y P
+a
+ssed / F
+a
+il
+e
+d
+4. Acceptance Cri
+teria 
+Ve
+rification
+ID
+Acce
+pta
+nce Crit
+erio
+n
+Verif
+ica
+t
+io
+n
+Sta
+t
+us
+AC
+-
+001
+Us
+e
+rs ca
+n
+to
+g
+g
+le 
+p
+a
+ss
+wo
+rd
+v
+isib
+il
+it
+y
+b
+e
+twe
+e
+n
+h
+i
+d
+d
+e
+n
+a
+n
+d
+v
+isib
+le.
+F
+u
+n
+c
+ti
+o
+n
+a
+l 
+tes
+ti
+n
+g
+TC
+-
+0
+2
+,
+TC
+-
+M
+e
+t
+AC
+-
+002
+De
+fa
+u
+lt
+sta
+te o
+f 
+t
+h
+e
+p
+a
+ss
+wo
+rd
+f
+iel
+d
+o
+n
+l
+o
+a
+d
+is 
+m
+a
+sk
+e
+d
+.
+In
+it
+ial 
+l
+o
+a
+d
+v
+e
+rifi
+c
+a
+ti
+o
+n
+TC
+-
+0
+1
+M
+e
+t
+AC
+-
+003
+To
+g
+g
+le i
+c
+o
+n
+u
+p
+d
+a
+tes
+d
+y
+n
+a
+m
+ica
+ll
+y
+to
+m
+a
+tch
+v
+isib
+il
+i
+ty
+sta
+te.
+Dy
+n
+a
+m
+ic i
+c
+o
+n
+tes
+t 
+TC
+-
+0
+2
+,
+TC
+-
+0
+3
+M
+e
+t
+AC
+-
+004
+Ac
+ti
+v
+a
+ti
+n
+g
+th
+e
+t
+o
+g
+g
+le 
+d
+o
+e
+s n
+o
+t 
+tr
+i
+g
+g
+e
+r 
+l
+o
+g
+i
+n
+f
+o
+rm
+su
+b
+m
+issio
+n
+.
+F
+o
+rm
+b
+u
+tt
+o
+n
+t
+y
+p
+e
+c
+h
+e
+c
+k
+TC
+-
+0
+5
+M
+e
+t
+AC
+-
+005
+To
+g
+g
+le b
+u
+tt
+o
+n
+is k
+e
+y
+b
+o
+a
+rd
+a
+c
+c
+e
+ss
+i
+b
+le an
+d
+in
+c
+l
+u
+d
+e
+s 
+a
+ria
+-
+lab
+e
+l.
+Ac
+c
+e
+ss
+ib
+il
+it
+y
+v
+e
+rifi
+c
+a
+ti
+o
+n
+TC
+-
+M
+e
+t
+AC
+-
+006
+P
+a
+ss
+wo
+rd
+tex
+t 
+re
+m
+a
+in
+s leg
+ib
+le a
+n
+d
+is n
+o
+t 
+o
+b
+sc
+u
+re
+d
+b
+y
+t
+h
+e
+t
+o
+g
+g
+le i
+c
+o
+n
+.
+UI l
+a
+y
+o
+u
+t 
+&
+p
+a
+d
+d
+i
+n
+g
+in
+sp
+e
+c
+ti
+o
+n
+TC
+-
+M
+e
+t
+AC
+-
+007
+Va
+li
+d
+c
+re
+d
+e
+n
+ti
+a
+ls su
+b
+m
+it
+ted
+in
+e
+it
+h
+e
+r 
+sta
+te l
+o
+g
+in
+su
+c
+c
+e
+ss
+fu
+ll
+y
+.
+Au
+th
+e
+n
+t
+ica
+ti
+o
+n
+tes
+ti
+n
+g
+TC
+-
+0
+7
+,
+TC
+-
+M
+e
+t
+AC
+-
+008
+Ex
+isti
+n
+g
+v
+a
+li
+d
+a
+ti
+o
+n
+e
+rro
+rs an
+d
+ro
+l
+e
+-
+b
+a
+se
+d
+re
+d
+irec
+ts 
+c
+o
+n
+ti
+n
+u
+e
+t
+o
+wo
+r
+k
+.
+Re
+g
+re
+ss
+io
+n
+v
+e
+rif
+ica
+ti
+o
+n
+TC
+-
+0
+7
+,
+TC
+-
+0
+8
+,
+TC
+-
+0
+9
+M
+e
+t
+5. Evidence
+A ma
+xim
+um of two r
+e
+lev
+a
+nt scr
+e
+e
+nshot
+s shoul
+d be
+ a
+tt
+a
+c
+he
+d.
+Evidence
+01
+P
+ass
+word Visibili
+ty 
+M
+as
+k
+ed 
+R
+e
+late
+d: AC
+-
+001, AC
+-
+00
+2, AC
+-
+003, AC
+-
+005, AC
+-
+006
+Fi
+g
+u
+r
+e
+1
+:
+Lo
+g
+in
+m
+o
+d
+u
+le sh
+o
+win
+g
+m
+a
+sked 
+p
+a
+ss
+wo
+r
+d
+field
+with
+d
+e
+fa
+u
+lt 
+b
+u
+ll
+e
+t 
+m
+a
+ski
+n
+g
+a
+n
+d
+e
+y
+e
+v
+i
+sib
+il
+ity
+to
+g
+g
+le b
+u
+tto
+n
+.
+Evidence
+02
+P
+ass
+word Visibili
+ty 
+Revealed 
+State 
+& 
+Au
+thentication
+R
+e
+late
+d: AC
+-
+001, AC
+-
+00
+3, AC
+-
+004, AC
+-
+007, AC
+-
+008
+Fi
+g
+u
+r
+e
+2
+:
+Lo
+g
+in
+m
+o
+d
+u
+le sh
+o
+win
+g
+r
+e
+v
+e
+a
+led 
+p
+la
+i
+n
+te
+x
+t 
+p
+a
+ss
+wo
+r
+d
+with
+e
+y
+e
+-
+sla
+sh 
+t
+o
+g
+g
+le i
+c
+o
+n
+a
+n
+d
+s
+e
+a
+m
+les
+s c
+r
+e
+d
+e
+n
+tia
+l 
+sub
+m
+issio
+n
+.
+6. Final Resul
+t
+It
+em
+R
+es
+ul
+t
+R
+eq
+u
+ir
+em
+en
+ts
+Me
+t / 
+Par
+tially
+Me
+t / 
+No
+t M
+et
+I
+m
+p
+lem
+en
+tatio
+n
+C
+o
+m
+p
+leted
+/ Par
+tially
+C
+o
+m
+p
+leted
+T
+esti
+n
+g
+Pas
+s
+ed
+/ Par
+tially
+Pa
+s
+s
+ed
+/ Fail
+ed
+Acc
+ep
+tan
+ce
+C
+r
+iter
+ia
+All M
+et 
+/ Par
+tially
+Me
+t / 
+No
+t 
+Me
+t
+E
+x
+is
+tin
+g
+C
+R
+UD 
+/ A
+u
+th
+Ver
+if
+ied
+/ N
+o
+t V
+er
+if
+ied
+Fin
+al 
+Statu
+s
+Acc
+ep
+ted
+/ Pen
+d
+in
+g
+/ Rejecte
+d
+6.
+1 
+F
+inal 
+Su
+mmar
+y
+CR
+-
+016 wa
+s im
+pleme
+nted a
+s a
+ c
+li
+e
+nt
+-
+side p
+a
+sswor
+d visi
+bil
+it
+y 
+toggl
+e
+ e
+nha
+nc
+e
+ment f
+or the
+S
+tudent Ma
+na
+ge
+ment S
+ystem l
+ogin m
+odule a
+nd st
+ude
+nt for
+m m
+a
+na
+g
+e
+ment. 
+The
+im
+pleme
+ntation allows user
+s a
+nd a
+dmi
+nist
+ra
+tors t
+o toggl
+e
+ pa
+sswor
+ds be
+tw
+e
+e
+n maske
+d 
+c
+ha
+ra
+c
+ter
+s 
+a
+nd 
+plaintext 
+view
+, re
+duc
+ing m
+ist
+ype
+d 
+c
+re
+de
+nti
+a
+l 
+e
+rr
+o
+rs w
+hil
+e
+ pr
+e
+se
+rving stric
+t 
+se
+c
+urity protoc
+ols. The to
+ggle button i
+s a
+c
+c
+e
+ssi
+ble 
+via ke
+yboa
+rd 
+a
+nd sc
+r
+e
+e
+n 
+re
+a
+de
+rs, 
+incor
+pora
+tes stand
+a
+rd SV
+G e
+ye
+ / ey
+e
+-
+slash vis
+ua
+l i
+ndica
+tors, a
+nd include
+s la
+yout padding 
+pre
+ve
+n
+ti
+ng c
+ha
+ra
+c
+ter
+ ove
+r
+lap. E
+xist
+ing authe
+nti
+c
+a
+ti
+on flow
+s, JWT
+ token issuanc
+e
+, 
+e
+rr
+or 
+a
+ler
+t 
+ba
+nne
+rs, a
+nd 
+role
+-
+b
+a
+se
+d r
+e
+dire
+c
+ts r
+e
+main f
+ull
+y fun
+c
+ti
+ona
+l. The
+ im
+pleme
+nte
+d fun
+c
+ti
+ona
+li
+ty wa
+s 
+teste
+d a
+ga
+inst
+ a
+ll
+ de
+fine
+d 
+a
+c
+c
+e
+ptanc
+e
+ c
+rite
+ri
+a
+ with a
+ 100%
+ pa
+ss ra
+te.
+6.
+2 
+Is
+su
+es 
+/ 
+Lim
+itati
+ons
+[State
+ a
+ny re
+m
+a
+ini
+ng iss
+ue
+s or lim
+it
+a
+ti
+ons.]
+If
+ none
+:
+No signi
+fic
+a
+nt i
+ssues ide
+nti
+fie
+d.
+S
+tudent Na
+me: MH A
+nush
+S
+tudent I
+D: JF
+I
+C
+T2416
+Da
+te: 9 Oc
+tobe
+r 202
+6
+S
+ignatur
+e
+: __________________________________
+~ E
+ND
+ OF REPORT
+ ~
+o3oBz2K¸ÿÀ³4K¸ÿÀ@,4
+ ¸ä³Ð00¸4µ¸µ@+/4¸C³
+
+ _¸C¶ &&&¸³  ¸³
+ º@ #@ *@*@*`* *à**º> @  0@ 
+ºè +Nô]Míä]qö]ýä ?<í?í9/]írôí999910Cy@*$&%&#&
+!b b$!b  bb"	%b  ++++++++++q] ]±%¸÷µl ¸Ø´l 
+¸ê²l ?+?+9/+01Y5667#"&547632#654&&#"326làÑ
+3:Ê/Ú/ë$ú$Y	!"!#3$ , 5+$"
+55	
+&3/13#&3413'
+/¸@7%d6		
+°/+º+Æ+ÙÓ+éé
+ûû
+	pp
+	*!¸&@
+!"!¸&@
+¬ 
+'
+
+	¸ÿú´U¸ÿô´U¸ÿô@!
+
+U"		0@¯¿ßÿU¸ÿê@U
+
+U%ßà$%¸1³!à¢++Nä]ö+++]q<Mý+++< ?íí]q?<999++10Cy@
+;
+; +<+qr] ]q´
+¸ëµl
+	 ¸â²l ?+2?+9/01Y5!#"#"&54763232654'&'&#ÌE1S&C¤t^l!, 3'$/
+
+ +0'%%1 zýi¾]<1*[6BTg!  "  ØL Cî°+X@¸{¾l  u{v0y5z6¿
+º
+m E.d66Ue@@³
+´º3ºCÕ
+×2
+2 2 ¬ Ñ2  	
+* %/	?	O	 Æ4Ù ò4	053@B@PE¦£¥@¶¶
+°BÍ Ü ÐÔÖë ëðõ
+ðò
+344204T 
+24	±CTX@!/"<ED 00 '
+'=::
+#%%?F¹  
+
+'%ûÛ%%4 rü}*%%4 rû ÿåÿêªL '÷°+X@K@O5'-8xßÿ""
+!"!!"	!#!#""""¸¢@'¬
+			¸É@S 0@¸ÿà´U¸ÿô´U¸ÿô¶
+
+U
+	
+0.Z'i'p..Æ 
+ 0@pI.¸ÿÀ@>?5 .@.°..À.Ð..,UU
+
+U"UU
+
+U-.¸w³!ac++Nô+++<Mý+++<M]qr+ö]MCX¹ &-é¹ &-íY ?<?<í9/]í999+++10Cy@$
+&
+ !#!#@,%$$"$¬ *
+ 
+&,	3 
+:Ly%#%'2#2'E#E'¥'
+
+	*
+
+"!#!%'%$ - &
+%- ++<+<+++*]q ] q+++µ ¸âµl
+%¸ô²l
+	 ?+?3+201Y5!#"#"&'&54&##5!#"326654'&#Ñà3P+QíÌÞæ0 EM3J4T$LhÒM'M'%%CqýÚÌá¡Yõ}N%%5$rý±OÌrJtµØ% ,   ÿá®L 7°+X´
+±CTX´
+¸â· /?9?ýÐÐÀ/10@!9©!¸ÿÀ²5!¸ÿÀ³354!¸ÿÀ³,/4!¸ÿÀ@ #4óûð!º¹»°!ù©¬¼¶¹ª§©ª§!idty
+!ZWP!ei[Y[
+^Y@!P TWS !48F I%
+9¸ÿØ±9+++++++YY]·
+¸âµl	 ??3+2901Y#&'&&'5!654&'&'5®H%5
+
+K/YW/Q0PPZ 
+/*
+/
+ 
+
+%   ¨þj`k  ¢°+X@@	 	&& 	¸ÿÀ²@5¸ÿÀ²:5¸ÿ@#75 p °P`	¸1³!ÒZ++Nôq<Mý<ô]qr+++NEeDæ ?<Mý<?<ý<9910]±¸ï´l¸ð²l ?+?+01Y!!!!`þH¸þÞ"þjOù   Kþik  ¥°+X@$@	 	`	& &?		°¸ÿÀ²:5¸ÿÀ@75 p 0 ¯  	¼1 ! T  ++Nô]Mô]qr++<ý<NEeDæ] ?<Mý<?<ý<9910q]±¸ð´l ¸ð²l  ?+?+01Y!!5!!K¸þH"þÞkøþOd  ÿïþFþ  5°+X¹ '@
+  6gGH+õ<ô< ?í10±¸ó±l /+01Y!5!ûÝ#þFT  Iÿí¯ 2 =°+X±CTX@ ?@
+
+U?@U.%U%
+
+U% 3¸ÿð@U3U3¸ÿÞ´U3¸ÿô@U3
+
+U39
+
+U-.¸ÿÀ@ 	U.3 
+9¸ÿÀ@:5P@P` P`v<¸ÿØ@
+	9 +++++++++++++++Y ]Yµ4¸èµl0¸è´l0
+.4¸ÿÀ·G5C.C+Nô++Míýr]<ý<<<<< ?<ír?í?9õíüõ õíüõ10Cy@&+'%&
+9¸ÿÀ²9¸ÿÀ²9¸ÿÀ²9¸ÿÀ²
+9¸ÿÀ²
+9¸ÿÀ²	9¸ÿÀ@	99 9
+ 9 +++ ++++++++++++YYYµ ¸åµl¸ë´l¸²l ?+?+9/+9/01Y3267#"5432%!&'&&#"ÚddZ-Ê¥ëñ¶Æý¨c6S;ÌttcxáÙëËª:X$8@   O  z +A°+X±CTX@%-@U-@U-@
+
+U+
+ '$++++rq] rq]YY±$¸ì@	l  ¸ë¶l
+u [0[@[ [Ð[[¸ÿÀ@4[FFUF1 pÏ¸ÿò@UUU¸½@??10PP ¸ÿÀ³4¸ÿÀ³4¸ÿô´U¸ÿô·UiZ[ºx !
+±++ö++++]qrírý+++]qí+rä+qö+++]q+rí++++qäô++]rííí ?ír?ýæí]q?írô+]]ír+++]í++]CX´Ï!ß!]Y+rôí]+++CX´Ï%ß%]Yr<<9999999910Cy@zKW:E$5&%213141A&O&.%*&V%T; K5M  B?  =? P-M R+T DFU'WVW:; L1J KJ56@C   ><N/Q S
+â ' 4â@5@	
+U56 ', ?í//?Ý+íííìì99/++++++Ý++ÀÄÆ2Ä+/+++++Í+ÄÄ10+±CTX@X4U5U '456 ,'
+U
+U
+
+
+U
+UU
+
+U87!U!U!
+
+U!-¸ÿð´U-¸ÿò´U-¸ÿü·
+ 
+U--879/+++Ý+++À9/+++Í+++ //?í?ÝÍ9910++@/8@*5
+8`
+]6%&88°8À8Ð8+P8`8p88@8 
+;**<<**;þ!ý V9$$<Ua, $p ÿcþF  
+@U	¸ÿô´U	¸ÿô´
+
+U	¸ÿà´U	¸ÿØ@U	
+
+
+U
+
+U
+¸ÿþ´U¸ÿì´
+
+U¸ÿÜ´U¸ÿØ@	U 
+D@U	* 
+»â & 5â@6@	
+U67 &
+
+U¸â¶	
+U	¸â±
+ ?í+í+//?Ý+íý+ÀÀÀ9/++++++Ý+++ÀÆÄÆÄ++10 +++++++@¹99	
+9³
+
+99___loo	ëí	ÆÆééíï???8 ?9Fr
+u/* % &/988URT #WWæõIHÂ	Â
+ã
+	EB
+SUSYTTS±CTX@/6U 
+'567 |{		
+'98!U!U!.¸ÿæ´U.¸ÿð´U.¸ÿú·
+
+U..989/+++Ý++À9/ //?Í]Í]?ÝÍ910+@U.
+þç.Mþ.F# *üqÔD  .;Ùþ×{!/
+$$3gþÐY8$$!QBG#p  =   ¬°+X±CTX¹ ÿö@
+
+U
+
+UUU¸ÿò´U¸ÿê´U¸ÿâ´
+
+U¸ÿÖ´U¸ÿÞµU½â â  â@@	
+U  /?Ý+2ííí/+++++Í+++ÄÄÆ10+±CTX@'UU   
+
+UUU¸ÿð´U¸ÿô´U¸ÿð·
+
+U9/+++Í+++ /??ÝÍ10++·Àð¸ÿÀ³?F4¸ÿÀ@:9;4²
+d6P@P`p ð
+ûAV8$$<U@G#p    0¯ W°+X±CTX@Y@UY@
+
+U
+
+UUL0¸ÿô´U0¸ÿê´U0¸ÿô@U0+
+
+U+17F¸ÿô´UF¸ÿê´UF¸ÿô@!UFAGA
+
+UAUAUALUL¸ÿô´UL¸ÿö´
+
+UL¸ÿê´UL¸ÿú@UL
+UL+U+U+7¸ÿð@U7
+
+U7¸ÿÔ@U7U7¸ÿê@U7
+
+U7U7UU ¸ÿè@U 0
+
+U ¸ÿÂ@U *U ¸ÿÚ@U 
+
+U ¸ÿü@U /2EH¸â@ GTU@U/UOUoUUUVG1%,<, ?í?í///?Ý]]+ÍýÀÀÀÀÀ/+++++++Í++/+++++++Í++/++++++Í+++ÄÄ+++Ä+Ä+++Æ+Ä10++±CTX@<%,<,TUV1GU U +U+U+7AUAUAL ¸ÿê·
+
+U  X7¸ÿø´U7¸ÿø´U7¸ÿò·
+
+U77XL¸ÿî´UL¸ÿð´UL¸ÿø·
+
+ULLYX9/+++9/+++9/+Í++Í+++Í+ ///?ÝÍ??íí10°
+KTX¿ Fÿè Eÿè /ÿè 0ÿèµ8888888Y@4ÐYïYY`
+]6+
+Y  
+ %GVW<,%,
+GF10
+Y$!0 p °  ¸5@7
++ºâ â@.%6Y'¸â@	 @	U  ?Ý+í?í/í//íí9/++++Ý+ÀÀÆÄÄ/++Í10+±CTX¹ 2ÿüµ
+
+U2
+¸ÿð@
+
+U
+
+;:
+À-S"
+&  %# '
+o			
+
+UU¸ÿú´
+
+U¸ÿê´U¸ÿê·U*
+ ?3+?+201Y632#"&#"3!52767654&&#"'%Lsy7H4$#W-0
+B>þ+F"
+
+#'
+¯ÎÎC,'6E
+,J,O3_3x
+!>'#D.X*7s-
+U ¸ÿü@U 
+
+U ¸ÿä@U 
+
+UU¸ÿø´U¸ÿú´
+
+U¸ÿôµU$ºâ â@% ,¸ÿÀµ	U
+ /Ý+Í?í?99?íì/++++Í+/++++ÀÝ+Ä10+±CTX@W@`p
+ $%%,U
+U
+
+U UU
+
+
+U& U 
+
+U  &¸ÿò´U¸ÿö´U¸ÿö·
+
+U'&9/+++9/++9/Í+++Í+++À ?í??ÍÍ99?Ý]Í10@5'`
+]6 '`'p'°'47: HH O'#!O%'#'AD %¸E@
+ %%,
+
+! ¸g@ °pÏ¸½@%$P°  °ÀÐ`&Â+Nô]qr<Mý<ý]q<ý<<< ?<í?<<<í99õíüõ++10Cy@  +<+ ]]+YY²$¸â·l%
+¸²l ?+??3+201Y327#5#"&&54&&5!32674&'5c!'þî-v|EMq,7HAY?+mK9ZýÕG#qÂBYA2%ýP6LN7%  ÿäí  ê°+X±CTX¶		 ¾â â  â â±  ?ííìì?/9/10±CTX@1
+			"!	 U*UU U   ?Í+?Í+?Í+?Í+?99/ÝÍÝÍ10@	S
+X[¸ÿØ²5"¸ÿÀ@a5#	"
+! $  :	9
+:95:JI	D
+EEIi	"© ¨¥	¢¢¨¾µ	¶
+¶·º»À"Õö
+öû-	"¸ÿÀ³2`4"¸ÿÀ³+14"¸ÿÀ³
+.¸ÿÀ²5.¸ÿÀ@È4!..
+M
+
+
+' ¸ÿ}@@%$ 	$
+
+&'&%'0		$
+%
+
+%#$$0
+ üe
+¸±´À e
+ ¸g@P
+ ?3?33+2901Y!'&'&'5!654&'5!##&&'
+5!ÄÅ4'<´HÐÁ'9!W
+K4@:VV%P:u§»&,,
+09
+
+G$Aþ·!3%''Eþ2ú
+	
+%%!?ünD,*3>Y³.#   
+ ýNiKþç$*#2Jþ%üÔ#, g þ«ÿÊ«h  M°+X@Xhx¨ø¸^³¼'  ï '²æº: +ôíôí ?<í10]³ ??01Y#«üYY§húb    = @ñ°+X±CTX¹ &²
+ !¸â²l 
+ ?+2?3+2?+?9/01Y!273!527654'&&##33!53265#5346632#"&'&'&#"op!,5]þ8b
+-zß	, *þ$F>±±eÆ}VC-"09!%*3eý:o?$$+gå]ý¬l $$MTK·Ív9Y'".#Q/R5H´     ? & 4Ó°+X¸2±CTXµ* ¸²¸@4-*   &'&¸ÿþ´U&¸ÿô@
+
+U&U¸ÿò@$U
+
+U654
+
+UUU
+¸ÿì´
+
+U
+¸ÿ×´U
+¸ÿë·U
+
+659/+++ÀÝ+++À9/+++Ý++À99 /<?ÍÍ?í?í?910@4/P6 6p6"
+´"&
++Çy5"3
+	
+K?gI/mldL.'7 =1ë"'".Oh9[!4+'	  
+=
+m%^^ wcff%   ?íÍ2/333/í?ÄÄýÄÄÄÄÄ?Ä3ÄýÄÄ/ÄÝÆýÄÌ99//]]ýÌ3/Í]ÄýÄÌ9/9/3/Í]9102#".'.#"!2673!52>54'&&##33!532>5!3!52>5#534>3266".#"!467ÁEhF#-%!'5-$
+
+9G+:0þ7+9!
+!F>ß	 ?6
+þ#$3þe#;,þ!+=&
+K?gI^°Q'>*^Xí"'".Oh9X9	   
+<'þh$B6þ4B%
+þe#;,þ!+=&$;WwM3WC,' ,9_}EP!"'".Oh98XE69/D,IûV>I'
+%%
+&JAiý?J'%%+RGTý<J
+K?gI7tl_G
+&0D¸6
+  
+,Hl&'
+&
+%3 ¸í ?íí?í9/í99//í99///ýÄÞÄ9/]3/Í23/Í2/Í210#.##32>'3#.##332>73!52>54.#52
+$0CM"ÑÂ:@%%!B9·-
+>*   ÿä`× / *@' $-' -/¸íµ"Î ?í2/?ýÄ/ÎýÎÞÍ10"#".54>3232>54.#5!`499BI#92#	
+	!?5Ó´1B$þ !BA=0G0+
+#/>"%.E.#  '  z× D  @GDD :		:		08:8	8::		$	
+ýã'C2$$!7I
+ $  A 0
+DfHBaE,	ýh¶NO¾pl½P1Qw¢[Uio[;;[ohT"`geP2*H]gi  
+  s× $ 7 K¹ 2@#/ ///9%$#%*%4
+74%# ¸í ?íí2?ýÄ9/3í2/ÞÄýÄÌ9/]í102#"&'7!52>54.#532>54.#"¹TbfS4=^r5?b0	#E<ýý">/
+"D:V&++I3'=J"%G×#?bGHgAþû%<
+++
+EB%¸í@
+-1
+ 
+
+ ?ÄýÄì2?íí29/33]í2/ÞÄýÄÌ/9/9]]]]3/í9+}Ä10]]!"&'3!52>54.#5!2667>54.#"þ+1þ
+>0&&®+[3+
+$
+×ê7B$ý8%?-$$-?%È+?
+þz;y
+¹·©0E-##,E1þW
+7BE9%
+, 677¦ 6'#   
+ÿä× " @F7&7  $
+!!
+
+0!
+ ¸í ?Äþ2Ä2Ä2Ä2?Ä/33/+ Á}Ä3/333/+}Ä2/10]]]&>54&#5!"#.#5..þË
++&"/&#þá%þ%$
+0>>4 FD0H240H 4"
+34E
+DD"
+e4u44T4I4D044"  
+G10H0!"
+"0{0
+u
+f
+0
+"
+$H0HH0&& """DOMMHHD@@0DDD@4="&0
+'×'&&3  ¸X²+ ?Íü]Í/í9/í10]]]4>32#".732>54.#"8S_&>>9,.:<7
+*AOI:
+4weC 6EIH  y®Ó  2@
+ 
+ ¸X± ?ü]ÝÄÍ22/ý2ÌÎ2/31033!52>54&#"'H%
+&þ²
+F_7;dH
+
+C0&BW14ZB&$>
+F_7;dH
