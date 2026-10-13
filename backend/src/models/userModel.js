@@ -18,7 +18,15 @@ const findUserById = async (userId) => {
     return rows[0];
 };
 
+const updateLastLogin = async (userId) => {
+    await pool.execute(
+        "UPDATE users SET last_login = NOW() WHERE user_id = ?",
+        [userId]
+    );
+};
+
 module.exports = {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 };

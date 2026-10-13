@@ -41,17 +41,19 @@ const getAllStudents = async () => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            u.last_login,
+            students.created_at,
+            students.updated_at
         FROM students
-        ORDER BY student_id DESC`
+        INNER JOIN users u ON u.user_id = students.user_id
+        ORDER BY students.student_id DESC`
     );
 
     return rows;
@@ -63,17 +65,19 @@ const getStudentById = async (studentId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            u.last_login,
+            students.created_at,
+            students.updated_at
         FROM students
-        WHERE student_id = ?
+        INNER JOIN users u ON u.user_id = students.user_id
+        WHERE students.student_id = ?
         LIMIT 1`,
         [studentId]
     );
@@ -133,17 +137,19 @@ const getStudentByUserId = async (userId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            u.last_login,
+            students.created_at,
+            students.updated_at
         FROM students
-        WHERE user_id = ?
+        INNER JOIN users u ON u.user_id = students.user_id
+        WHERE students.user_id = ?
         LIMIT 1`,
         [userId]
     );
