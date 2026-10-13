@@ -183,3 +183,79 @@
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+/* =========================================================
+   Dark Mode - Student Dashboard (CR-012)
+   ========================================================= */
+
+.student-dashboard-page[data-theme="dark"],
+.student-dashboard-page.dark {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-dashboard-header,
+.student-dashboard-page.dark .student-dashboard-header {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-dashboard-header h1,
+.student-dashboard-page.dark .student-dashboard-header h1 {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-dashboard-header p,
+.student-dashboard-page.dark .student-dashboard-header p {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .role-badge,
+.student-dashboard-page.dark .role-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.student-dashboard-page[data-theme="dark"] .section-title,
+.student-dashboard-page.dark .section-title {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-card,
+.student-dashboard-page.dark .profile-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-header,
+.student-dashboard-page.dark .profile-header {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-row,
+.student-dashboard-page.dark .detail-row {
+    border-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-label,
+.student-dashboard-page.dark .detail-label {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-value,
+.student-dashboard-page.dark .detail-value {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-loading,
+.student-dashboard-page.dark .student-loading {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-error,
+.student-dashboard-page.dark .student-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}

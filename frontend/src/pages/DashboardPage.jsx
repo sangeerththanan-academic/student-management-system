@@ -10,6 +10,8 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 import "../styles/dashboard.css";
 
@@ -23,6 +25,7 @@ const normalizeSearchValue = (value) => {
 
 function DashboardPage() {
     const navigate = useNavigate();
+    const { theme } = useTheme("admin");
 
     const [user, setUser] = useState(getStoredUser());
 
@@ -33,7 +36,12 @@ function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useState(() => {
+        if (typeof window !== "undefined") {
+            return new URLSearchParams(window.location.search).get("showAddModal") === "true";
+        }
+        return false;
+    });
 
     const [editingStudent, setEditingStudent] = useState(null);
 
@@ -254,7 +262,7 @@ function DashboardPage() {
 
     // Render
     return (
-        <div className="dashboard-page">
+        <div className={`dashboard-page ${theme}`} data-theme={theme}>
 
             <header className="dashboard-header">
 
@@ -280,6 +288,8 @@ function DashboardPage() {
                             {user?.role}
                         </span>
                     </div>
+
+                    <ThemeToggle section="admin" showLabel={true} />
 
                     <button
                         onClick={handleLogout}

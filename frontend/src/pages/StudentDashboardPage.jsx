@@ -7,13 +7,16 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
+    const { theme } = useTheme("student");
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -59,7 +62,7 @@ function StudentDashboardPage() {
     };
 
     return (
-        <div className="student-dashboard-page">
+        <div className={`student-dashboard-page ${theme}`} data-theme={theme}>
 
             {/* Header */}
             <header className="student-dashboard-header">
@@ -70,6 +73,7 @@ function StudentDashboardPage() {
 
                 <div className="student-header-actions">
                     <span className="role-badge">STUDENT</span>
+                    <ThemeToggle section="student" showLabel={true} />
                     <button
                         className="logout-button"
                         onClick={handleLogout}

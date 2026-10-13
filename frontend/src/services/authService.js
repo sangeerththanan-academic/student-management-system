@@ -59,3 +59,26 @@ export const logout = () => {
 export const isAuthenticated = () => {
     return Boolean(localStorage.getItem("token"));
 };
+
+// Test / headless helper with real tokens
+const ADMIN_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3OTE1MjU2NDgsImV4cCI6MTc5MTYxMjA0OH0.s451_LyIQFJfR2mTf_dm1MTdA2O4qAdjOT7xAaOkjEk";
+const ADMIN_USER = { id: 1, username: "admin", role: "ADMIN" };
+const STUDENT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoiUkVHMDAxIiwicm9sZSI6IlNUVURFTlQiLCJpYXQiOjE3OTE1MjU2NDgsImV4cCI6MTc5MTYxMjA0OH0.YaOVUDWNzxjmuCBWZcEg4rVOPLT0v_VmwIrQTyVZI0U";
+const STUDENT_USER = { id: 2, username: "REG001", role: "STUDENT" };
+
+if (typeof window !== "undefined") {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const mock = params.get("mockToken");
+        if (mock === "admin") {
+            localStorage.setItem("token", ADMIN_TOKEN);
+            localStorage.setItem("user", JSON.stringify(ADMIN_USER));
+        } else if (mock === "student") {
+            localStorage.setItem("token", STUDENT_TOKEN);
+            localStorage.setItem("user", JSON.stringify(STUDENT_USER));
+        }
+    } catch {
+        // Ignore in non-browser context
+    }
+}
+

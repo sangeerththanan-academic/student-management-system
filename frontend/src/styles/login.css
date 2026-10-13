@@ -377,3 +377,100 @@
         font-size: 25px;
     }
 }
+
+/* =========================================================
+   Login Theme Toggle (CR-012)
+   ========================================================= */
+
+.login-theme-toggle-wrapper {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    z-index: 100;
+}
+
+@media (max-width: 800px) {
+    .login-theme-toggle-wrapper {
+        top: 16px;
+        right: 16px;
+    }
+}
+
+/* =========================================================
+   Dark Mode - Login Page (CR-012)
+   ========================================================= */
+
+.login-page[data-theme="dark"],
+.login-page.dark {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+.login-page[data-theme="dark"] .login-info,
+.login-page.dark .login-info {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1d4ed8 100%);
+}
+
+.login-page[data-theme="dark"] .login-card,
+.login-page.dark .login-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+}
+
+.login-page[data-theme="dark"] .login-heading h2,
+.login-page.dark .login-heading h2 {
+    color: #f8fafc;
+}
+
+.login-page[data-theme="dark"] .login-heading p,
+.login-page.dark .login-heading p {
+    color: #94a3b8;
+}
+
+.login-page[data-theme="dark"] .login-heading > span,
+.login-page.dark .login-heading > span {
+    color: #60a5fa;
+}
+
+.login-page[data-theme="dark"] .form-group label,
+.login-page.dark .form-group label {
+    color: #cbd5e1;
+}
+
+.login-page[data-theme="dark"] .form-group input,
+.login-page.dark .form-group input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.login-page[data-theme="dark"] .form-group input:focus,
+.login-page.dark .form-group input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.login-page[data-theme="dark"] .form-group input::placeholder,
+.login-page.dark .form-group input::placeholder {
+    color: #64748b;
+}
+
+.login-page[data-theme="dark"] .password-toggle-btn,
+.login-page.dark .password-toggle-btn {
+    color: #94a3b8;
+}
+
+.login-page[data-theme="dark"] .password-toggle-btn:hover:not(:disabled),
+.login-page.dark .password-toggle-btn:hover:not(:disabled) {
+    color: #f8fafc;
+    background-color: #334155;
+}
+
+.login-page[data-theme="dark"] .login-error,
+.login-page.dark .login-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
