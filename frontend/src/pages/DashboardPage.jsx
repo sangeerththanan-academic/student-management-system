@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -34,7 +33,6 @@ const getProfilePhotoUrl = (profilePhoto) => {
         return "";
     }
 
-    // Support absolute image URLs too.
     if (/^https?:\/\//i.test(profilePhoto)) {
         return profilePhoto;
     }
@@ -46,7 +44,7 @@ const getProfilePhotoUrl = (profilePhoto) => {
 };
 
 // ============================================================
-// CR-010: Generate initials when a photo is unavailable
+// CR-010: Generate student initials
 // ============================================================
 
 const getStudentInitials = (student) => {
@@ -59,6 +57,46 @@ const getStudentInitials = (student) => {
         .charAt(0);
 
     return `${firstInitial}${lastInitial}`.toUpperCase() || "?";
+};
+
+// ============================================================
+// CR-033: Format last login date and time
+// ============================================================
+
+const formatLastLogin = (lastLogin) => {
+    if (
+        lastLogin === null ||
+        lastLogin === undefined ||
+        lastLogin === ""
+    ) {
+        return "Never logged in";
+    }
+
+    // MySQL DATETIME usually returns "YYYY-MM-DD HH:mm:ss".
+    // Convert the separator to ISO-style local datetime parsing.
+    const dateValue =
+        typeof lastLogin === "string"
+            ? lastLogin.replace(
+                /^(\d{4}-\d{2}-\d{2})\s/,
+                "$1T"
+            )
+            : lastLogin;
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Unavailable";
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    }).format(date);
 };
 
 // ============================================================
@@ -115,6 +153,7 @@ function DashboardPage() {
 
     // ========================================================
     // Load students
+    // CR-033: API response includes last_login
     // ========================================================
 
     const loadStudents = async () => {
@@ -469,8 +508,6 @@ function DashboardPage() {
                         <div className="students-table-wrapper">
                             <table className="students-table">
 
-                                {/* All column headings in ONE row */}
-
                                 <thead>
                                     <tr>
                                         <th>Profile</th>
@@ -478,6 +515,10 @@ function DashboardPage() {
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
+
+                                        {/* CR-033 */}
+                                        <th>Last Login</th>
+
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -513,9 +554,7 @@ function DashboardPage() {
                                                             />
                                                         )}
 
-                                                        <span
-                                                            className="student-profile-placeholder"
-                                                        >
+                                                        <span className="student-profile-placeholder">
                                                             {getStudentInitials(
                                                                 student
                                                             )}
@@ -523,34 +562,34 @@ function DashboardPage() {
                                                     </div>
                                                 </td>
 
-                                                {/* Registration number */}
-
                                                 <td>
                                                     <strong>
                                                         {student.registration_no}
                                                     </strong>
                                                 </td>
 
-                                                {/* Student name */}
-
                                                 <td>
                                                     {student.first_name}{" "}
                                                     {student.last_name}
                                                 </td>
 
-                                                {/* Email */}
-
                                                 <td>
                                                     {student.email}
                                                 </td>
-
-                                                {/* Phone */}
 
                                                 <td>
                                                     {student.phone_number}
                                                 </td>
 
-                                                {/* Actions */}
+                                                {/* CR-033: Last Login */}
+
+                                                <td className="student-last-login">
+                                                    {formatLastLogin(
+                                                        student.last_login
+                                                    )}
+                                                </td>
+
+                                                {/* Existing CRUD actions */}
 
                                                 <td>
                                                     <div className="student-actions">

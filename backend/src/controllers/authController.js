@@ -1,9 +1,11 @@
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 } = require("../models/userModel");
 
 const login = async (req, res) => {
@@ -39,6 +41,11 @@ const login = async (req, res) => {
                 success: false,
                 message: "Invalid username or password"
             });
+        }
+
+        // CR-033: Update last login for student accounts only
+        if (user.role === "STUDENT") {
+            await updateLastLogin(user.user_id);
         }
 
         // Create JWT

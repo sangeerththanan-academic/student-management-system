@@ -1,7 +1,9 @@
-
 const pool = require("../config/db");
 
+// ============================================================
 // CREATE STUDENT
+// ============================================================
+
 const createStudent = async (
     connection,
     userId,
@@ -13,8 +15,7 @@ const createStudent = async (
     profilePhoto = null
 ) => {
     const [result] = await connection.execute(
-        `INSERT INTO students
-        (
+        `INSERT INTO students (
             user_id,
             registration_no,
             first_name,
@@ -38,43 +39,55 @@ const createStudent = async (
     return result.insertId;
 };
 
-// GET ALL STUDENTS
+// ============================================================
+// CR-033: GET ALL STUDENTS WITH LAST LOGIN
+// ============================================================
+
 const getAllStudents = async () => {
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            profile_photo,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        INNER JOIN users AS u
+            ON s.user_id = u.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;
 };
 
+// ============================================================
 // GET STUDENT BY ID
+// ============================================================
+
 const getStudentById = async (studentId) => {
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            profile_photo,
-            created_at,
-            updated_at
-        FROM students
-        WHERE student_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        INNER JOIN users AS u
+            ON s.user_id = u.user_id
+        WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
     );
@@ -82,7 +95,10 @@ const getStudentById = async (studentId) => {
     return rows[0];
 };
 
+// ============================================================
 // UPDATE STUDENT
+// ============================================================
+
 const updateStudent = async (
     studentId,
     registrationNo,
@@ -116,7 +132,10 @@ const updateStudent = async (
     return result;
 };
 
+// ============================================================
 // DELETE STUDENT
+// ============================================================
+
 const deleteStudent = async (studentId) => {
     const [result] = await pool.execute(
         `DELETE FROM students
@@ -127,22 +146,28 @@ const deleteStudent = async (studentId) => {
     return result;
 };
 
+// ============================================================
 // GET STUDENT BY USER ID
+// ============================================================
+
 const getStudentByUserId = async (userId) => {
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            profile_photo,
-            created_at,
-            updated_at
-        FROM students
-        WHERE user_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        INNER JOIN users AS u
+            ON s.user_id = u.user_id
+        WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
     );
