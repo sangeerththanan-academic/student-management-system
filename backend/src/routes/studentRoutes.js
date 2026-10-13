@@ -6,7 +6,8 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 } = require("../controllers/studentController");
 
 const {
@@ -24,6 +25,14 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+
+router.put(
+    "/me/password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
 );
 
 

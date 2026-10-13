@@ -156,12 +156,24 @@ const getStudentByUserId = async (userId) => {
     return rows[0];
 };
 
+// CHANGE STUDENT PASSWORD
+const updateStudentPassword = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?
+           AND role = 'STUDENT'`,
+        [passwordHash, userId]
+    );
 
+    return result;
+};
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateStudentPassword
 };

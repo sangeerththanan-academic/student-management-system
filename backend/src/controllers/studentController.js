@@ -8,7 +8,8 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateStudentPassword
 } = require("../models/studentModel");
 
 
@@ -673,7 +674,73 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+const changeMyPassword = async (req, res) => {
+    try {
+        const { password, confirmPassword } = req.body;
+        const userId = req.user?.userId;
 
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required"
+            });
+        }
+
+        if (
+            typeof password !== "string" ||
+            typeof confirmPassword !== "string" ||
+            !password ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Both password fields are required"
+            });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match"
+            });
+        }
+
+        const passwordError = validatePassword(password);
+
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const result = await updateStudentPassword(
+            userId,
+            passwordHash
+        );
+
+        if (result.affectedRows !== 1) {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+    } catch (error) {
+        console.error("Change student password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password"
+        });
+    }
+};
 
 module.exports = {
     addStudent,
@@ -681,5 +748,6 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 };

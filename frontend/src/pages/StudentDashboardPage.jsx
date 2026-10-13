@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import {
     getStoredUser,
@@ -175,6 +176,8 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
+
+                <ChangeStudentPassword />
 
             </main>
 
