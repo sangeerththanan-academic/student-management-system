@@ -442,10 +442,6 @@
    Landing Page - Dark Mode
    ========================================================= */
 
-.landing-theme-control {
-    margin-bottom: 20px;
-}
-
 [data-theme="dark"].landing-page {
     background: #0f172a;
     color: #f1f5f9;
@@ -574,4 +570,3 @@
         color 0.2s ease,
         border-color 0.2s ease;
 }
-

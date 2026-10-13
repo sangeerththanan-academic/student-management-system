@@ -6,8 +6,6 @@ function LoginFormSection({ onSubmit, loading, error }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-
     const handleSubmit = (event) => {
         event.preventDefault();
         onSubmit(username.trim(), password);

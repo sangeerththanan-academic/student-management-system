@@ -7,10 +7,14 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 } = require("../controllers/studentController");
 
-const { authenticate } = require("../middleware/authMiddleware");
+const {
+    authenticate,
+    authorizeRoles
+} = require("../middleware/authMiddleware");
 
 const uploadStudentImage =
     require("../middleware/studentUploadMiddleware");
@@ -18,17 +22,35 @@ const uploadStudentImage =
 // GET /api/students/me
 router.get("/me", authenticate, getMyProfile);
 
+router.put(
+    "/change-password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeStudentPassword
+);
+
 // GET /api/students
-router.get("/", authenticate, getStudents);
+router.get(
+    "/",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    getStudents
+);
 
 // GET /api/students/:id
-router.get("/:id", authenticate, getStudent);
+router.get(
+    "/:id",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    getStudent
+);
 
 // POST /api/students
 router.post(
     "/",
     authenticate,
-    uploadStudentImage.single("profileImage"),
+    authorizeRoles("ADMIN"),
+    uploadStudentImage,
     addStudent
 );
 
@@ -36,11 +58,17 @@ router.post(
 router.put(
     "/:id",
     authenticate,
-    uploadStudentImage.single("profileImage"),
+    authorizeRoles("ADMIN"),
+    uploadStudentImage,
     editStudent
 );
 
 // DELETE /api/students/:id
-router.delete("/:id", authenticate, removeStudent);
+router.delete(
+    "/:id",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    removeStudent
+);
 
 module.exports = router;

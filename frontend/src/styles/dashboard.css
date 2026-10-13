@@ -317,6 +317,22 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.student-form .profile-image-field {
+    grid-column: 1 / -1;
+}
+
+.profile-image-field > small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.profile-image-preview {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 .form-actions {
     grid-column: 1 / -1;
 
@@ -535,6 +551,26 @@
 
 .students-table td strong {
     color: #0f172a;
+}
+
+.student-table-avatar {
+    width: 42px;
+    height: 42px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.student-table-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 
@@ -1020,5 +1056,3 @@
         color 0.2s ease,
         border-color 0.2s ease;
 }
-
-

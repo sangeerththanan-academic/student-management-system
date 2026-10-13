@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import apiRequest from "../services/api";
 
 const getProfileImageUrl = (profileImage) => {
@@ -42,6 +42,27 @@ function StudentFormModal({
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState("");
+    const [imageError, setImageError] = useState("");
+    const previewUrlRef = useRef("");
+
+    const updateImagePreview = (preview) => {
+        if (previewUrlRef.current) {
+            URL.revokeObjectURL(previewUrlRef.current);
+        }
+
+        previewUrlRef.current = preview.startsWith("blob:")
+            ? preview
+            : "";
+        setImagePreview(preview);
+    };
+
+    useEffect(() => () => {
+        if (previewUrlRef.current) {
+            URL.revokeObjectURL(previewUrlRef.current);
+        }
+    }, []);
 
     // Load student details and current image when the modal opens.
     useEffect(() => {
@@ -57,7 +78,7 @@ function StudentFormModal({
                 password: ""
             });
 
-            setImagePreview(
+            updateImagePreview(
                 getProfileImageUrl(editingStudent.profile_image)
             );
         } else {
@@ -70,98 +91,15 @@ function StudentFormModal({
                 password: ""
             });
 
-            setImagePreview("");
+            updateImagePreview("");
         }
 
         setFormError("");
         setFieldErrors({});
         setShowPassword(false);
+        setSelectedImage(null);
+        setImageError("");
     }, [editingStudent, show]);
-
-
-    // ── Validation helpers (CR-004) ─────────────────────────────
-    const validateField = (name, value) => {
-        const v = (value || "").trim();
-
-        switch (name) {
-            case "registrationNo":
-                if (!v) return "Registration number is required.";
-                if (!/^[A-Za-z0-9_-]+$/.test(v))
-                    return "Only letters, numbers, hyphens, or underscores allowed.";
-                return null;
-
-            case "firstName":
-                if (!v) return "First name is required.";
-                if (v.length < 3) return "First name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v))
-                    return "First name must contain letters only.";
-                return null;
-
-            case "lastName":
-                if (!v) return "Last name is required.";
-                if (v.length < 3) return "Last name must be at least 3 characters.";
-                if (!/^[A-Za-z\s]+$/.test(v))
-                    return "Last name must contain letters only.";
-                return null;
-
-            case "email":
-                if (!v) return "Email address is required.";
-                if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v))
-                    return "Enter a valid email address (e.g. user@example.com).";
-                return null;
-
-            case "phoneNumber":
-                if (!v) return "Phone number is required.";
-                if (!/^\d+$/.test(v))
-                    return "Phone number must contain digits only.";
-                if (v.length !== 10)
-                    return "Phone number must be exactly 10 digits.";
-                return null;
-
-            case "password":
-                if (editingStudent) return null;
-                if (!value) return "Password is required.";
-                if (value.length < 8)
-                    return "Password must be at least 8 characters.";
-                if (!/[A-Z]/.test(value))
-                    return "Password must include an uppercase letter.";
-                if (!/[a-z]/.test(value))
-                    return "Password must include a lowercase letter.";
-                if (!/[0-9]/.test(value))
-                    return "Password must include a number.";
-                if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value))
-                    return "Password must include a special character.";
-                return null;
-
-            default:
-                return null;
-        }
-    };
-
-    const validateAll = () => {
-        const fields = [
-            "registrationNo",
-            "firstName",
-            "lastName",
-            "email",
-            "phoneNumber"
-        ];
-
-        if (!editingStudent) fields.push("password");
-
-        const errors = {};
-
-        fields.forEach((name) => {
-            const err = validateField(name, formData[name]);
-
-            if (err) {
-                errors[name] = err;
-            }
-        });
-
-        return errors;
-    };
-
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -177,6 +115,47 @@ function StudentFormModal({
         }));
 
         setFormError("");
+    };
+
+    const handleImageChange = (event) => {
+        const file = event.target.files?.[0];
+        setImageError("");
+        setFormError("");
+
+        if (!file) {
+            setSelectedImage(null);
+            updateImagePreview("");
+            return;
+        }
+
+        const extension = file.name.split(".").pop()?.toLowerCase();
+        const validImageType =
+            (extension === "png" && file.type === "image/png") ||
+            (["jpg", "jpeg"].includes(extension) &&
+                file.type === "image/jpeg");
+
+        if (!validImageType) {
+            const message = "Only PNG, JPG and JPEG images are allowed.";
+            event.target.value = "";
+            setSelectedImage(null);
+            updateImagePreview("");
+            setImageError(message);
+            setFormError(message);
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            const message = "Profile images must be 2 MB or smaller.";
+            event.target.value = "";
+            setSelectedImage(null);
+            updateImagePreview("");
+            setImageError(message);
+            setFormError(message);
+            return;
+        }
+
+        setSelectedImage(file);
+        updateImagePreview(URL.createObjectURL(file));
     };
 
 
@@ -284,6 +263,8 @@ function StudentFormModal({
         setFormError("");
         setFieldErrors({});
         setShowPassword(false);
+        setSelectedImage(null);
+        updateImagePreview("");
         onClose();
     };
 
@@ -303,56 +284,38 @@ function StudentFormModal({
         try {
             setFormLoading(true);
 
-            if (editingStudent) {
+            const studentForm = new FormData();
+            studentForm.append(
+                "registrationNo",
+                formData.registrationNo.trim()
+            );
+            studentForm.append("firstName", formData.firstName.trim());
+            studentForm.append("lastName", formData.lastName.trim());
+            studentForm.append("email", formData.email.trim());
+            studentForm.append("phoneNumber", formData.phoneNumber.trim());
 
+            if (!editingStudent) {
+                studentForm.append("password", formData.password);
+            }
+
+            if (selectedImage) {
+                studentForm.append("profileImage", selectedImage);
+            }
+
+            if (editingStudent) {
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim()
-                        })
+                        body: studentForm
                     }
                 );
-
             } else {
-
                 await apiRequest(
                     "/api/students/",
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
-
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim(),
-
-                            password:
-                                formData.password
-                        })
+                        body: studentForm
                     }
                 );
             }
@@ -566,6 +529,48 @@ function StudentFormModal({
                             </small>
                         )}
 
+                    </div>
+
+                    <div className="form-group profile-image-field">
+                        <label htmlFor="profile-image">
+                            Profile Image
+                        </label>
+
+                        <input
+                            id="profile-image"
+                            type="file"
+                            name="profileImage"
+                            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                            onChange={handleImageChange}
+                            disabled={formLoading}
+                        />
+
+                        <small>
+                            Supported formats: PNG, JPG, JPEG. Maximum size: 2 MB.
+                        </small>
+
+                        {editingStudent && !selectedImage && imagePreview && (
+                            <small>
+                                Choose a new image to replace the current profile image.
+                            </small>
+                        )}
+
+                        {imageError && (
+                            <small
+                                className="validation-error"
+                                role="alert"
+                            >
+                                {imageError}
+                            </small>
+                        )}
+
+                        {imagePreview && (
+                            <img
+                                className="profile-image-preview"
+                                src={imagePreview}
+                                alt="Student profile preview"
+                            />
+                        )}
                     </div>
 
 

@@ -49,6 +49,30 @@ const getProfileImageUrl = (profileImage) => {
     return `${apiBaseUrl}/uploads/students/${encodeURIComponent(filename)}`;
 };
 
+function StudentProfileImage({ student }) {
+    const [imageFailed, setImageFailed] = useState(false);
+    const fullName = `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim();
+    const initials = `${student.first_name?.[0] ?? ""}${student.last_name?.[0] ?? ""}`
+        .toUpperCase();
+    const imageUrl = getProfileImageUrl(student.profile_image);
+
+    return (
+        <div className="student-table-avatar">
+            {imageUrl && !imageFailed ? (
+                <img
+                    src={imageUrl}
+                    alt={fullName || "Student"}
+                    onError={() => setImageFailed(true)}
+                />
+            ) : (
+                <span aria-label={`${fullName || "Student"} profile image placeholder`}>
+                    {initials || "?"}
+                </span>
+            )}
+        </div>
+    );
+}
+
 function DashboardPage() {
     const navigate = useNavigate();
 
@@ -151,7 +175,6 @@ function DashboardPage() {
             );
 
             const email = normalizeSearchValue(student.email);
-            const email = normalizeSearchValue(student.email);
 
             return (
                 registrationNo.includes(normalizedSearchTerm) ||
@@ -208,11 +231,9 @@ function DashboardPage() {
             await loadStudents();
         } catch (error) {
             console.error("Delete student error:", error);
-            console.error("Delete student error:", error);
 
             if (error.status === 401) {
                 logout();
-                navigate("/login", { replace: true });
                 navigate("/login", { replace: true });
                 return;
             }
@@ -227,7 +248,6 @@ function DashboardPage() {
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
-        navigate("/login", { replace: true });
     };
 
     return (
@@ -239,14 +259,10 @@ function DashboardPage() {
                 <div>
                     <h1>Student Management System</h1>
                     <p>Administrator Dashboard</p>
-                    <h1>Student Management System</h1>
-                    <p>Administrator Dashboard</p>
                 </div>
 
                 <div className="dashboard-header-actions">
                     <div className="admin-info">
-                        <strong>{user?.username}</strong>
-                        <span>{user?.role}</span>
                         <strong>{user?.username}</strong>
                         <span>{user?.role}</span>
                     </div>
@@ -354,7 +370,6 @@ function DashboardPage() {
                     ) : filteredStudents.length === 0 ? (
                         <div className="students-empty">
                             <h3>No matching students found</h3>
-                            <h3>No matching students found</h3>
 
                             <p>
                                 No students match &quot;
@@ -374,6 +389,7 @@ function DashboardPage() {
                             <table className="students-table">
                                 <thead>
                                     <tr>
+                                        <th>Image</th>
                                         <th>Registration No.</th>
                                         <th>Name</th>
                                         <th>Email</th>
@@ -385,6 +401,11 @@ function DashboardPage() {
                                 <tbody>
                                     {filteredStudents.map((student) => (
                                         <tr key={student.student_id}>
+                                            <td>
+                                                <StudentProfileImage
+                                                    student={student}
+                                                />
+                                            </td>
                                             <td>
                                                 <strong>
                                                     {student.registration_no}
@@ -438,4 +459,3 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
-

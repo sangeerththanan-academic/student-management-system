@@ -10,7 +10,8 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profileImage = null
 ) => {
     const [result] = await connection.execute(
         `INSERT INTO students
@@ -31,7 +32,7 @@ const createStudent = async (
             lastName,
             email,
             phoneNumber,
-            null
+            profileImage
         ]
     );
 
@@ -98,7 +99,8 @@ const updateStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profileImage = null
 ) => {
     const [result] = await pool.execute(
         `UPDATE students
@@ -107,7 +109,8 @@ const updateStudent = async (
             first_name = ?,
             last_name = ?,
             email = ?,
-            phone_number = ?
+            phone_number = ?,
+            profile_image = COALESCE(?, profile_image)
         WHERE student_id = ?`,
         [
             registrationNo,
@@ -115,6 +118,7 @@ const updateStudent = async (
             lastName,
             email,
             phoneNumber,
+            profileImage,
             studentId
         ]
     );
@@ -216,6 +220,29 @@ const updateStudentProfileImage = async (
     return result;
 };
 
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+        FROM users
+        WHERE user_id = ?
+        LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0];
+};
+
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+        SET password_hash = ?
+        WHERE user_id = ?`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
 
 // =====================================================
 // EXPORT FUNCTIONS
@@ -227,5 +254,7 @@ module.exports = {
     getStudentByUserId,
     updateStudent,
     deleteStudent,
-    updateStudentProfileImage
+    updateStudentProfileImage,
+    getPasswordHashByUserId,
+    updatePasswordHash
 };

@@ -10,8 +10,44 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash
 } = require("../models/studentModel");
+
+const studentUploadsDirectory = path.join(
+    __dirname,
+    "../../uploads/students"
+);
+
+const removeUploadedFile = async (file) => {
+    if (!file?.path) {
+        return;
+    }
+
+    try {
+        await fs.promises.unlink(file.path);
+    } catch (error) {
+        if (error.code !== "ENOENT") {
+            console.error("Failed to remove uploaded student image:", error);
+        }
+    }
+};
+
+const removeStudentProfileImage = async (profileImage) => {
+    if (!profileImage) {
+        return;
+    }
+
+    const filename = path.basename(String(profileImage));
+    if (!/^student-(?:[a-f0-9-]+|\d+-\d+)\.(png|jpe?g)$/i.test(filename)) {
+        return;
+    }
+
+    await removeUploadedFile({
+        path: path.join(studentUploadsDirectory, filename)
+    });
+};
 
 
 // =====================================================
@@ -198,6 +234,8 @@ const addStudent = async (req, res) => {
     } = req.body;
 
     let connection;
+    let transactionStarted = false;
+    let keepUploadedFile = false;
 
     try {
 
@@ -281,8 +319,6 @@ const addStudent = async (req, res) => {
             await connection.rollback();
             transactionStarted = false;
 
-            if (req.file) removeUploadedFile(req.file);
-
             return res.status(409).json({
                 success: false,
                 message: "Registration number is already registered."
@@ -306,8 +342,6 @@ const addStudent = async (req, res) => {
         if (existingStudent.length > 0) {
             await connection.rollback();
             transactionStarted = false;
-
-            if (req.file) removeUploadedFile(req.file);
 
             return res.status(409).json({
                 success: false,
@@ -358,7 +392,8 @@ const addStudent = async (req, res) => {
             cleanFirstName,
             cleanLastName,
             cleanEmail,
-            cleanPhoneNumber
+            cleanPhoneNumber,
+            req.file ? `/uploads/students/${req.file.filename}` : null
         );
 
         // =================================================
@@ -367,6 +402,7 @@ const addStudent = async (req, res) => {
 
         await connection.commit();
         transactionStarted = false;
+        keepUploadedFile = true;
 
         // =================================================
         // SUCCESS RESPONSE
@@ -385,6 +421,9 @@ const addStudent = async (req, res) => {
                 lastName: cleanLastName,
                 email: cleanEmail,
                 phoneNumber: cleanPhoneNumber,
+                profileImage: req.file
+                    ? `/uploads/students/${req.file.filename}`
+                    : null,
                 role: "STUDENT"
             }
         });
@@ -398,8 +437,6 @@ const addStudent = async (req, res) => {
             }
         }
 
-        if (req.file) removeUploadedFile(req.file);
-
         console.error("Create student error:", error);
 
         return res.status(500).json({
@@ -408,6 +445,10 @@ const addStudent = async (req, res) => {
         });
 
     } finally {
+        if (req.file && !keepUploadedFile) {
+            await removeUploadedFile(req.file);
+        }
+
         if (connection) connection.release();
     }
 };
@@ -480,6 +521,8 @@ const getStudent = async (req, res) => {
 // =====================================================
 
 const editStudent = async (req, res) => {
+    let keepUploadedFile = false;
+
     try {
 
         const studentId =
@@ -621,8 +664,15 @@ const editStudent = async (req, res) => {
             cleanFirstName,
             cleanLastName,
             cleanEmail,
-            cleanPhoneNumber
+            cleanPhoneNumber,
+            req.file ? `/uploads/students/${req.file.filename}` : null
         );
+
+        keepUploadedFile = !req.file || result.affectedRows > 0;
+
+        if (req.file && result.affectedRows > 0) {
+            await removeStudentProfileImage(existingStudent.profile_image);
+        }
 
         return res.status(200).json({
             success: true,
@@ -639,6 +689,10 @@ const editStudent = async (req, res) => {
             success: false,
             message: "Failed to update student."
         });
+    } finally {
+        if (req.file && !keepUploadedFile) {
+            await removeUploadedFile(req.file);
+        }
     }
 };
 
@@ -670,6 +724,10 @@ const removeStudent = async (req, res) => {
         // Delete student
         const result =
             await deleteStudent(studentId);
+
+        if (result.affectedRows > 0) {
+            await removeStudentProfileImage(student.profile_image);
+        }
 
 
         return res.status(200).json({
@@ -735,6 +793,71 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+const changeStudentPassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required."
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and confirm password do not match."
+            });
+        }
+
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
+        const userId = req.user.userId;
+        const user = await getPasswordHashByUserId(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found."
+            });
+        }
+
+        const isOldPasswordValid = await bcrypt.compare(
+            oldPassword,
+            user.password_hash
+        );
+
+        if (!isOldPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Old password is incorrect."
+            });
+        }
+
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+        await updatePasswordHash(userId, newPasswordHash);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        console.error("Change student password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password."
+        });
+    }
+};
+
 
 // =====================================================
 // EXPORT CONTROLLERS
@@ -746,5 +869,6 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 };

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 import { getStoredUser, logout } from "../services/authService";
 import apiRequest from "../services/api";
 
@@ -41,6 +42,7 @@ function StudentDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [imageError, setImageError] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -84,6 +86,10 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const handleCloseChangePassword = () => {
+        setShowChangePassword(false);
+    };
+
     const profileImageUrl = getProfileImageUrl(
         student?.profile_image
     );
@@ -117,6 +123,14 @@ function StudentDashboardPage() {
 
                     {/* Student-specific Dark / Light Mode */}
                     <ThemeToggle scope="student" />
+
+                    <button
+                        type="button"
+                        className="change-password-button"
+                        onClick={() => setShowChangePassword(true)}
+                    >
+                        Change Password
+                    </button>
 
                     <button
                         type="button"
@@ -255,9 +269,14 @@ function StudentDashboardPage() {
                     )
                 )}
             </main>
+
+            {showChangePassword && (
+                <ChangeStudentPassword
+                    onClose={handleCloseChangePassword}
+                />
+            )}
         </div>
     );
 }
 
 export default StudentDashboardPage;
-

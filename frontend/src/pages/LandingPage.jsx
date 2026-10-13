@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ThemeToggle from "../components/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 
 import "../styles/landing.css";
@@ -34,11 +33,6 @@ function LandingPage() {
                 >
                     <div className="hero-container">
                         <div className="hero-content">
-
-                            <div className="landing-theme-control">
-                                <ThemeToggle scope="home" />
-                            </div>
-
                             <span className="hero-badge">
                                 ABC Institute
                             </span>
@@ -195,4 +189,3 @@ function LandingPage() {
 }
 
 export default LandingPage;
-
