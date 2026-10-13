@@ -1,4 +1,3 @@
-
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -6,12 +5,13 @@ const fs = require("fs");
 // =====================================================
 // STUDENT PROFILE IMAGE UPLOAD DIRECTORY
 // =====================================================
+
 const uploadDirectory = path.join(
     __dirname,
     "../../uploads/students"
 );
 
-// Create upload directory automatically if it doesn't exist.
+// Create directory if it does not exist
 if (!fs.existsSync(uploadDirectory)) {
     fs.mkdirSync(uploadDirectory, { recursive: true });
 }
@@ -19,6 +19,7 @@ if (!fs.existsSync(uploadDirectory)) {
 // =====================================================
 // FILE STORAGE CONFIGURATION
 // =====================================================
+
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
         callback(null, uploadDirectory);
@@ -37,6 +38,7 @@ const storage = multer.diskStorage({
 // =====================================================
 // ALLOW PNG, JPG AND JPEG ONLY
 // =====================================================
+
 const fileFilter = (req, file, callback) => {
     const allowedMimeTypes = [
         "image/png",
@@ -68,17 +70,19 @@ const fileFilter = (req, file, callback) => {
 };
 
 // =====================================================
-// MULTER UPLOAD CONFIGURATION
-// Maximum image size: 2 MB
+// MULTER CONFIGURATION
+// Maximum file size: 2 MB
 // =====================================================
+
 const uploadStudentImage = multer({
     storage,
     fileFilter,
-
     limits: {
         fileSize: 2 * 1024 * 1024,
         files: 1
     }
 });
 
+// Export the Multer instance.
+// Do not add .single() here.
 module.exports = uploadStudentImage;

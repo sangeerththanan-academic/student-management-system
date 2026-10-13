@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -51,6 +50,22 @@ app.get("/api/health", (req, res) => {
 });
 
 // =====================================================
+// VALIDATE ROUTER IMPORTS
+// =====================================================
+
+if (typeof authRoutes !== "function") {
+    throw new TypeError(
+        "authRoutes is invalid. Check backend/src/routes/authRoutes.js"
+    );
+}
+
+if (typeof studentRoutes !== "function") {
+    throw new TypeError(
+        "studentRoutes is invalid. Check backend/src/routes/studentRoutes.js"
+    );
+}
+
+// =====================================================
 // API ROUTES
 // =====================================================
 
@@ -59,13 +74,32 @@ app.use("/api/students", studentRoutes);
 
 // =====================================================
 // 404 HANDLER
-// Keep this after all valid routes.
 // =====================================================
 
 app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: "API endpoint not found"
+    });
+});
+
+// =====================================================
+// GLOBAL ERROR HANDLER
+// =====================================================
+
+app.use((err, req, res, next) => {
+    console.error("API Error:", err);
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(err.status || 500).json({
+        success: false,
+        message:
+            err.status && err.status < 500
+                ? err.message
+                : "Internal server error"
     });
 });
 
