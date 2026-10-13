@@ -1,9 +1,38 @@
 /* =========================================================
-   Global
+   Global Theme Variables — CR-012
+   ========================================================= */
+
+:root {
+    color-scheme: light;
+
+    --bg-color: #f8fafc;
+    --surface-color: #ffffff;
+    --text-color: #0f172a;
+    --muted-text: #475569;
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --table-header-bg: #f1f5f9;
+    --hover-bg: #e2e8f0;
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --footer-bg: #0f172a;
+    --footer-text: #cbd5e1;
+    --shadow-color: rgb(15 23 42 / 10%);
+}
+
+/* =========================================================
+   Global Reset
    ========================================================= */
 
 * {
     box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+    margin: 0;
 }
 
 html {
@@ -11,17 +40,41 @@ html {
 }
 
 body {
-    margin: 0;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #f8fafc;
-    color: #0f172a;
-
+    font-family: Arial, Helvetica, sans-serif;
     line-height: 1.5;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* =========================================================
+   Theme Root and Dark Theme
+   ========================================================= */
+
+.theme-root {
+    min-height: 100vh;
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.theme-root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-color: #f1f5f9;
+    --muted-text: #cbd5e1;
+    --border-color: #475569;
+    --input-bg: #334155;
+    --table-header-bg: #334155;
+    --hover-bg: #475569;
+    --primary-color: #60a5fa;
+    --primary-hover: #93c5fd;
+    --footer-bg: #020617;
+    --footer-text: #cbd5e1;
+    --shadow-color: rgb(0 0 0 / 25%);
 }
 
 button,
@@ -33,105 +86,93 @@ select {
 
 button {
     cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
 }
 
 button:disabled {
     cursor: not-allowed;
+    opacity: 0.65;
 }
 
 a {
+    color: var(--primary-color);
     text-decoration: none;
 }
 
 img {
-    max-width: 100%;
     display: block;
+    max-width: 100%;
 }
-
 
 /* =========================================================
    Navbar
    ========================================================= */
 
 .navbar {
-    background: #ffffff;
-
-    border-bottom: 1px solid #e2e8f0;
-
+    background: var(--surface-color);
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
-
     z-index: 100;
 }
 
 .navbar-container {
     width: 90%;
     max-width: 1200px;
-
     margin: 0 auto;
-
     min-height: 72px;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 30px;
 }
 
 .logo {
-    color: #0f172a;
-
+    color: var(--text-color);
     font-size: 18px;
     font-weight: 800;
 }
 
 .logo:hover {
-    color: #2563eb;
+    color: var(--primary-color);
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-
     gap: 24px;
 }
 
 .nav-link {
-    color: #475569;
-
+    color: var(--muted-text);
     font-size: 14px;
     font-weight: 600;
-
     transition: color 0.2s ease;
 }
 
 .nav-link:hover {
-    color: #2563eb;
+    color: var(--primary-color);
 }
 
 .login-button {
-    background: #2563eb;
+    background: var(--primary-color);
     color: #ffffff;
-
     padding: 10px 18px;
-
+    border: none;
     border-radius: 8px;
-
     font-size: 14px;
     font-weight: 700;
-
-    transition:
-        background 0.2s ease,
-        transform 0.2s ease;
 }
 
 .login-button:hover {
-    background: #1d4ed8;
-
+    background: var(--primary-hover);
     transform: translateY(-1px);
 }
-
 
 /* =========================================================
    Footer
@@ -139,38 +180,33 @@ img {
 
 .footer {
     margin-top: auto;
-
     padding: 24px;
-
     text-align: center;
-
-    background: #0f172a;
-
-    color: #cbd5e1;
+    background: var(--footer-bg);
+    color: var(--footer-text);
 }
 
 .footer p {
     margin: 0;
-
     font-size: 14px;
+    color: var(--footer-text);
 }
 
-
 /* =========================================================
-   Common
+   Common Layout
    ========================================================= */
 
 .page {
     min-height: 100vh;
-
     display: flex;
     flex-direction: column;
+    background: var(--bg-color);
+    color: var(--text-color);
 }
 
 .container {
     width: 90%;
     max-width: 1200px;
-
     margin: 0 auto;
 }
 

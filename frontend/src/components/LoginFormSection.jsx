@@ -1,9 +1,11 @@
 
+
 import { useState } from "react";
 
 function LoginFormSection({ onSubmit, loading, error }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (event) => {
@@ -11,12 +13,18 @@ function LoginFormSection({ onSubmit, loading, error }) {
         onSubmit(username.trim(), password);
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword((currentState) => !currentState);
+    };
+
     return (
         <section className="login-form-section">
             <div className="login-card">
                 <div className="login-heading">
                     <span>SIGN IN</span>
+                    <span>SIGN IN</span>
 
+                    <h2>Welcome back</h2>
                     <h2>Welcome back</h2>
 
                     <p>
@@ -25,7 +33,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                 </div>
 
                 {error && (
-                    <div className="login-error">
+                    <div className="login-error" role="alert">
                         {error}
                     </div>
                 )}
@@ -98,6 +106,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                         className="login-submit-button"
                         disabled={loading}
                     >
+                        {loading ? "Signing in..." : "Sign In"}
                         {loading ? "Signing in..." : "Sign In"}
                     </button>
                 </form>

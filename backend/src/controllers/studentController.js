@@ -1,4 +1,6 @@
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 
 const pool = require("../config/db");
 
@@ -186,7 +188,6 @@ const validateStudentFields = ({
 // =====================================================
 
 const addStudent = async (req, res) => {
-
     const {
         registrationNo,
         firstName,
@@ -259,9 +260,8 @@ const addStudent = async (req, res) => {
 
         connection = await pool.getConnection();
 
-
-        // Start transaction
         await connection.beginTransaction();
+        transactionStarted = true;
 
 
         // =================================================
@@ -278,12 +278,14 @@ const addStudent = async (req, res) => {
 
 
         if (existingUser.length > 0) {
-
             await connection.rollback();
+            transactionStarted = false;
+
+            if (req.file) removeUploadedFile(req.file);
 
             return res.status(409).json({
                 success: false,
-                message: "Registration number is already registered"
+                message: "Registration number is already registered."
             });
         }
 
@@ -302,12 +304,14 @@ const addStudent = async (req, res) => {
 
 
         if (existingStudent.length > 0) {
-
             await connection.rollback();
+            transactionStarted = false;
+
+            if (req.file) removeUploadedFile(req.file);
 
             return res.status(409).json({
                 success: false,
-                message: "Email address is already registered"
+                message: "Email address is already registered."
             });
         }
 
@@ -357,13 +361,12 @@ const addStudent = async (req, res) => {
             cleanPhoneNumber
         );
 
-
         // =================================================
         // COMMIT TRANSACTION
         // =================================================
 
         await connection.commit();
-
+        transactionStarted = false;
 
         // =================================================
         // SUCCESS RESPONSE
@@ -387,25 +390,25 @@ const addStudent = async (req, res) => {
         });
 
     } catch (error) {
-
-        // Rollback if transaction started
-        if (connection) {
-            await connection.rollback();
+        if (connection && transactionStarted) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error("Transaction rollback error:", rollbackError);
+            }
         }
+
+        if (req.file) removeUploadedFile(req.file);
 
         console.error("Create student error:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to create student"
+            message: "Failed to create student."
         });
 
     } finally {
-
-        // Release connection
-        if (connection) {
-            connection.release();
-        }
+        if (connection) connection.release();
     }
 };
 
@@ -415,9 +418,7 @@ const addStudent = async (req, res) => {
 // =====================================================
 
 const getStudents = async (req, res) => {
-
     try {
-
         const students = await getAllStudents();
 
         return res.status(200).json({
@@ -427,12 +428,11 @@ const getStudents = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error("Get students error:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve students"
+            message: "Failed to retrieve students."
         });
     }
 };
@@ -443,7 +443,6 @@ const getStudents = async (req, res) => {
 // =====================================================
 
 const getStudent = async (req, res) => {
-
     try {
 
         const studentId = req.params.id;
@@ -453,10 +452,9 @@ const getStudent = async (req, res) => {
 
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
-                message: "Student not found"
+                message: "Student not found."
             });
         }
 
@@ -467,12 +465,11 @@ const getStudent = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error("Get student error:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve student"
+            message: "Failed to retrieve student."
         });
     }
 };
@@ -483,7 +480,6 @@ const getStudent = async (req, res) => {
 // =====================================================
 
 const editStudent = async (req, res) => {
-
     try {
 
         const studentId =
@@ -552,10 +548,9 @@ const editStudent = async (req, res) => {
 
 
         if (!existingStudent) {
-
             return res.status(404).json({
                 success: false,
-                message: "Student not found"
+                message: "Student not found."
             });
         }
 
@@ -629,7 +624,6 @@ const editStudent = async (req, res) => {
             cleanPhoneNumber
         );
 
-
         return res.status(200).json({
             success: true,
             message:
@@ -639,20 +633,11 @@ const editStudent = async (req, res) => {
         });
 
     } catch (error) {
-
-        if (error.code === "ER_DUP_ENTRY") {
-            const isEmail = error.message && error.message.toLowerCase().includes("email");
-            return res.status(409).json({
-                success: false,
-                message: isEmail ? "Email address is already registered" : "Registration number is already registered"
-            });
-        }
-
         console.error("Update student error:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to update student"
+            message: "Failed to update student."
         });
     }
 };
@@ -663,7 +648,6 @@ const editStudent = async (req, res) => {
 // =====================================================
 
 const removeStudent = async (req, res) => {
-
     try {
 
         const studentId =
@@ -676,10 +660,9 @@ const removeStudent = async (req, res) => {
 
 
         if (!student) {
-
             return res.status(404).json({
                 success: false,
-                message: "Student not found"
+                message: "Student not found."
             });
         }
 
@@ -698,12 +681,11 @@ const removeStudent = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error("Delete student error:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to delete student"
+            message: "Failed to delete student."
         });
     }
 };

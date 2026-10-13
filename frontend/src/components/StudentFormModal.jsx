@@ -1,6 +1,26 @@
 import { useEffect, useState } from "react";
-
 import apiRequest from "../services/api";
+
+const getProfileImageUrl = (profileImage) => {
+    if (!profileImage) return "";
+
+    if (
+        profileImage.startsWith("http://") ||
+        profileImage.startsWith("https://")
+    ) {
+        return profileImage;
+    }
+
+    const apiBaseUrl = (
+        import.meta.env.VITE_API_URL || "http://localhost:5000"
+    ).replace(/\/$/, "");
+
+    if (profileImage.startsWith("/")) {
+        return `${apiBaseUrl}${profileImage}`;
+    }
+
+    return `${apiBaseUrl}/uploads/students/${profileImage}`;
+};
 
 function StudentFormModal({
     show,
@@ -9,7 +29,6 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-
     const [formData, setFormData] = useState({
         registrationNo: "",
         firstName: "",
@@ -24,7 +43,7 @@ function StudentFormModal({
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
 
-    // Reset form when editingStudent changes or modal opens
+    // Load student details and current image when the modal opens.
     useEffect(() => {
         if (!show) return;
 
@@ -37,6 +56,10 @@ function StudentFormModal({
                 phoneNumber: editingStudent.phone_number || "",
                 password: ""
             });
+
+            setImagePreview(
+                getProfileImageUrl(editingStudent.profile_image)
+            );
         } else {
             setFormData({
                 registrationNo: "",
@@ -46,6 +69,8 @@ function StudentFormModal({
                 phoneNumber: "",
                 password: ""
             });
+
+            setImagePreview("");
         }
 
         setFormError("");
@@ -253,18 +278,17 @@ function StudentFormModal({
         return Object.keys(errors).length === 0;
     };
 
-
     const handleClose = () => {
+        if (formLoading) return;
+
         setFormError("");
         setFieldErrors({});
         setShowPassword(false);
         onClose();
     };
 
-
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         setFormError("");
 
         const isValid = validateForm();
@@ -352,15 +376,11 @@ function StudentFormModal({
                 return;
             }
 
-            setFormError(
-                error.message || "Failed to save student."
-            );
-
+            setFormError(error.message || "Failed to save student.");
         } finally {
             setFormLoading(false);
         }
     };
-
 
     if (!show) return null;
 

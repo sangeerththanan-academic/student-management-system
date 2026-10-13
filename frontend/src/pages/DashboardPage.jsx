@@ -16,12 +16,37 @@ import StudentFormModal from "../components/StudentFormModal";
 
 import "../styles/dashboard.css";
 
-// Normalizes text for case-insensitive search with space handling.
 const normalizeSearchValue = (value) => {
     return String(value ?? "")
         .toLowerCase()
         .trim()
         .replace(/\s+/g, " ");
+};
+
+// Build the image URL from the backend's public uploads route.
+const getProfileImageUrl = (profileImage) => {
+    if (!profileImage) {
+        return null;
+    }
+
+    // Supports either a stored filename or /uploads/students/filename.
+    const imagePath = String(profileImage).replace(/\\/g, "/");
+
+    if (/^https?:\/\//i.test(imagePath)) {
+        return imagePath;
+    }
+
+    const filename = imagePath.split("/").filter(Boolean).pop();
+
+    if (!filename) {
+        return null;
+    }
+
+    const apiBaseUrl = (
+        import.meta.env.VITE_API_URL || "http://localhost:5000"
+    ).replace(/\/+$/, "");
+
+    return `${apiBaseUrl}/uploads/students/${encodeURIComponent(filename)}`;
 };
 
 function DashboardPage() {
@@ -41,7 +66,6 @@ function DashboardPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // Load current user
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -60,6 +84,7 @@ function DashboardPage() {
                 if (error.status === 401) {
                     logout();
                     navigate("/login", { replace: true });
+                    navigate("/login", { replace: true });
                 }
             }
         };
@@ -73,12 +98,9 @@ function DashboardPage() {
             setLoading(true);
             setError("");
 
-            const data = await apiRequest(
-                "/api/students/",
-                {
-                    method: "GET"
-                }
-            );
+            const data = await apiRequest("/api/students/", {
+                method: "GET"
+            });
 
             setStudents(data.students || []);
         } catch (error) {
@@ -86,6 +108,7 @@ function DashboardPage() {
 
             if (error.status === 401) {
                 logout();
+                navigate("/login", { replace: true });
                 navigate("/login", { replace: true });
                 return;
             }
@@ -119,22 +142,15 @@ function DashboardPage() {
         }
 
         return students.filter((student) => {
-            const registrationNo = normalizeSearchValue(
-                student.registration_no
-            );
-
-            const firstName = normalizeSearchValue(
-                student.first_name
-            );
-
-            const lastName = normalizeSearchValue(
-                student.last_name
-            );
+            const registrationNo = normalizeSearchValue(student.registration_no);
+            const firstName = normalizeSearchValue(student.first_name);
+            const lastName = normalizeSearchValue(student.last_name);
 
             const fullName = normalizeSearchValue(
                 `${student.first_name ?? ""} ${student.last_name ?? ""}`
             );
 
+            const email = normalizeSearchValue(student.email);
             const email = normalizeSearchValue(student.email);
 
             return (
@@ -185,19 +201,18 @@ function DashboardPage() {
         try {
             setError("");
 
-            await apiRequest(
-                `/api/students/${studentId}`,
-                {
-                    method: "DELETE"
-                }
-            );
+            await apiRequest(`/api/students/${studentId}`, {
+                method: "DELETE"
+            });
 
             await loadStudents();
         } catch (error) {
             console.error("Delete student error:", error);
+            console.error("Delete student error:", error);
 
             if (error.status === 401) {
                 logout();
+                navigate("/login", { replace: true });
                 navigate("/login", { replace: true });
                 return;
             }
@@ -212,6 +227,7 @@ function DashboardPage() {
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
+        navigate("/login", { replace: true });
     };
 
     return (
@@ -223,10 +239,14 @@ function DashboardPage() {
                 <div>
                     <h1>Student Management System</h1>
                     <p>Administrator Dashboard</p>
+                    <h1>Student Management System</h1>
+                    <p>Administrator Dashboard</p>
                 </div>
 
                 <div className="dashboard-header-actions">
                     <div className="admin-info">
+                        <strong>{user?.username}</strong>
+                        <span>{user?.role}</span>
                         <strong>{user?.username}</strong>
                         <span>{user?.role}</span>
                     </div>
@@ -287,9 +307,7 @@ function DashboardPage() {
                         placeholder="Search by registration number, name, or email..."
                         aria-label="Search students by registration number, name, or email"
                         value={searchTerm}
-                        onChange={(event) =>
-                            setSearchTerm(event.target.value)
-                        }
+                        onChange={(event) => setSearchTerm(event.target.value)}
                     />
 
                     {searchTerm !== "" && (
@@ -336,6 +354,7 @@ function DashboardPage() {
                     ) : filteredStudents.length === 0 ? (
                         <div className="students-empty">
                             <h3>No matching students found</h3>
+                            <h3>No matching students found</h3>
 
                             <p>
                                 No students match &quot;
@@ -372,10 +391,10 @@ function DashboardPage() {
                                                 </strong>
                                             </td>
 
-                                            <td>
-                                                {student.first_name}{" "}
-                                                {student.last_name}
-                                            </td>
+                                                <td>
+                                                    {student.first_name}{" "}
+                                                    {student.last_name}
+                                                </td>
 
                                             <td>{student.email}</td>
 
