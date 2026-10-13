@@ -1,3 +1,4 @@
+
 const pool = require("../config/db");
 
 // =====================================================
@@ -38,30 +39,32 @@ const createStudent = async (
     return result.insertId;
 };
 
-
 // =====================================================
 // GET ALL STUDENTS
+// Includes last_login from the linked user account.
 // =====================================================
 const getAllStudents = async () => {
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            profile_image,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_image,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON s.user_id = u.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;
 };
-
 
 // =====================================================
 // GET STUDENT BY ID
@@ -85,9 +88,8 @@ const getStudentById = async (studentId) => {
         [studentId]
     );
 
-    return rows[0];
+    return rows[0] || null;
 };
-
 
 // =====================================================
 // UPDATE STUDENT
@@ -102,13 +104,13 @@ const updateStudent = async (
 ) => {
     const [result] = await pool.execute(
         `UPDATE students
-        SET
+         SET
             registration_no = ?,
             first_name = ?,
             last_name = ?,
             email = ?,
             phone_number = ?
-        WHERE student_id = ?`,
+         WHERE student_id = ?`,
         [
             registrationNo,
             firstName,
@@ -122,7 +124,6 @@ const updateStudent = async (
     return result;
 };
 
-
 // =====================================================
 // DELETE STUDENT + LINKED USER ACCOUNT
 // =====================================================
@@ -134,9 +135,9 @@ const deleteStudent = async (studentId) => {
 
         const [rows] = await connection.execute(
             `SELECT user_id
-            FROM students
-            WHERE student_id = ?
-            LIMIT 1`,
+             FROM students
+             WHERE student_id = ?
+             LIMIT 1`,
             [studentId]
         );
 
@@ -147,17 +148,15 @@ const deleteStudent = async (studentId) => {
 
         const userId = rows[0].user_id;
 
-        // Delete the student before deleting the linked user.
         const [studentResult] = await connection.execute(
             `DELETE FROM students
-            WHERE student_id = ?`,
+             WHERE student_id = ?`,
             [studentId]
         );
 
-        // Delete the linked login account.
         await connection.execute(
             `DELETE FROM users
-            WHERE user_id = ?`,
+             WHERE user_id = ?`,
             [userId]
         );
 
@@ -171,7 +170,6 @@ const deleteStudent = async (studentId) => {
         connection.release();
     }
 };
-
 
 // =====================================================
 // GET STUDENT BY USER ID
@@ -189,15 +187,14 @@ const getStudentByUserId = async (userId) => {
             profile_image,
             created_at,
             updated_at
-        FROM students
-        WHERE user_id = ?
-        LIMIT 1`,
+         FROM students
+         WHERE user_id = ?
+         LIMIT 1`,
         [userId]
     );
 
-    return rows[0];
+    return rows[0] || null;
 };
-
 
 // =====================================================
 // UPDATE STUDENT PROFILE IMAGE
@@ -208,14 +205,13 @@ const updateStudentProfileImage = async (
 ) => {
     const [result] = await pool.execute(
         `UPDATE students
-        SET profile_image = ?
-        WHERE student_id = ?`,
+         SET profile_image = ?
+         WHERE student_id = ?`,
         [profileImage, studentId]
     );
 
     return result;
 };
-
 
 // =====================================================
 // EXPORT FUNCTIONS
