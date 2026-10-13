@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
@@ -10,6 +9,11 @@ const {
     updateStudent,
     deleteStudent
 } = require("../models/studentModel");
+
+const {
+    getPasswordHashByUserId,
+    updatePasswordHash
+} = require("../models/userModel");
 
 const { validateStudentData } = require("../utils/validation");
 
@@ -80,7 +84,7 @@ const validatePassword = (password) => {
         return "Password must contain at least one number";
     }
 
-    if (!/[@$!%*?&]/.test(password)) {
+    if (!/[^A-Za-z0-9]/.test(password)) {
         return "Password must contain at least one special character";
     }
 
@@ -105,7 +109,6 @@ const addStudent = async (req, res) => {
     let connection;
 
     try {
-        // Validate required fields and CR-004 rules
         const validation = validateStudentData(req.body, false);
 
         if (!validation.isValid) {
@@ -116,7 +119,10 @@ const addStudent = async (req, res) => {
             });
         }
 
-        if (typeof registrationNo !== "string" || !registrationNo.trim()) {
+        if (
+            typeof registrationNo !== "string" ||
+            !registrationNo.trim()
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Registration number is required"
@@ -171,7 +177,6 @@ const addStudent = async (req, res) => {
         connection = await pool.getConnection();
         await connection.beginTransaction();
 
-        // Check duplicate registration number
         const [existingUser] = await connection.execute(
             `SELECT user_id
              FROM users
@@ -189,7 +194,6 @@ const addStudent = async (req, res) => {
             });
         }
 
-        // Check duplicate email
         const [existingStudent] = await connection.execute(
             `SELECT student_id
              FROM students
@@ -207,20 +211,16 @@ const addStudent = async (req, res) => {
             });
         }
 
-        // Hash password
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Create user account
         const [userResult] = await connection.execute(
-            `INSERT INTO users
-                (username, password_hash, role)
+            `INSERT INTO users (username, password_hash, role)
              VALUES (?, ?, 'STUDENT')`,
             [registrationNo.trim(), passwordHash]
         );
 
         const userId = userResult.insertId;
 
-        // Create student profile
         const studentId = await createStudent(
             connection,
             userId,
@@ -252,11 +252,11 @@ const addStudent = async (req, res) => {
             try {
                 await connection.rollback();
             } catch (rollbackError) {
-                console.error("Transaction rollback error:", rollbackError);
+                console.error("Transaction rollback error:", rollbackError.message);
             }
         }
 
-        console.error("Create student error:", error);
+        console.error("Create student error:", error.message);
 
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(409).json({
@@ -291,7 +291,7 @@ const getStudents = async (req, res) => {
             students
         });
     } catch (error) {
-        console.error("Get students error:", error);
+        console.error("Get students error:", error.message);
 
         return res.status(500).json({
             success: false,
@@ -307,8 +307,7 @@ const getStudents = async (req, res) => {
 
 const getStudent = async (req, res) => {
     try {
-        const studentId = req.params.id;
-        const student = await getStudentById(studentId);
+        const student = await getStudentById(req.params.id);
 
         if (!student) {
             return res.status(404).json({
@@ -322,7 +321,7 @@ const getStudent = async (req, res) => {
             student
         });
     } catch (error) {
-        console.error("Get student error:", error);
+        console.error("Get student error:", error.message);
 
         return res.status(500).json({
             success: false,
@@ -332,7 +331,7 @@ const getStudent = async (req, res) => {
 };
 
 // =====================================================
-// UPDATE STUDENT
+// UPDATE STUDENT PROFILE
 // PUT /api/students/:id
 // =====================================================
 
@@ -348,7 +347,6 @@ const editStudent = async (req, res) => {
             phoneNumber
         } = req.body;
 
-        // Validate update data
         const validation = validateStudentData(req.body, true);
 
         if (!validation.isValid) {
@@ -359,7 +357,10 @@ const editStudent = async (req, res) => {
             });
         }
 
-        if (typeof registrationNo !== "string" || !registrationNo.trim()) {
+        if (
+            typeof registrationNo !== "string" ||
+            !registrationNo.trim()
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Registration number is required"
@@ -426,7 +427,7 @@ const editStudent = async (req, res) => {
             affectedRows: result.affectedRows
         });
     } catch (error) {
-        console.error("Update student error:", error);
+        console.error("Update student error:", error.message);
 
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(409).json({
@@ -467,7 +468,7 @@ const removeStudent = async (req, res) => {
             affectedRows: result.affectedRows
         });
     } catch (error) {
-        console.error("Delete student error:", error);
+        console.error("Delete student error:", error.message);
 
         return res.status(500).json({
             success: false,
@@ -497,11 +498,114 @@ const getMyProfile = async (req, res) => {
             student
         });
     } catch (error) {
-        console.error("Get my profile error:", error);
+        console.error("Get my profile error:", error.message);
 
         return res.status(500).json({
             success: false,
             message: "Failed to retrieve profile"
+        });
+    }
+};
+
+// =====================================================
+// CR-020: CHANGE LOGGED-IN STUDENT PASSWORD
+// PATCH /api/students/me/password
+// =====================================================
+
+const changeMyPassword = async (req, res) => {
+    try {
+        const {
+            currentPassword,
+            newPassword,
+            confirmPassword
+        } = req.body || {};
+
+        if (
+            typeof currentPassword !== "string" ||
+            !currentPassword ||
+            typeof newPassword !== "string" ||
+            !newPassword ||
+            typeof confirmPassword !== "string" ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required"
+            });
+        }
+
+        const passwordError = validatePassword(newPassword);
+
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and confirmation password do not match"
+            });
+        }
+
+        if (currentPassword === newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different from current password"
+            });
+        }
+
+        // Never trust a user ID sent by the frontend.
+        const userId = req.user.userId;
+
+        const account = await getPasswordHashByUserId(userId);
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found"
+            });
+        }
+
+        const currentPasswordMatches = await bcrypt.compare(
+            currentPassword,
+            account.password_hash
+        );
+
+        if (!currentPasswordMatches) {
+            return res.status(401).json({
+                success: false,
+                message: "Current password is incorrect"
+            });
+        }
+
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+        const result = await updatePasswordHash(
+            userId,
+            newPasswordHash
+        );
+
+        if (!result.affectedRows) {
+            return res.status(500).json({
+                success: false,
+                message: "Password could not be updated"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+    } catch (error) {
+        // Do not log passwords or password hashes.
+        console.error("Change student password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password"
         });
     }
 };
@@ -516,5 +620,6 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword
 };
