@@ -1,3 +1,4 @@
+
 import {
     BrowserRouter,
     Routes,
@@ -12,21 +13,12 @@ import StudentDashboardPage from "../pages/StudentDashboardPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
-
     return (
         <BrowserRouter>
-
             <Routes>
+                <Route path="/" element={<LandingPage />} />
 
-                <Route
-                    path="/"
-                    element={<LandingPage />}
-                />
-
-                <Route
-                    path="/login"
-                    element={<LoginPage />}
-                />
+                <Route path="/login" element={<LoginPage />} />
 
                 <Route
                     path="/dashboard"
@@ -45,9 +37,7 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
-
             </Routes>
-
         </BrowserRouter>
     );
 }
