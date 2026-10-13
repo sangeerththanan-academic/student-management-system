@@ -21,6 +21,22 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
+// Formats a last_login timestamp into a readable string (FR-005, FR-006).
+// Returns "Never logged in" when the value is null or undefined.
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) {
+        return "Never logged in";
+    }
+
+    return new Date(lastLogin).toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+};
+
 function DashboardPage() {
     const navigate = useNavigate();
 
@@ -438,6 +454,10 @@ function DashboardPage() {
                                         </th>
 
                                         <th>
+                                            Last Login
+                                        </th>
+
+                                        <th>
                                             Actions
                                         </th>
                                     </tr>
@@ -468,6 +488,10 @@ function DashboardPage() {
 
                                             <td>
                                                 {student.phone_number}
+                                            </td>
+
+                                            <td>
+                                                {formatLastLogin(student.last_login)}
                                             </td>
 
                                             <td>
