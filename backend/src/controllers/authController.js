@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 
 const {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 } = require("../models/userModel");
 
 const login = async (req, res) => {
@@ -28,31 +29,34 @@ const login = async (req, res) => {
             });
         }
 
-        // Compare password
-        const passwordMatch = await bcrypt.compare(
-            password,
-            user.password_hash
-        );
+       // Compare password
+const passwordMatch = await bcrypt.compare(
+    password,
+    user.password_hash
+);
 
-        if (!passwordMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid username or password"
-            });
-        }
+if (!passwordMatch) {
+    return res.status(401).json({
+        success: false,
+        message: "Invalid username or password"
+    });
+}
 
-        // Create JWT
-        const token = jwt.sign(
-            {
-                userId: user.user_id,
-                username: user.username,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: process.env.JWT_EXPIRES_IN || "1d"
-            }
-        );
+// Update last login only after valid password
+await updateLastLogin(user.user_id);
+
+// Create JWT
+const token = jwt.sign(
+    {
+        userId: user.user_id,
+        username: user.username,
+        role: user.role
+    },
+    process.env.JWT_SECRET,
+    {
+        expiresIn: process.env.JWT_EXPIRES_IN || "1d"
+    }
+);
 
         return res.status(200).json({
             success: true,

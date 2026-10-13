@@ -353,15 +353,16 @@ function DashboardPage() {
                     ) : (
                         <div className="students-table-wrapper">
                             <table className="students-table">
-                                <thead>
-                                    <tr>
-                                        <th>Registration No.</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                               <thead>
+    <tr>
+        <th>Registration No.</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Last Login</th>
+        <th>Actions</th>
+    </tr>
+</thead>
 
                                 <tbody>
                                     {filteredStudents.map((student) => (
@@ -379,33 +380,37 @@ function DashboardPage() {
 
                                             <td>{student.email}</td>
 
-                                            <td>{student.phone_number}</td>
+<td>{student.phone_number}</td>
 
-                                            <td>
-                                                <div className="student-actions">
-                                                    <button
-                                                        type="button"
-                                                        className="edit-button"
-                                                        onClick={() =>
-                                                            openEditForm(student)
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </button>
+<td>
+    {student.last_login
+        ? new Date(
+            student.last_login
+        ).toLocaleString()
+        : "Never logged in"}
+</td>
 
-                                                    <button
-                                                        type="button"
-                                                        className="delete-button"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                student.student_id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
+<td>
+    <div className="student-actions">
+        <button
+            type="button"
+            className="edit-button"
+            onClick={() => openEditForm(student)}
+        >
+            Edit
+        </button>
+
+        <button
+            type="button"
+            className="delete-button"
+            onClick={() =>
+                handleDelete(student.student_id)
+            }
+        >
+            Delete
+        </button>
+    </div>
+</td>
                                         </tr>
                                     ))}
                                 </tbody>

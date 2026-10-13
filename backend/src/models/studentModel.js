@@ -38,20 +38,22 @@ const createStudent = async (
 
 // GET ALL STUDENTS
 const getAllStudents = async () => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            students.created_at,
+            students.updated_at,
+            users.last_login
+         FROM students
+         INNER JOIN users
+            ON students.user_id = users.user_id
+         ORDER BY students.student_id DESC`
     );
 
     return rows;
@@ -60,21 +62,23 @@ const getAllStudents = async () => {
 
 // GET STUDENT BY ID
 const getStudentById = async (studentId) => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE student_id = ?
-        LIMIT 1`,
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            students.created_at,
+            students.updated_at,
+            users.last_login
+         FROM students
+         INNER JOIN users
+            ON students.user_id = users.user_id
+         WHERE students.student_id = ?
+         LIMIT 1`,
         [studentId]
     );
 
@@ -115,36 +119,90 @@ const updateStudent = async (
 };
 
 
-// DELETE STUDENT
+
+ // DELETE STUDENT AND RELATED USER ACCOUNT
 const deleteStudent = async (studentId) => {
 
-    const [result] = await pool.execute(
-        `DELETE FROM students
-        WHERE student_id = ?`,
-        [studentId]
-    );
+    const connection = await pool.getConnection();
 
-    return result;
+    try {
+        // Start transaction
+        await connection.beginTransaction();
+
+        // Find the user account linked to this student
+        const [students] = await connection.execute(
+            `SELECT user_id
+             FROM students
+             WHERE student_id = ?
+             LIMIT 1`,
+            [studentId]
+        );
+
+        // Student does not exist
+        if (students.length === 0) {
+            await connection.rollback();
+
+            return {
+                affectedRows: 0
+            };
+        }
+
+        const userId = students[0].user_id;
+
+        // Delete student record first
+        const [studentResult] = await connection.execute(
+            `DELETE FROM students
+             WHERE student_id = ?`,
+            [studentId]
+        );
+
+        // Delete the linked user account
+        await connection.execute(
+            `DELETE FROM users
+             WHERE user_id = ?`,
+            [userId]
+        );
+
+        // Save both deletions
+        await connection.commit();
+
+        return studentResult;
+
+    } catch (error) {
+
+        // Undo changes if anything fails
+        await connection.rollback();
+
+        throw error;
+
+    } finally {
+
+        // Release database connection
+        connection.release();
+    }
 };
+
 
 
 // GET STUDENT BY USER ID
 const getStudentByUserId = async (userId) => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE user_id = ?
-        LIMIT 1`,
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            students.created_at,
+            students.updated_at,
+            users.last_login
+         FROM students
+         INNER JOIN users
+            ON students.user_id = users.user_id
+         WHERE students.user_id = ?
+         LIMIT 1`,
         [userId]
     );
 
