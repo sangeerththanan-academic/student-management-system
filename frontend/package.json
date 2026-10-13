@@ -25,7 +25,6 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
-<<<<<<< HEAD
     "vite": "^8.2.2"
   },
   "main": "eslint.config.js",
@@ -33,8 +32,4 @@
   "author": "",
   "license": "ISC",
   "description": ""
-=======
-    "vite": "^8.3.3"
-  }
->>>>>>> JFICT32/CR016
 }
