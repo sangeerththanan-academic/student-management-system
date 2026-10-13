@@ -71,3 +71,5 @@ CREATE TABLE IF NOT EXISTS students (
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
 -- ============================================================
+ALTER TABLE users
+ADD COLUMN last_login DATETIME NULL DEFAULT NULL;
