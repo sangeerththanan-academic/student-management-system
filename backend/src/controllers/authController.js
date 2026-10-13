@@ -1,9 +1,11 @@
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 } = require("../models/userModel");
 
 const login = async (req, res) => {
@@ -28,7 +30,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Compare password
+        // Verify password
         const passwordMatch = await bcrypt.compare(
             password,
             user.password_hash
@@ -41,7 +43,12 @@ const login = async (req, res) => {
             });
         }
 
-        // Create JWT
+        // CR033: Update timestamp only after successful student login
+        if (user.role === "STUDENT") {
+            await updateLastLogin(user.user_id);
+        }
+
+        // Generate JWT using existing configuration
         const token = jwt.sign(
             {
                 userId: user.user_id,
@@ -54,6 +61,7 @@ const login = async (req, res) => {
             }
         );
 
+        // Preserve existing login response
         return res.status(200).json({
             success: true,
             message: "Login successful",
