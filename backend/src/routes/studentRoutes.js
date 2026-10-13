@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 
 const {
     addStudent,
@@ -10,37 +9,76 @@ const {
     removeStudent
 } = require("../controllers/studentController");
 
-const { authenticate } = require("../middleware/authMiddleware");
+const {
+    authenticate,
+    authorizeRoles
+} = require("../middleware/authMiddleware");
 
-const uploadStudentImage =
-    require("../middleware/studentUploadMiddleware");
+const router = express.Router();
+const { uploadStudentImage } = require("../middleware/studentImageUpload");
 
-// GET /api/students/me
-router.get("/me", authenticate, getMyProfile);
 
-// GET /api/students
-router.get("/", authenticate, getStudents);
+// STUDENT ROUTES
 
-// GET /api/students/:id
-router.get("/:id", authenticate, getStudent);
+// Get current student's own profile
+router.get(
+    "/me",
+    authenticate,
+    getMyProfile
+);
 
-// POST /api/students
+
+// Create student
+// Administrator only
 router.post(
     "/",
     authenticate,
-    uploadStudentImage.single("profileImage"),
+    authorizeRoles("ADMIN"),
+    uploadStudentImage,
     addStudent
 );
 
-// PUT /api/students/:id
+
+// Get all students
+// Administrator only
+router.get(
+    "/",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    getStudents
+);
+
+
+// Get student by ID
+// Administrator only
+router.get(
+    "/:id",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    getStudent
+);
+
+
+// Update student
+// Administrator only
 router.put(
     "/:id",
     authenticate,
-    uploadStudentImage.single("profileImage"),
+    authorizeRoles("ADMIN"),
     editStudent
 );
 
-// DELETE /api/students/:id
-router.delete("/:id", authenticate, removeStudent);
+
+// Delete student
+// Administrator only
+router.delete(
+    "/:id",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    removeStudent
+);
+
 
 module.exports = router;
+
+

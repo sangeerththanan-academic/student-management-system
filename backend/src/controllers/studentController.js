@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
-const path = require("path");
 
 const pool = require("../config/db");
 
@@ -13,21 +12,7 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
-// Remove an uploaded file if student creation fails
-const removeUploadedFile = (file) => {
-    if (!file?.path) return;
-
-    fs.unlink(file.path, (error) => {
-        if (error && error.code !== "ENOENT") {
-            console.error("Failed to remove uploaded image:", error);
-        }
-    });
-};
-
-// Return a relative image URL for the frontend
-const getProfileImageUrl = (filename) => {
-    return filename ? `/uploads/students/${filename}` : null;
-};
+const { validateStudentData } = require("../utils/validation");
 
 
 // ============================================================
@@ -219,7 +204,14 @@ const validateStudentInput = ({
 // POST /api/students/
 // ============================================================
 
+const removeUploadedImage = async (file) => {
+    if (file?.path) {
+        await fs.promises.unlink(file.path).catch(() => {});
+    }
+};
+
 const addStudent = async (req, res) => {
+
     const {
         registrationNo,
         firstName,
@@ -251,6 +243,7 @@ const addStudent = async (req, res) => {
 
 
         if (Object.keys(validationErrors).length > 0) {
+            await removeUploadedImage(req.file);
 
             return res.status(400).json({
                 success: false,
@@ -267,25 +260,30 @@ const addStudent = async (req, res) => {
 
         connection = await pool.getConnection();
 
+
+        // Start transaction
         await connection.beginTransaction();
-        transactionStarted = true;
 
 
-        // Check duplicate username
-        const [existingUser] = await connection.execute(
-            `SELECT user_id
-             FROM users
-             WHERE username = ?
-             LIMIT 1`,
-            [registrationNo]
-        );
+        // ----------------------------------------------------
+        // Check duplicate registration number
+        // ----------------------------------------------------
+
+        const [existingUser] =
+            await connection.execute(
+                `SELECT user_id
+                 FROM users
+                 WHERE username = ?
+                 LIMIT 1`,
+                [
+                    registrationNo.trim()
+                ]
+            );
 
 
         if (existingUser.length > 0) {
+            await removeUploadedImage(req.file);
             await connection.rollback();
-            transactionStarted = false;
-
-            if (req.file) removeUploadedFile(req.file);
 
             return res.status(409).json({
                 success: false,
@@ -294,22 +292,26 @@ const addStudent = async (req, res) => {
             });
         }
 
+
         // ----------------------------------------------------
         // Check duplicate email
-        const [existingStudent] = await connection.execute(
-            `SELECT student_id
-             FROM students
-             WHERE email = ?
-             LIMIT 1`,
-            [email]
-        );
+        // ----------------------------------------------------
+
+        const [existingStudent] =
+            await connection.execute(
+                `SELECT student_id
+                 FROM students
+                 WHERE email = ?
+                 LIMIT 1`,
+                [
+                    email.trim()
+                ]
+            );
 
 
         if (existingStudent.length > 0) {
+            await removeUploadedImage(req.file);
             await connection.rollback();
-            transactionStarted = false;
-
-            if (req.file) removeUploadedFile(req.file);
 
             return res.status(409).json({
                 success: false,
@@ -363,7 +365,8 @@ const addStudent = async (req, res) => {
                 firstName.trim(),
                 lastName.trim(),
                 email.trim(),
-                phoneNumber.trim()
+                phoneNumber.trim(),
+                req.file ? `/uploads/students/${req.file.filename}` : null
             );
 
 
@@ -372,7 +375,7 @@ const addStudent = async (req, res) => {
         // ----------------------------------------------------
 
         await connection.commit();
-        transactionStarted = false;
+
 
         // ----------------------------------------------------
         // Success response
@@ -398,6 +401,7 @@ const addStudent = async (req, res) => {
                     email.trim(),
                 phoneNumber:
                     phoneNumber.trim(),
+                profilePhoto: req.file ? `/uploads/students/${req.file.filename}` : null,
                 role: "STUDENT"
             }
         });
@@ -407,11 +411,10 @@ const addStudent = async (req, res) => {
 
         // Rollback if transaction started
         if (connection) {
-
-            await connection.rollback();
+            await connection.rollback().catch(() => {});
         }
 
-        if (req.file) removeUploadedFile(req.file);
+        await removeUploadedImage(req.file);
 
         console.error(
             "Create student error:",
@@ -445,6 +448,7 @@ const addStudent = async (req, res) => {
 // ============================================================
 
 const getStudents = async (req, res) => {
+
     try {
 
         const students =
@@ -486,6 +490,7 @@ const getStudents = async (req, res) => {
 // ============================================================
 
 const getStudent = async (req, res) => {
+
     try {
 
         const studentId =
@@ -497,6 +502,7 @@ const getStudent = async (req, res) => {
 
 
         if (!student) {
+
             return res.status(404).json({
 
                 success: false,
@@ -540,6 +546,7 @@ const getStudent = async (req, res) => {
 // ============================================================
 
 const editStudent = async (req, res) => {
+
     try {
 
         const studentId =
@@ -596,6 +603,7 @@ const editStudent = async (req, res) => {
 
 
         if (!existingStudent) {
+
             return res.status(404).json({
 
                 success: false,
@@ -679,6 +687,7 @@ const editStudent = async (req, res) => {
 // ============================================================
 
 const removeStudent = async (req, res) => {
+
     try {
 
         const studentId =
@@ -691,6 +700,7 @@ const removeStudent = async (req, res) => {
 
 
         if (!student) {
+
             return res.status(404).json({
 
                 success: false,
@@ -808,3 +818,4 @@ module.exports = {
 
     removeStudent
 };
+

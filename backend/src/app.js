@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -7,30 +8,12 @@ const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
 
-// =====================================================
-// MIDDLEWARE
-// =====================================================
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// =====================================================
-// CR-010: SERVE STUDENT PROFILE IMAGES
-// Images are stored in backend/uploads/students/
-// =====================================================
-
-app.use(
-    "/uploads/students",
-    express.static(
-        path.join(__dirname, "../uploads/students")
-    )
-);
-
-// =====================================================
-// HOME ROUTE
-// =====================================================
-
+// Health check route
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -38,10 +21,7 @@ app.get("/", (req, res) => {
     });
 });
 
-// =====================================================
-// HEALTH CHECK ROUTE
-// =====================================================
-
+// API health check
 app.get("/api/health", (req, res) => {
     res.status(200).json({
         success: true,
@@ -49,62 +29,42 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-// =====================================================
-// VALIDATE ROUTER IMPORTS
-// =====================================================
+// Serve uploaded student profile images (only image files are accepted by upload middleware).
+app.use("/uploads/students", express.static(path.join(__dirname, "../uploads/students"), {
+    dotfiles: "deny",
+    index: false,
+    setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff")
+}));
 
-if (typeof authRoutes !== "function") {
-    throw new TypeError(
-        "authRoutes is invalid. Check backend/src/routes/authRoutes.js"
-    );
-}
-
-if (typeof studentRoutes !== "function") {
-    throw new TypeError(
-        "studentRoutes is invalid. Check backend/src/routes/studentRoutes.js"
-    );
-}
-
-// =====================================================
-// API ROUTES
-// =====================================================
-
+// Authentication routes
 app.use("/api/auth", authRoutes);
+
+// Student routes
 app.use("/api/students", studentRoutes);
 
-// =====================================================
-// 404 HANDLER
-// =====================================================
 
+// Upload/parser errors (including unsupported files and files larger than 5 MB).
+app.use((error, req, res, next) => {
+    if (error) {
+        const status = error.status || (error.code === "LIMIT_FILE_SIZE" ? 400 : 500);
+        const message = error.code === "LIMIT_FILE_SIZE"
+            ? "Profile image must be 5 MB or smaller."
+            : (status === 500 ? "Failed to process uploaded file." : error.message);
+        return res.status(status).json({ success: false, message });
+    }
+    next();
+});
+
+// 404 Handler
 app.use((req, res) => {
+
     res.status(404).json({
         success: false,
         message: "API endpoint not found"
     });
+
 });
 
-// =====================================================
-// GLOBAL ERROR HANDLER
-// =====================================================
-
-app.use((err, req, res, next) => {
-    console.error("API Error:", err);
-
-    if (res.headersSent) {
-        return next(err);
-    }
-
-    res.status(err.status || 500).json({
-        success: false,
-        message:
-            err.status && err.status < 500
-                ? err.message
-                : "Internal server error"
-    });
-});
-
-// =====================================================
-// EXPORT APP
-// =====================================================
 
 module.exports = app;
+
