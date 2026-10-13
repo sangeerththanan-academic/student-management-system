@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 
 const {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 } = require("../models/userModel");
 
 const login = async (req, res) => {
@@ -28,7 +29,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Compare password
+        // Verify password using bcrypt
         const passwordMatch = await bcrypt.compare(
             password,
             user.password_hash
@@ -41,7 +42,13 @@ const login = async (req, res) => {
             });
         }
 
-        // Create JWT
+        // Record successful student login only.
+        // Failed password attempts never reach this statement.
+        if (user.role === "STUDENT") {
+            await updateLastLogin(user.user_id);
+        }
+
+        // Create JWT using the existing authentication flow.
         const token = jwt.sign(
             {
                 userId: user.user_id,

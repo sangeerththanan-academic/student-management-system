@@ -1,8 +1,10 @@
 -- ============================================================
 -- Student Management System
--- Database Schema - Version 1.0
+-- Database Schema - Version 1.1
 -- Organization: ABC Institute
 -- Database: MySQL
+-- Change Request: CR033
+-- Feature: Last Login Tracking for Student Accounts
 -- ============================================================
 
 -- ============================================================
@@ -16,7 +18,7 @@ USE student_management;
 
 -- ============================================================
 -- 1. USERS TABLE
--- Stores authentication and role information
+-- Stores authentication, role, and last login information
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS users (
@@ -27,6 +29,10 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
 
     role ENUM('ADMIN', 'STUDENT') NOT NULL,
+
+    -- CR033: Most recent successful student login
+    -- NULL means the student has never logged in
+    last_login DATETIME NULL DEFAULT NULL,
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -69,5 +75,6 @@ CREATE TABLE IF NOT EXISTS students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- DATABASE SCHEMA - VERSION 1.1
+-- CR033 LAST LOGIN TRACKING
 -- ============================================================
