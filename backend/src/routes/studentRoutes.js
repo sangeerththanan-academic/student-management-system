@@ -14,6 +14,10 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
+const {
+    uploadProfilePhotoSingle
+} = require("../middleware/uploadProfilePhoto");
+
 const router = express.Router();
 
 
@@ -27,12 +31,13 @@ router.get(
 );
 
 
-// Create student
+// Create student (multipart/form-data; profilePhoto is optional)
 // Administrator only
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfilePhotoSingle,
     addStudent
 );
 
@@ -57,12 +62,13 @@ router.get(
 );
 
 
-// Update student
+// Update student (multipart/form-data; profilePhoto is optional)
 // Administrator only
 router.put(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadProfilePhotoSingle,
     editStudent
 );
 

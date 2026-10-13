@@ -6,7 +6,7 @@ import {
     logout
 } from "../services/authService";
 
-import apiRequest from "../services/api";
+import apiRequest, { resolveProfileImageUrl } from "../services/api";
 
 import "../styles/studentDashboard.css";
 
@@ -17,6 +17,7 @@ function StudentDashboardPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [photoFailed, setPhotoFailed] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -31,6 +32,7 @@ function StudentDashboardPage() {
 
                 if (data.student) {
                     setStudent(data.student);
+                    setPhotoFailed(false);
                 }
 
             } catch (err) {
@@ -99,8 +101,24 @@ function StudentDashboardPage() {
 
                         <div className="profile-header">
                             <div className="profile-avatar">
-                                {student.first_name?.charAt(0)}
-                                {student.last_name?.charAt(0)}
+                                {(() => {
+                                    const imageUrl = resolveProfileImageUrl(student.profile_image);
+                                    if (imageUrl && !photoFailed) {
+                                        return (
+                                            <img
+                                                src={imageUrl}
+                                                alt={`${student.first_name || ""} ${student.last_name || ""}`.trim() || "Student"}
+                                                onError={() => setPhotoFailed(true)}
+                                            />
+                                        );
+                                    }
+                                    return (
+                                        <>
+                                            {student.first_name?.charAt(0)}
+                                            {student.last_name?.charAt(0)}
+                                        </>
+                                    );
+                                })()}
                             </div>
                             <div className="profile-name">
                                 <h3>

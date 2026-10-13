@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import apiRequest from "../services/api";
+import apiRequest, { resolveProfileImageUrl } from "../services/api";
 
 function StudentFormModal({
     show,
@@ -22,6 +22,14 @@ function StudentFormModal({
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
 
+    const [photoFile, setPhotoFile] = useState(null);
+    const [photoPreviewUrl, setPhotoPreviewUrl] = useState(null);
+    const [photoError, setPhotoError] = useState("");
+    const [existingPhotoUrl, setExistingPhotoUrl] = useState(null);
+
+    const MAX_PHOTO_SIZE = 2 * 1024 * 1024;
+    const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
         if (!show) return;
@@ -35,6 +43,7 @@ function StudentFormModal({
                 phoneNumber: editingStudent.phone_number || "",
                 password: ""
             });
+            setExistingPhotoUrl(resolveProfileImageUrl(editingStudent.profile_image));
         } else {
             setFormData({
                 registrationNo: "",
@@ -44,10 +53,66 @@ function StudentFormModal({
                 phoneNumber: "",
                 password: ""
             });
+            setExistingPhotoUrl(null);
         }
 
         setFormError("");
+        setPhotoFile(null);
+        setPhotoError("");
+        setPhotoPreviewUrl(null);
     }, [editingStudent, show]);
+
+
+    // Revoke object URL to avoid memory leaks
+    useEffect(() => {
+        return () => {
+            if (photoPreviewUrl && photoPreviewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(photoPreviewUrl);
+            }
+        };
+    }, [photoPreviewUrl]);
+
+
+    const handlePhotoChange = (event) => {
+        const file = event.target.files && event.target.files[0];
+
+        setPhotoError("");
+
+        if (!file) {
+            setPhotoFile(null);
+            setPhotoPreviewUrl(null);
+            return;
+        }
+
+        if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+            setPhotoError("Only JPEG, PNG and WebP images are allowed.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > MAX_PHOTO_SIZE) {
+            setPhotoError("Profile photo must be 2MB or smaller.");
+            event.target.value = "";
+            return;
+        }
+
+        if (photoPreviewUrl && photoPreviewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(photoPreviewUrl);
+        }
+
+        setPhotoFile(file);
+        setPhotoPreviewUrl(URL.createObjectURL(file));
+    };
+
+
+    const handleRemovePhoto = () => {
+        if (photoPreviewUrl && photoPreviewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(photoPreviewUrl);
+        }
+        setPhotoFile(null);
+        setPhotoPreviewUrl(null);
+        setPhotoError("");
+    };
 
 
     const handleInputChange = (event) => {
@@ -62,6 +127,7 @@ function StudentFormModal({
 
     const handleClose = () => {
         setFormError("");
+        handleRemovePhoto();
         onClose();
     };
 
@@ -88,36 +154,51 @@ function StudentFormModal({
             return;
         }
 
+        if (photoError) {
+            setFormError(photoError);
+            return;
+        }
+
         try {
             setFormLoading(true);
 
             if (editingStudent) {
+                const submitData = new FormData();
+                submitData.append("registrationNo", formData.registrationNo.trim());
+                submitData.append("firstName", formData.firstName.trim());
+                submitData.append("lastName", formData.lastName.trim());
+                submitData.append("email", formData.email.trim());
+                submitData.append("phoneNumber", formData.phoneNumber.trim());
+
+                if (photoFile) {
+                    submitData.append("profilePhoto", photoFile);
+                }
+
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim()
-                        })
+                        body: submitData
                     }
                 );
             } else {
+                const submitData = new FormData();
+                submitData.append("registrationNo", formData.registrationNo.trim());
+                submitData.append("firstName", formData.firstName.trim());
+                submitData.append("lastName", formData.lastName.trim());
+                submitData.append("email", formData.email.trim());
+                submitData.append("phoneNumber", formData.phoneNumber.trim());
+                submitData.append("password", formData.password);
+
+                if (photoFile) {
+                    submitData.append("profilePhoto", photoFile);
+                }
+
                 await apiRequest(
                     "/api/students/",
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim(),
-                            password: formData.password
-                        })
+                        body: submitData
                     }
                 );
             }
@@ -294,6 +375,60 @@ function StudentFormModal({
                         />
                     </div>
                 )}
+
+
+                <div className="form-group photo-group">
+                    <label>
+                        Profile Photo (optional)
+                    </label>
+
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handlePhotoChange}
+                        disabled={formLoading}
+                    />
+
+                    <span className="photo-hint">
+                        JPEG, PNG or WebP up to 2MB.
+                        {editingStudent
+                            ? " Leave empty to keep the current photo."
+                            : ""
+                        }
+                    </span>
+
+                    {photoError && (
+                        <span className="photo-error">
+                            {photoError}
+                        </span>
+                    )}
+
+                    {(photoPreviewUrl || (editingStudent && existingPhotoUrl)) && (
+                        <div className="photo-preview">
+                            <img
+                                src={photoPreviewUrl || existingPhotoUrl}
+                                alt={photoPreviewUrl ? "Selected profile preview" : "Current profile photo"}
+                                onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                }}
+                            />
+                            {photoPreviewUrl ? (
+                                <button
+                                    type="button"
+                                    className="photo-remove"
+                                    onClick={handleRemovePhoto}
+                                    disabled={formLoading}
+                                >
+                                    Remove
+                                </button>
+                            ) : (
+                                <span className="photo-hint">
+                                    Current photo
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
 
 
                 <div className="form-actions">

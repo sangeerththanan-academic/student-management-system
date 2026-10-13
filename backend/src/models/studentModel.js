@@ -8,7 +8,8 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profileImage = null
 ) => {
 
     const [result] = await connection.execute(
@@ -19,16 +20,18 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_image
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profileImage
         ]
     );
 
@@ -48,6 +51,7 @@ const getAllStudents = async () => {
             last_name,
             email,
             phone_number,
+            profile_image,
             created_at,
             updated_at
         FROM students
@@ -70,6 +74,7 @@ const getStudentById = async (studentId) => {
             last_name,
             email,
             phone_number,
+            profile_image,
             created_at,
             updated_at
         FROM students
@@ -89,8 +94,14 @@ const updateStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profileImage
 ) => {
+
+    // profileImage === undefined means "keep existing photo".
+    // null / string means overwrite (used when a new photo is uploaded
+    // or the registration number changed and the file was renamed).
+    const hasProfileImage = profileImage !== undefined;
 
     const [result] = await pool.execute(
         `UPDATE students
@@ -99,16 +110,27 @@ const updateStudent = async (
             first_name = ?,
             last_name = ?,
             email = ?,
-            phone_number = ?
+            phone_number = ?${hasProfileImage ? `,
+            profile_image = ?` : ``}
         WHERE student_id = ?`,
-        [
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            studentId
-        ]
+        hasProfileImage
+            ? [
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                profileImage,
+                studentId
+            ]
+            : [
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                studentId
+            ]
     );
 
     return result;
@@ -178,6 +200,7 @@ const getStudentByUserId = async (userId) => {
             last_name,
             email,
             phone_number,
+            profile_image,
             created_at,
             updated_at
         FROM students

@@ -4,6 +4,7 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+yarn-error.log*
 lerna-debug.log*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
@@ -140,4 +141,12 @@ dist
 # Vite files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Student profile photo uploads (keep folder structure, ignore binaries)
+backend/uploads/profiles/*.jpg
+backend/uploads/profiles/*.jpeg
+backend/uploads/profiles/*.png
+backend/uploads/profiles/*.webp
+backend/uploads/profiles/pending-*
+!backend/uploads/profiles/.gitkeep
 .vite/

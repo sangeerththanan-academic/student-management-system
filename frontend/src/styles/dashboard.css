@@ -317,6 +317,60 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.photo-group input[type="file"] {
+    padding: 9px 10px;
+}
+
+.photo-hint {
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+.photo-error {
+    color: #b91c1c;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.photo-preview {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.photo-preview img {
+    width: 64px;
+    height: 64px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border: 1px solid #e2e8f0;
+}
+
+.photo-remove {
+    border: none;
+
+    background: #fee2e2;
+    color: #b91c1c;
+
+    padding: 7px 12px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.photo-remove:hover {
+    background: #fecaca;
+}
+
 .form-actions {
     grid-column: 1 / -1;
 
@@ -535,6 +589,41 @@
 
 .students-table td strong {
     color: #0f172a;
+}
+
+
+.avatar-cell {
+    width: 56px;
+}
+
+.table-avatar {
+    width: 36px;
+    height: 36px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    overflow: hidden;
+
+    background: #e2e8f0;
+}
+
+.table-avatar img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.table-avatar-fallback {
+    color: #0f172a;
+
+    font-size: 12px;
+    font-weight: 800;
 }
 
 

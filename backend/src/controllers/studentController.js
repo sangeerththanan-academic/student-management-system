@@ -1,6 +1,14 @@
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 
 const pool = require("../config/db");
+
+const {
+    sanitizeRegistrationNo,
+    PROFILE_DIR,
+    MIME_TO_EXT
+} = require("../middleware/uploadProfilePhoto");
 
 const {
     createStudent,
@@ -12,17 +20,61 @@ const {
 } = require("../models/studentModel");
 
 
+// Delete an uploaded file on failure so failed requests leave no orphans.
+const deleteUploadedFile = (file) => {
+    if (!file || !file.path) return;
+    try {
+        fs.unlinkSync(file.path);
+    } catch (e) {
+        // Best effort: file may already be gone
+    }
+};
+
+// Multer may have stored the file under a temp name when fields arrived
+// after the file part. Rename it to <REGNO>.<ext> once registrationNo
+// is validated, cleaning up any sibling with a different extension.
+const resolveProfileImagePath = (file, registrationNo) => {
+    if (!file) return null;
+
+    const safeRegNo = sanitizeRegistrationNo(registrationNo);
+    const ext = MIME_TO_EXT[file.mimetype] || path.extname(file.filename).toLowerCase() || ".jpg";
+    const finalName = `${safeRegNo}${ext}`;
+    const finalPath = path.join(PROFILE_DIR, finalName);
+
+    if (file.filename !== finalName) {
+        try {
+            const siblings = fs.readdirSync(PROFILE_DIR);
+            for (const name of siblings) {
+                if (name !== file.filename && name !== finalName && name.startsWith(`${safeRegNo}.`)) {
+                    try {
+                        fs.unlinkSync(path.join(PROFILE_DIR, name));
+                    } catch (e) {
+                        // Best effort cleanup
+                    }
+                }
+            }
+            fs.renameSync(file.path, finalPath);
+        } catch (e) {
+            // If rename fails, keep the temp file so the record still has an image
+            return `uploads/profiles/${file.filename}`.replace(/\\/g, "/");
+        }
+    }
+
+    return `uploads/profiles/${finalName}`.replace(/\\/g, "/");
+};
+
+
 // CREATE STUDENT
 const addStudent = async (req, res) => {
 
-    const {
-        registrationNo,
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        password
-    } = req.body;
+    // multipart/form-data fields can arrive with surrounding whitespace
+    const trimOrSelf = (v) => (typeof v === "string" ? v.trim() : v);
+    const registrationNo = trimOrSelf(req.body.registrationNo);
+    const firstName = trimOrSelf(req.body.firstName);
+    const lastName = trimOrSelf(req.body.lastName);
+    const email = trimOrSelf(req.body.email);
+    const phoneNumber = trimOrSelf(req.body.phoneNumber);
+    const { password } = req.body;
 
     let connection;
 
@@ -37,6 +89,8 @@ const addStudent = async (req, res) => {
             !phoneNumber ||
             !password
         ) {
+
+            deleteUploadedFile(req.file);
 
             return res.status(400).json({
                 success: false,
@@ -66,6 +120,8 @@ const addStudent = async (req, res) => {
 
             await connection.rollback();
 
+            deleteUploadedFile(req.file);
+
             return res.status(409).json({
                 success: false,
                 message: "Registration number is already registered"
@@ -85,6 +141,8 @@ const addStudent = async (req, res) => {
         if (existingStudent.length > 0) {
 
             await connection.rollback();
+
+            deleteUploadedFile(req.file);
 
             return res.status(409).json({
                 success: false,
@@ -115,6 +173,10 @@ const addStudent = async (req, res) => {
         const userId = userResult.insertId;
 
 
+        // Profile photo is optional; falls back to temp->final rename if needed
+        const profileImage = resolveProfileImagePath(req.file, registrationNo);
+
+
         // Create student profile
         const studentId = await createStudent(
             connection,
@@ -123,7 +185,8 @@ const addStudent = async (req, res) => {
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profileImage
         );
 
 
@@ -143,6 +206,7 @@ const addStudent = async (req, res) => {
                 lastName,
                 email,
                 phoneNumber,
+                profile_image: profileImage,
                 role: "STUDENT"
             }
         });
@@ -151,8 +215,14 @@ const addStudent = async (req, res) => {
 
         // Rollback if transaction started
         if (connection) {
-            await connection.rollback();
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                // Ignore rollback errors, report the original failure
+            }
         }
+
+        deleteUploadedFile(req.file);
 
         console.error("Create student error:", error);
 
@@ -235,17 +305,21 @@ const getStudent = async (req, res) => {
 // PUT /api/students/:id
 const editStudent = async (req, res) => {
 
+    // Track a newly uploaded file so it can be removed if the update fails
+    const uploadedFile = req.file || null;
+    let newProfileImage = undefined;
+
     try {
 
         const studentId = req.params.id;
 
-        const {
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
-        } = req.body;
+        // multipart/form-data fields can arrive with surrounding whitespace
+        const trimOrSelf = (v) => (typeof v === "string" ? v.trim() : v);
+        const registrationNo = trimOrSelf(req.body.registrationNo);
+        const firstName = trimOrSelf(req.body.firstName);
+        const lastName = trimOrSelf(req.body.lastName);
+        const email = trimOrSelf(req.body.email);
+        const phoneNumber = trimOrSelf(req.body.phoneNumber);
 
 
         // Validate input
@@ -256,6 +330,8 @@ const editStudent = async (req, res) => {
             !email ||
             !phoneNumber
         ) {
+
+            deleteUploadedFile(uploadedFile);
 
             return res.status(400).json({
                 success: false,
@@ -269,31 +345,80 @@ const editStudent = async (req, res) => {
 
         if (!existingStudent) {
 
+            deleteUploadedFile(uploadedFile);
+
             return res.status(404).json({
                 success: false,
                 message: "Student not found"
             });
         }
 
+        const oldSafeRegNo = sanitizeRegistrationNo(existingStudent.registration_no);
+        const newSafeRegNo = sanitizeRegistrationNo(registrationNo);
+        const regNoChanged = oldSafeRegNo !== newSafeRegNo;
 
-        // Update student
+
+        if (uploadedFile) {
+            // New photo uploaded: store as <NEW_REGNO>.<ext>
+            newProfileImage = resolveProfileImagePath(uploadedFile, registrationNo);
+        } else if (regNoChanged && existingStudent.profile_image) {
+            // Registration number changed but photo kept: rename the file
+            // so the <REGNO>.<ext> convention still holds.
+            try {
+                const oldRelative = String(existingStudent.profile_image).replace(/\\/g, "/");
+                const oldName = oldRelative.split("/").pop();
+                const oldExt = path.extname(oldName || "").toLowerCase() || ".jpg";
+                const oldPath = path.join(PROFILE_DIR, oldName);
+                const newName = `${newSafeRegNo}${oldExt}`;
+                const newPath = path.join(PROFILE_DIR, newName);
+
+                if (oldName !== newName && fs.existsSync(oldPath)) {
+                    fs.renameSync(oldPath, newPath);
+                    newProfileImage = `uploads/profiles/${newName}`.replace(/\\/g, "/");
+                } else {
+                    newProfileImage = existingStudent.profile_image;
+                }
+            } catch (e) {
+                newProfileImage = existingStudent.profile_image;
+            }
+        }
+
+
+        // Update student (profileImage undefined keeps the existing photo)
         const result = await updateStudent(
             studentId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            newProfileImage
         );
 
 
         return res.status(200).json({
             success: true,
             message: "Student updated successfully",
-            affectedRows: result.affectedRows
+            affectedRows: result.affectedRows,
+            profile_image: newProfileImage !== undefined ? newProfileImage : existingStudent.profile_image
         });
 
     } catch (error) {
+
+        // Remove a newly uploaded file if the update failed
+        if (uploadedFile && newProfileImage) {
+            try {
+                const savedName = String(newProfileImage).split("/").pop();
+                const savedPath = path.join(PROFILE_DIR, savedName);
+                if (fs.existsSync(savedPath)) {
+                    fs.unlinkSync(savedPath);
+                }
+            } catch (e) {
+                // Best effort cleanup
+            }
+        } else {
+            deleteUploadedFile(uploadedFile);
+        }
 
         console.error("Update student error:", error);
 

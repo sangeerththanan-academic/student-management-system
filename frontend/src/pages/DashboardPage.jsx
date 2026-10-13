@@ -7,11 +7,36 @@ import {
     logout
 } from "../services/authService";
 
-import apiRequest from "../services/api";
+import apiRequest, { resolveProfileImageUrl } from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
 
 import "../styles/dashboard.css";
+
+// Small avatar with initials fallback; hides broken images gracefully.
+const StudentAvatar = ({ student }) => {
+    const [imageFailed, setImageFailed] = useState(false);
+    const imageUrl = resolveProfileImageUrl(student.profile_image);
+    const initials = `${student.first_name?.charAt(0) || ""}${student.last_name?.charAt(0) || ""}`;
+
+    if (!imageUrl || imageFailed) {
+        return (
+            <span className="table-avatar table-avatar-fallback">
+                {initials || "?"}
+            </span>
+        );
+    }
+
+    return (
+        <span className="table-avatar">
+            <img
+                src={imageUrl}
+                alt={`${student.first_name || ""} ${student.last_name || ""}`.trim() || "Student"}
+                onError={() => setImageFailed(true)}
+            />
+        </span>
+    );
+};
 
 // Normalizes text for case-insensitive search with space handling.
 const normalizeSearchValue = (value) => {
@@ -422,6 +447,10 @@ function DashboardPage() {
                                 <thead>
                                     <tr>
                                         <th>
+                                            Photo
+                                        </th>
+
+                                        <th>
                                             Registration No.
                                         </th>
 
@@ -450,6 +479,10 @@ function DashboardPage() {
                                         <tr
                                             key={student.student_id}
                                         >
+
+                                            <td className="avatar-cell">
+                                                <StudentAvatar student={student} />
+                                            </td>
 
                                             <td>
                                                 <strong>
