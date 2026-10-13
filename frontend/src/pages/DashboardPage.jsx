@@ -57,6 +57,28 @@ function StudentAvatar({ student }) {
     );
 }
 
+// Format the last successful login timestamp
+function formatLastLogin(lastLogin) {
+    if (!lastLogin) {
+        return "Never logged in";
+    }
+
+    const date = new Date(lastLogin);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Never logged in";
+    }
+
+    return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+    });
+}
+
 function DashboardPage() {
     const navigate = useNavigate();
 
@@ -320,6 +342,7 @@ function DashboardPage() {
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
+                                        <th>Last Login</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -341,6 +364,12 @@ function DashboardPage() {
 
                                             <td>{student.email}</td>
                                             <td>{student.phone_number}</td>
+
+                                            <td>
+                                                <span title={student.last_login || ""}>
+                                                    {formatLastLogin(student.last_login)}
+                                                </span>
+                                            </td>
 
                                             <td>
                                                 <div className="student-actions">
