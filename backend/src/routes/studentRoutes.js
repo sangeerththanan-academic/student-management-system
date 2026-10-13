@@ -7,7 +7,8 @@ const {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 } = require("../controllers/studentController");
 
 const {
@@ -81,7 +82,15 @@ router.delete(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
-    removeStudent
+    removeStudent,
+    
+);
+// CR-020: Change password for logged-in student
+router.post(
+    "/change-password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeStudentPassword
 );
 
 

@@ -11,6 +11,8 @@ import apiRequest, {
     API_BASE_URL
 } from "../services/api";
 
+import StudentChangePassword from "../components/StudentChangePassword";
+
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
@@ -21,6 +23,9 @@ function StudentDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [profileImageError, setProfileImageError] = useState(false);
+
+    // Popup should remain closed when dashboard first loads.
+    const [showChangePassword, setShowChangePassword] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -90,9 +95,20 @@ function StudentDashboardPage() {
                 </div>
 
                 <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
+                    <span className="role-badge">
+                        STUDENT
+                    </span>
 
                     <button
+                        type="button"
+                        className="change-password-button"
+                        onClick={() => setShowChangePassword(true)}
+                    >
+                        Change Password
+                    </button>
+
+                    <button
+                        type="button"
                         className="logout-button"
                         onClick={handleLogout}
                     >
@@ -128,6 +144,7 @@ function StudentDashboardPage() {
                                             "Profile image could not be loaded:",
                                             getProfileImageUrl()
                                         );
+
                                         setProfileImageError(true);
                                     }}
                                 />
@@ -142,6 +159,7 @@ function StudentDashboardPage() {
                                     {student.first_name}{" "}
                                     {student.last_name}
                                 </h3>
+
                                 <p>{student.registration_no}</p>
                             </div>
                         </div>
@@ -151,6 +169,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Registration No
                                 </span>
+
                                 <span className="detail-value">
                                     {student.registration_no}
                                 </span>
@@ -160,6 +179,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Full Name
                                 </span>
+
                                 <span className="detail-value">
                                     {student.first_name}{" "}
                                     {student.last_name}
@@ -170,6 +190,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Email
                                 </span>
+
                                 <span className="detail-value">
                                     {student.email}
                                 </span>
@@ -179,6 +200,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Phone
                                 </span>
+
                                 <span className="detail-value">
                                     {student.phone_number}
                                 </span>
@@ -188,6 +210,7 @@ function StudentDashboardPage() {
                                 <span className="detail-label">
                                     Member Since
                                 </span>
+
                                 <span className="detail-value">
                                     {student.created_at
                                         ? new Date(
@@ -206,6 +229,13 @@ function StudentDashboardPage() {
                     )
                 )}
             </main>
+
+            {/* Render the popup only after clicking the button */}
+            {showChangePassword && (
+                <StudentChangePassword
+                    onClose={() => setShowChangePassword(false)}
+                />
+            )}
         </div>
     );
 }

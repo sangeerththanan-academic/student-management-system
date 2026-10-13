@@ -2,6 +2,11 @@ const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
 const {
+    findUserByIdWithPassword,
+    updatePasswordHash
+} = require("../models/userModel");
+
+const {
     createStudent,
     getAllStudents,
     getStudentById,
@@ -570,6 +575,122 @@ const getMyProfile = async (req, res) => {
 };
 
 // ============================================================
+// CR-020: CHANGE STUDENT PASSWORD
+// POST /api/students/change-password
+// ============================================================
+
+const changeStudentPassword = async (req, res) => {
+    try {
+        const {
+            oldPassword,
+            newPassword,
+            confirmPassword
+        } = req.body;
+
+        // 1. Validate required fields
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required."
+            });
+        }
+
+        // 2. Check new password and confirmation
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New passwords do not match."
+            });
+        }
+
+        // 3. Validate new password strength
+        const strongPassword =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+        if (!strongPassword.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least 8 characters, " +
+                    "including uppercase, lowercase, number and special character."
+            });
+        }
+
+        // 4. Get the authenticated student's account
+        const user = await findUserByIdWithPassword(
+            req.user.userId
+        );
+
+        if (!user || user.role !== "STUDENT") {
+            return res.status(403).json({
+                success: false,
+                message: "Student account not found or access denied."
+            });
+        }
+
+        // 5. Verify old password against database hash
+        const isOldPasswordCorrect = await bcrypt.compare(
+            oldPassword,
+            user.password_hash
+        );
+
+        if (!isOldPasswordCorrect) {
+            return res.status(401).json({
+                success: false,
+                message: "Old password is incorrect."
+            });
+        }
+
+        // 6. Prevent reusing the current password
+        const isSamePassword = await bcrypt.compare(
+            newPassword,
+            user.password_hash
+        );
+
+        if (isSamePassword) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "New password must be different from the old password."
+            });
+        }
+
+        // 7. Hash the new password
+        const newPasswordHash = await bcrypt.hash(
+            newPassword,
+            12
+        );
+
+        // 8. Update database
+        const result = await updatePasswordHash(
+            req.user.userId,
+            newPasswordHash
+        );
+
+        if (result.affectedRows !== 1) {
+            return res.status(500).json({
+                success: false,
+                message: "Password could not be updated."
+            });
+        }
+
+        // 9. Send success notification
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+
+    } catch (error) {
+        console.error("Change password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "An error occurred while changing the password."
+        });
+    }
+};
+
+// ============================================================
 // EXPORTS
 // ============================================================
 
@@ -579,5 +700,6 @@ module.exports = {
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 };

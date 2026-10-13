@@ -29,8 +29,36 @@ const updateLastLogin = async (userId) => {
     return result;
 };
 
+// CR-020: Get user account including password hash
+const findUserByIdWithPassword = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT user_id, password_hash, role
+         FROM users
+         WHERE user_id = ?
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0];
+};
+
+// CR-020: Update password hash
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?
+           AND role = 'STUDENT'`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
 module.exports = {
     findUserByUsername,
     findUserById,
-    updateLastLogin
+    updateLastLogin,
+    findUserByIdWithPassword,
+    updatePasswordHash,
 };
