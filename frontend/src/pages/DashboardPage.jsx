@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/dashboard.css";
 
 import {
     getStoredUser,
@@ -8,24 +9,12 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
-
 import StudentFormModal from "../components/StudentFormModal";
 
-import "../styles/dashboard.css";
-
-// Normalizes text for case-insensitive search with space handling.
-const normalizeSearchValue = (value) => {
-    return String(value ?? "")
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, " ");
-};
-
-function DashboardPage() {
+const DashboardPage = () => {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
-
+    const [user, setUser] = useState(null);
     const [students, setStudents] = useState([]);
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -34,227 +23,260 @@ function DashboardPage() {
     const [error, setError] = useState("");
 
     const [showForm, setShowForm] = useState(false);
-
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // Load current user
+    // ==================================================
+    // LOAD CURRENT USER
+    // ==================================================
+
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const data = await getCurrentUser();
+                const storedUser = getStoredUser();
 
-                if (data.user) {
-                    setUser({
-                        id: data.user.user_id,
-                        username: data.user.username,
-                        role: data.user.role
-                    });
+                if (!storedUser) {
+                    navigate("/login");
+                    return;
                 }
 
-            } catch (error) {
-                console.error("Failed to load current user:", error);
+                const response = await getCurrentUser();
 
-                if (error.status === 401) {
-                    logout();
-                    navigate("/login", {
-                        replace: true
-                    });
+                if (response?.success) {
+                    setUser(response.user);
+                } else {
+                    setUser(storedUser);
                 }
+            } catch (err) {
+                console.error("Failed to load user:", err);
+                navigate("/login");
             }
         };
 
         loadUser();
     }, [navigate]);
 
+    // ==================================================
+    // LOAD STUDENTS
+    // ==================================================
 
-    // Load students
     const loadStudents = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const data = await apiRequest(
-                "/api/students/",
-                {
-                    method: "GET"
-                }
-            );
+            const response = await apiRequest("/api/students/");
 
-            setStudents(data.students || []);
-
-        } catch (error) {
-            console.error("Failed to load students:", error);
-
-            if (error.status === 401) {
-                logout();
-
-                navigate("/login", {
-                    replace: true
-                });
-
-                return;
-            }
-
-            if (error.status === 403) {
+            if (response?.success) {
+                setStudents(response.students || []);
+            } else {
+                setStudents([]);
                 setError(
-                    "You do not have permission to access students."
+                    response?.message ||
+                    "Failed to load students."
                 );
-
-                return;
             }
+
+        } catch (err) {
+            console.error("Failed to load students:", err);
 
             setError(
-                error.message ||
-                "Failed to retrieve students."
+                err.message ||
+                "Failed to load students."
             );
-
         } finally {
             setLoading(false);
         }
     };
 
-
     useEffect(() => {
         loadStudents();
     }, []);
 
-
-    // Client-side search (CR-001)
-    // Filters the already-loaded students only.
-    // No API request is made for search keystrokes.
-    const normalizedSearchTerm = normalizeSearchValue(searchTerm);
-
-    const isSearching = normalizedSearchTerm !== "";
+    // ==================================================
+    // SEARCH STUDENTS
+    // ==================================================
 
     const filteredStudents = useMemo(() => {
-        if (!isSearching) {
+
+        const search = searchTerm
+            .trim()
+            .toLowerCase();
+
+        if (!search) {
             return students;
         }
 
         return students.filter((student) => {
-            const registrationNo = normalizeSearchValue(
-                student.registration_no
-            );
 
-            const firstName = normalizeSearchValue(
-                student.first_name
-            );
+            const registrationNo =
+                student.registration_no?.toLowerCase() || "";
 
-            const lastName = normalizeSearchValue(
-                student.last_name
-            );
+            const firstName =
+                student.first_name?.toLowerCase() || "";
 
-            const fullName = normalizeSearchValue(
-                `${student.first_name ?? ""} ${student.last_name ?? ""}`
-            );
+            const lastName =
+                student.last_name?.toLowerCase() || "";
 
-            const email = normalizeSearchValue(
-                student.email
-            );
+            const fullName =
+                `${student.first_name || ""} ${student.last_name || ""}`
+                    .trim()
+                    .toLowerCase();
+
+            const email =
+                student.email?.toLowerCase() || "";
 
             return (
-                registrationNo.includes(normalizedSearchTerm) ||
-                firstName.includes(normalizedSearchTerm) ||
-                lastName.includes(normalizedSearchTerm) ||
-                fullName.includes(normalizedSearchTerm) ||
-                email.includes(normalizedSearchTerm)
+                registrationNo.includes(search) ||
+                firstName.includes(search) ||
+                lastName.includes(search) ||
+                fullName.includes(search) ||
+                email.includes(search)
             );
         });
-    }, [students, normalizedSearchTerm, isSearching]);
 
+    }, [students, searchTerm]);
 
-    const handleClearSearch = () => {
-        setSearchTerm("");
-    };
+    // ==================================================
+    // ADD STUDENT
+    // ==================================================
 
-
-    // Form handling
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
     };
 
+    // ==================================================
+    // EDIT STUDENT
+    // ==================================================
 
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
     };
 
+    // ==================================================
+    // CLOSE FORM
+    // ==================================================
 
-    const handleFormClose = () => {
+    const closeForm = () => {
         setShowForm(false);
         setEditingStudent(null);
     };
 
+    // ==================================================
+    // DELETE STUDENT
+    // ==================================================
 
-    const handleFormAuthError = () => {
-        logout();
-        navigate("/login", { replace: true });
-    };
-
-
-    // Delete student
     const handleDelete = async (studentId) => {
-        const confirmed = window.confirm(
+
+        const confirmDelete = window.confirm(
             "Are you sure you want to delete this student?"
         );
 
-        if (!confirmed) {
+        if (!confirmDelete) {
             return;
         }
 
         try {
+
             setError("");
 
-            await apiRequest(
+            const response = await apiRequest(
                 `/api/students/${studentId}`,
                 {
                     method: "DELETE"
                 }
             );
 
-            await loadStudents();
+            if (response?.success) {
 
-        } catch (error) {
-            console.error(
-                "Delete student error:",
-                error
-            );
+                alert("Student deleted successfully.");
 
-            if (error.status === 401) {
-                logout();
+                await loadStudents();
 
-                navigate("/login", {
-                    replace: true
-                });
+            } else {
 
-                return;
+                alert(
+                    response?.message ||
+                    "Failed to delete student."
+                );
             }
 
-            setError(
-                error.message ||
+        } catch (err) {
+
+            console.error(
+                "Delete student error:",
+                err
+            );
+
+            alert(
+                err.message ||
                 "Failed to delete student."
             );
         }
     };
 
+    // ==================================================
+    // LOGOUT
+    // ==================================================
 
-    // Logout
     const handleLogout = () => {
         logout();
-
-        navigate(
-            "/login",
-            {
-                replace: true
-            }
-        );
+        navigate("/login");
     };
 
+    // ==================================================
+    // FORM SUCCESS
+    // ==================================================
 
-    // Render
+    const handleFormSuccess = async () => {
+        closeForm();
+        await loadStudents();
+    };
+
+    // ==================================================
+    // FORMAT LAST LOGIN
+    // ==================================================
+
+    const formatLastLogin = (lastLogin) => {
+
+        if (!lastLogin) {
+            return "Never logged in";
+        }
+
+        const date = new Date(lastLogin);
+
+        if (Number.isNaN(date.getTime())) {
+            return "Never logged in";
+        }
+
+        return date.toLocaleString("en-LK", {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    };
+
+    // ==================================================
+    // CLEAR SEARCH
+    // ==================================================
+
+    const clearSearch = () => {
+        setSearchTerm("");
+    };
+
+    // ==================================================
+    // RENDER
+    // ==================================================
+
     return (
         <div className="dashboard-page">
+
+            {/* ==================================================
+                HEADER
+            ================================================== */}
 
             <header className="dashboard-header">
 
@@ -268,22 +290,25 @@ function DashboardPage() {
                     </p>
                 </div>
 
-
                 <div className="dashboard-header-actions">
 
-                    <div className="admin-info">
-                        <strong>
-                            {user?.username}
-                        </strong>
+                    {user && (
+                        <div className="admin-info">
 
-                        <span>
-                            {user?.role}
-                        </span>
-                    </div>
+                            <strong>
+                                Welcome, {user.username}
+                            </strong>
+
+                            <span>
+                                ADMINISTRATOR
+                            </span>
+
+                        </div>
+                    )}
 
                     <button
-                        onClick={handleLogout}
                         className="logout-button"
+                        onClick={handleLogout}
                     >
                         Logout
                     </button>
@@ -292,23 +317,27 @@ function DashboardPage() {
 
             </header>
 
+            {/* ==================================================
+                MAIN CONTENT
+            ================================================== */}
 
             <main className="dashboard-content">
 
-                {/* Page heading */}
+                {/* Students Heading */}
 
                 <div className="students-heading">
 
                     <div>
+
                         <h2>
                             Students
                         </h2>
 
                         <p>
-                            Manage student accounts and profiles.
+                            Total Students: {students.length}
                         </p>
-                    </div>
 
+                    </div>
 
                     <button
                         className="add-student-button"
@@ -319,7 +348,6 @@ function DashboardPage() {
 
                 </div>
 
-
                 {/* Error */}
 
                 {error && (
@@ -328,52 +356,58 @@ function DashboardPage() {
                     </div>
                 )}
 
-
-                {/* Student form modal */}
-
-                <StudentFormModal
-                    show={showForm}
-                    editingStudent={editingStudent}
-                    onClose={handleFormClose}
-                    onSuccess={loadStudents}
-                    onAuthError={handleFormAuthError}
-                />
-
-
-                {/* Students */}
-
-                <div className="students-search">
-                    <input
-                        type="text"
-                        className="students-search-input"
-                        placeholder="Search by registration number, name, or email..."
-                        aria-label="Search students by registration number, name, or email"
-                        value={searchTerm}
-                        onChange={(event) =>
-                            setSearchTerm(event.target.value)
-                        }
-                    />
-
-                    {searchTerm !== "" && (
-                        <button
-                            type="button"
-                            className="students-search-clear"
-                            onClick={handleClearSearch}
-                        >
-                            Clear
-                        </button>
-                    )}
-                </div>
-
-                {!loading && students.length > 0 && (
-                    <p className="students-result-count">
-                        {isSearching
-                            ? `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"} found`
-                            : `${students.length} ${students.length === 1 ? "student" : "students"}`}
-                    </p>
-                )}
+                {/* ==================================================
+                    STUDENTS CARD
+                ================================================== */}
 
                 <div className="students-card">
+
+                    {/* Search */}
+
+                    <div className="students-search">
+
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) =>
+                                setSearchTerm(e.target.value)
+                            }
+                            placeholder="Search by registration number, name or email..."
+                            className="students-search-input"
+                        />
+
+                        {searchTerm && (
+                            <button
+                                className="students-search-clear"
+                                onClick={clearSearch}
+                            >
+                                Clear
+                            </button>
+                        )}
+
+                    </div>
+
+                    {/* Result Count */}
+
+                    {!loading && (
+                        <p className="students-result-count">
+
+                            Showing{" "}
+                            <strong>
+                                {filteredStudents.length}
+                            </strong>{" "}
+                            of{" "}
+                            <strong>
+                                {students.length}
+                            </strong>{" "}
+                            students
+
+                        </p>
+                    )}
+
+                    {/* ==================================================
+                        LOADING
+                    ================================================== */}
 
                     {loading ? (
 
@@ -381,46 +415,49 @@ function DashboardPage() {
                             Loading students...
                         </div>
 
-                    ) : students.length === 0 ? (
-
-                        <div className="students-empty">
-                            <h3>
-                                No students found
-                            </h3>
-
-                            <p>
-                                Add your first student to get started.
-                            </p>
-                        </div>
-
                     ) : filteredStudents.length === 0 ? (
 
+                        /* ==================================================
+                           EMPTY
+                        ================================================== */
+
                         <div className="students-empty">
+
                             <h3>
-                                No matching students found
+                                No Students Found
                             </h3>
 
                             <p>
-                                No students match &quot;{searchTerm.trim()}&quot;.
+                                {searchTerm
+                                    ? "No students match your search."
+                                    : "There are no students available."}
                             </p>
 
-                            <button
-                                type="button"
-                                className="students-search-clear"
-                                onClick={handleClearSearch}
-                            >
-                                Clear Search
-                            </button>
+                            {searchTerm && (
+                                <button
+                                    className="students-search-clear"
+                                    onClick={clearSearch}
+                                >
+                                    Clear Search
+                                </button>
+                            )}
+
                         </div>
 
                     ) : (
+
+                        /* ==================================================
+                           TABLE
+                        ================================================== */
 
                         <div className="students-table-wrapper">
 
                             <table className="students-table">
 
                                 <thead>
+
                                     <tr>
+
                                         <th>
                                             Registration No.
                                         </th>
@@ -438,70 +475,119 @@ function DashboardPage() {
                                         </th>
 
                                         <th>
+                                            Last Login
+                                        </th>
+
+                                        <th>
                                             Actions
                                         </th>
-                                    </tr>
-                                </thead>
 
+                                    </tr>
+
+                                </thead>
 
                                 <tbody>
 
-                                    {filteredStudents.map((student) => (
-                                        <tr
-                                            key={student.student_id}
-                                        >
+                                    {filteredStudents.map(
+                                        (student) => (
 
-                                            <td>
-                                                <strong>
-                                                    {student.registration_no}
-                                                </strong>
-                                            </td>
+                                            <tr
+                                                key={
+                                                    student.student_id
+                                                }
+                                            >
 
-                                            <td>
-                                                {student.first_name}{" "}
-                                                {student.last_name}
-                                            </td>
-
-                                            <td>
-                                                {student.email}
-                                            </td>
-
-                                            <td>
-                                                {student.phone_number}
-                                            </td>
-
-                                            <td>
-
-                                                <div className="student-actions">
-
-                                                    <button
-                                                        className="edit-button"
-                                                        onClick={() =>
-                                                            openEditForm(
-                                                                student
-                                                            )
+                                                <td>
+                                                    <strong>
+                                                        {
+                                                            student.registration_no
                                                         }
-                                                    >
-                                                        Edit
-                                                    </button>
+                                                    </strong>
+                                                </td>
 
-                                                    <button
-                                                        className="delete-button"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                student.student_id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                <td>
+                                                    {
+                                                        student.first_name
+                                                    }{" "}
+                                                    {
+                                                        student.last_name
+                                                    }
+                                                </td>
 
-                                                </div>
+                                                <td>
+                                                    {
+                                                        student.email
+                                                    }
+                                                </td>
 
-                                            </td>
+                                                <td>
+                                                    {
+                                                        student.phone_number
+                                                    }
+                                                </td>
 
-                                        </tr>
-                                    ))}
+                                                {/* ==========================
+                                                    LAST LOGIN
+                                                ========================== */}
+
+                                                <td>
+
+                                                    {student.last_login ? (
+
+                                                        <span className="last-login">
+                                                            {formatLastLogin(
+                                                                student.last_login
+                                                            )}
+                                                        </span>
+
+                                                    ) : (
+
+                                                        <span className="never-login">
+                                                            Never logged in
+                                                        </span>
+
+                                                    )}
+
+                                                </td>
+
+                                                {/* ==========================
+                                                    ACTIONS
+                                                ========================== */}
+
+                                                <td>
+
+                                                    <div className="student-actions">
+
+                                                        <button
+                                                            className="edit-button"
+                                                            onClick={() =>
+                                                                openEditForm(
+                                                                    student
+                                                                )
+                                                            }
+                                                        >
+                                                            Edit
+                                                        </button>
+
+                                                        <button
+                                                            className="delete-button"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    student.student_id
+                                                                )
+                                                            }
+                                                        >
+                                                            Delete
+                                                        </button>
+
+                                                    </div>
+
+                                                </td>
+
+                                            </tr>
+
+                                        )
+                                    )}
 
                                 </tbody>
 
@@ -515,8 +601,22 @@ function DashboardPage() {
 
             </main>
 
+            {/* ==================================================
+                ADD / EDIT STUDENT MODAL
+            ================================================== */}
+
+            {showForm && (
+
+                <StudentFormModal
+                    student={editingStudent}
+                    onClose={closeForm}
+                    onSuccess={handleFormSuccess}
+                />
+
+            )}
+
         </div>
     );
-}
+};
 
 export default DashboardPage;

@@ -35,52 +35,55 @@ const createStudent = async (
     return result.insertId;
 };
 
-
 // GET ALL STUDENTS
 const getAllStudents = async () => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            students.created_at,
+            students.updated_at,
+            users.last_login
         FROM students
-        ORDER BY student_id DESC`
+        LEFT JOIN users
+            ON students.user_id = users.user_id
+        ORDER BY students.student_id DESC`
     );
 
     return rows;
 };
-
 
 // GET STUDENT BY ID
 const getStudentById = async (studentId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            students.created_at,
+            students.updated_at,
+            users.last_login
         FROM students
-        WHERE student_id = ?
+        LEFT JOIN users
+            ON students.user_id = users.user_id
+        WHERE students.student_id = ?
         LIMIT 1`,
         [studentId]
     );
 
     return rows[0];
 };
-
 
 // UPDATE STUDENT
 const updateStudent = async (
@@ -114,7 +117,6 @@ const updateStudent = async (
     return result;
 };
 
-
 // DELETE STUDENT
 const deleteStudent = async (studentId) => {
 
@@ -127,30 +129,31 @@ const deleteStudent = async (studentId) => {
     return result;
 };
 
-
 // GET STUDENT BY USER ID
 const getStudentByUserId = async (userId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            students.created_at,
+            students.updated_at,
+            users.last_login
         FROM students
-        WHERE user_id = ?
+        LEFT JOIN users
+            ON students.user_id = users.user_id
+        WHERE students.user_id = ?
         LIMIT 1`,
         [userId]
     );
 
     return rows[0];
 };
-
 
 module.exports = {
     createStudent,

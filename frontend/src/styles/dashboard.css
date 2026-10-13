@@ -4,10 +4,8 @@
 
 .dashboard-page {
     min-height: 100vh;
-
     background: #f8fafc;
 }
-
 
 /* =========================================================
    Header
@@ -89,12 +87,13 @@
 
     font-size: 13px;
     font-weight: 700;
+
+    cursor: pointer;
 }
 
 .logout-button:hover {
     background: #fecaca;
 }
-
 
 /* =========================================================
    Content
@@ -108,6 +107,10 @@
 
     padding: 45px 0 70px;
 }
+
+/* =========================================================
+   Students Heading
+   ========================================================= */
 
 .students-heading {
     display: flex;
@@ -148,12 +151,13 @@
 
     font-size: 14px;
     font-weight: 700;
+
+    cursor: pointer;
 }
 
 .add-student-button:hover {
     background: #1d4ed8;
 }
-
 
 /* =========================================================
    Error
@@ -175,18 +179,19 @@
     margin-bottom: 20px;
 }
 
-
 /* =========================================================
    Modal
    ========================================================= */
 
 .modal-overlay {
     position: fixed;
+
     inset: 0;
 
     background: rgba(15, 23, 42, 0.5);
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
@@ -200,11 +205,11 @@
     max-width: 600px;
 
     max-height: 90vh;
+
     overflow-y: auto;
 
     border-radius: 14px;
 }
-
 
 /* =========================================================
    Student Form
@@ -264,6 +269,8 @@
     font-size: 22px;
 
     line-height: 1;
+
+    cursor: pointer;
 }
 
 .close-form-button:hover {
@@ -273,8 +280,7 @@
 .student-form {
     display: grid;
 
-    grid-template-columns:
-        repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
 
     gap: 20px;
 }
@@ -308,6 +314,8 @@
     color: #0f172a;
 
     background: #ffffff;
+
+    box-sizing: border-box;
 }
 
 .student-form .form-group input:focus {
@@ -339,6 +347,8 @@
 
     font-size: 13px;
     font-weight: 700;
+
+    cursor: pointer;
 }
 
 .cancel-button {
@@ -360,7 +370,6 @@
 .save-button:hover {
     background: #1d4ed8;
 }
-
 
 /* =========================================================
    Students Card
@@ -407,9 +416,8 @@
     margin-top: 15px;
 }
 
-
 /* =========================================================
-   Student Search (CR-001)
+   Student Search
    ========================================================= */
 
 .students-search {
@@ -438,6 +446,8 @@
     background: #ffffff;
 
     font-size: 14px;
+
+    box-sizing: border-box;
 }
 
 .students-search-input:focus {
@@ -463,6 +473,8 @@
     font-weight: 700;
 
     white-space: nowrap;
+
+    cursor: pointer;
 }
 
 .students-search-clear:hover {
@@ -477,7 +489,6 @@
     font-size: 13px;
 }
 
-
 /* =========================================================
    Table
    ========================================================= */
@@ -486,14 +497,18 @@
     width: 100%;
 
     overflow-x: auto;
+
+    -webkit-overflow-scrolling: touch;
 }
 
 .students-table {
     width: 100%;
 
+    min-width: 1000px;
+
     border-collapse: collapse;
 
-    min-width: 800px;
+    table-layout: auto;
 }
 
 .students-table th {
@@ -513,6 +528,8 @@
     letter-spacing: 0.04em;
 
     border-bottom: 1px solid #e2e8f0;
+
+    white-space: nowrap;
 }
 
 .students-table td {
@@ -523,6 +540,8 @@
     font-size: 14px;
 
     border-bottom: 1px solid #f1f5f9;
+
+    vertical-align: middle;
 }
 
 .students-table tbody tr:last-child td {
@@ -537,6 +556,57 @@
     color: #0f172a;
 }
 
+/* =========================================================
+   Last Login
+   ========================================================= */
+
+.students-table th:nth-child(5) {
+    min-width: 175px;
+}
+
+.students-table td:nth-child(5) {
+    min-width: 175px;
+
+    color: #475569;
+
+    white-space: nowrap;
+}
+
+.last-login {
+    display: inline-block;
+
+    background: #ecfdf5;
+
+    color: #047857;
+
+    padding: 6px 9px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+.never-login {
+    display: inline-block;
+
+    background: #f1f5f9;
+
+    color: #64748b;
+
+    padding: 6px 9px;
+
+    border-radius: 6px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
 
 /* =========================================================
    Student Actions
@@ -548,6 +618,8 @@
     align-items: center;
 
     gap: 8px;
+
+    white-space: nowrap;
 }
 
 .edit-button,
@@ -560,6 +632,8 @@
 
     font-size: 12px;
     font-weight: 700;
+
+    cursor: pointer;
 }
 
 .edit-button {
@@ -582,10 +656,20 @@
     background: #fecaca;
 }
 
-
 /* =========================================================
    Responsive
    ========================================================= */
+
+@media (max-width: 1000px) {
+
+    .dashboard-content {
+        width: 94%;
+    }
+
+    .students-table {
+        min-width: 1000px;
+    }
+}
 
 @media (max-width: 800px) {
 
@@ -671,5 +755,14 @@
 
     .modal-content {
         max-height: 95vh;
+    }
+
+    /*
+       On small screens the table stays wide
+       and can be horizontally scrolled.
+    */
+
+    .students-table {
+        min-width: 1000px;
     }
 }
