@@ -23,6 +23,7 @@ export function ThemeProvider({ children }) {
       // Theme switching still works if storage is unavailable.
     }
   }, [theme]);
+  
 
   const toggleTheme = () => {
     setTheme((current) => (current === "dark" ? "light" : "dark"));

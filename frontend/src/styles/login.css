@@ -333,3 +333,55 @@
   right: 16px;
   z-index: 10;
 }
+
+
+/* CR-012: Force Student Dashboard theme colors */
+
+html[data-theme="dark"] .student-dashboard-page {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] .student-dashboard-header,
+html[data-theme="dark"] .profile-card,
+html[data-theme="dark"] .profile-details {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+}
+
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .profile-name h3,
+html[data-theme="dark"] .detail-value {
+    color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] .detail-label,
+html[data-theme="dark"] .profile-name p {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .student-dashboard-page {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html[data-theme="light"] .student-dashboard-header,
+html[data-theme="light"] .profile-card,
+html[data-theme="light"] .profile-details {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+}
+
+
+/* Dark theme: change blue login panel to dark */
+:root[data-theme="dark"] .login-info {
+    background: #0f172a !important;
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .login-info h1,
+:root[data-theme="dark"] .login-info p {
+    color: #f8fafc;
+}
