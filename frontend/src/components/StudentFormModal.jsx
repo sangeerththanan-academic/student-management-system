@@ -25,6 +25,8 @@ function StudentFormModal({
         password: ""
     });
 
+    const [profileImage, setProfileImage] = useState("");
+    const [profileImageName, setProfileImageName] = useState("");
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
@@ -55,6 +57,8 @@ function StudentFormModal({
             });
         }
 
+        setProfileImage("");
+        setProfileImageName("");
         setFormError("");
         setFieldErrors({});
         setTouched({});
@@ -154,6 +158,34 @@ function StudentFormModal({
         setFieldErrors({});
         setTouched({});
         onClose();
+    };
+
+    const handleProfileImageSelect = (event) => {
+        const file = event.target.files && event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            setFormError("Please select a valid image file.");
+            event.target.value = "";
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            setProfileImage(String(reader.result || ""));
+            setProfileImageName(file.name);
+            setFormError("");
+        };
+        reader.readAsDataURL(file);
+        event.target.value = "";
+    };
+
+    const handleProfileImageRemove = () => {
+        setProfileImage("");
+        setProfileImageName("");
     };
 
 
@@ -359,6 +391,47 @@ function StudentFormModal({
                 </div>
             )}
 
+            {!editingStudent && (
+                <div className="student-photo-upload-section">
+                    <div className="student-photo-preview">
+                        {profileImage ? (
+                            <img
+                                src={profileImage}
+                                alt="Profile preview"
+                                className="student-photo-preview-image"
+                            />
+                        ) : (
+                            <div className="student-photo-placeholder">+</div>
+                        )}
+                    </div>
+
+                    <div className="student-photo-actions">
+                        <label htmlFor="student-photo-upload" className="student-photo-button">
+                            Upload Photo
+                        </label>
+                        {profileImage && (
+                            <button
+                                type="button"
+                                className="student-photo-remove-button"
+                                onClick={handleProfileImageRemove}
+                            >
+                                Remove
+                            </button>
+                        )}
+                    </div>
+
+                    <input
+                        id="student-photo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileImageSelect}
+                        hidden
+                    />
+                    {profileImageName && (
+                        <div className="student-photo-name">{profileImageName}</div>
+                    )}
+                </div>
+            )}
 
             <form
                 className="student-form"

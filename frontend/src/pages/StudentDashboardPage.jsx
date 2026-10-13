@@ -8,6 +8,8 @@ import {
 
 import apiRequest from "../services/api";
 
+import StudentFormModal from "../components/StudentFormModal";
+
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
@@ -17,69 +19,103 @@ function StudentDashboardPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [showProfileEditor, setShowProfileEditor] = useState(false);
+    const [profilePhoto, setProfilePhoto] = useState("");
+
+    const profilePhotoKey = student?.student_id
+        ? `student-profile-photo-${student.student_id}` 
+        : "student-profile-photo";
 
     useEffect(() => {
-        const loadProfile = async () => {
-            try {
-                setLoading(true);
-                setError("");
+        if (!student) return;
 
-                const data = await apiRequest(
-                    "/api/students/me",
-                    { method: "GET" }
-                );
+        const storedPhoto = localStorage.getItem(profilePhotoKey);
+        if (storedPhoto) {
+            setProfilePhoto(storedPhoto);
+        } else {
+            setProfilePhoto("");
+        }
+    }, [student, profilePhotoKey]);
 
-                if (data.student) {
-                    setStudent(data.student);
-                }
+    const loadProfile = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-            } catch (err) {
-                console.error("Failed to load profile:", err);
+            const data = await apiRequest(
+                "/api/students/me",
+                { method: "GET" }
+            );
 
-                if (err.status === 401) {
-                    logout();
-                    navigate("/login", { replace: true });
-                    return;
-                }
-
-                setError(
-                    err.message || "Failed to load your profile."
-                );
-            } finally {
-                setLoading(false);
+            if (data.student) {
+                setStudent(data.student);
             }
-        };
 
+        } catch (err) {
+            console.error("Failed to load profile:", err);
+
+            if (err.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
+            }
+
+            setError(
+                err.message || "Failed to load your profile."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         loadProfile();
     }, [navigate]);
 
-    const handleLogout = () => {
+    const handleOpenProfileEditor = () => {
+        if (student) {
+            setShowProfileEditor(true);
+        }
+    };
+
+    const handleProfileEditorClose = () => {
+        setShowProfileEditor(false);
+    };
+
+    const handleProfileAuthError = () => {
         logout();
         navigate("/login", { replace: true });
+    };
+
+    const handleProfilePhotoChange = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setError("Please select a valid image file.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const imageData = String(reader.result || "");
+            setProfilePhoto(imageData);
+            localStorage.setItem(profilePhotoKey, imageData);
+            setError("");
+        };
+        reader.readAsDataURL(file);
+
+        event.target.value = "";
+    };
+
+    const handleRemoveProfilePhoto = () => {
+        setProfilePhoto("");
+        localStorage.removeItem(profilePhotoKey);
     };
 
     return (
         <div className="student-dashboard-page">
 
-            {/* Header */}
-            <header className="student-dashboard-header">
-                <div>
-                    <h1>Student Portal</h1>
-                    <p>Welcome, {user?.username}</p>
-                </div>
-
-                <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
-                    <button
-                        className="logout-button"
-                        onClick={handleLogout}
-                    >
-                        Logout
-                    </button>
-                </div>
-            </header>
-
-            {/* Main Content */}
             <main className="student-dashboard-main">
 
                 <h2 className="section-title">My Profile</h2>
@@ -98,16 +134,64 @@ function StudentDashboardPage() {
                     <div className="profile-card">
 
                         <div className="profile-header">
-                            <div className="profile-avatar">
-                                {student.first_name?.charAt(0)}
-                                {student.last_name?.charAt(0)}
+                            <div className="profile-header-main">
+                                <div className="profile-avatar-wrapper">
+                                    <div className="profile-avatar">
+                                        {profilePhoto ? (
+                                            <img
+                                                src={profilePhoto}
+                                                alt="Profile"
+                                                className="profile-avatar-image"
+                                            />
+                                        ) : (
+                                            <>
+                                                {student.first_name?.charAt(0) || "S"}
+                                                {student.last_name?.charAt(0) || "F"}
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="profile-avatar-actions">
+                                        <label
+                                            htmlFor="profile-photo-upload"
+                                            className="profile-photo-option"
+                                        >
+                                            Change Photo
+                                        </label>
+                                        {profilePhoto && (
+                                            <button
+                                                type="button"
+                                                className="profile-photo-option danger"
+                                                onClick={handleRemoveProfilePhoto}
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <input
+                                        id="profile-photo-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleProfilePhotoChange}
+                                        hidden
+                                    />
+                                </div>
+                                <div className="profile-name">
+                                    <h3>
+                                        {student.first_name} {student.last_name}
+                                    </h3>
+                                    <p>{student.registration_no}</p>
+                                </div>
                             </div>
-                            <div className="profile-name">
-                                <h3>
-                                    {student.first_name} {student.last_name}
-                                </h3>
-                                <p>{student.registration_no}</p>
-                            </div>
+
+                            <button
+                                type="button"
+                                className="edit-profile-button"
+                                onClick={handleOpenProfileEditor}
+                            >
+                                Edit Profile
+                            </button>
                         </div>
 
                         <div className="profile-details">
@@ -171,6 +255,19 @@ function StudentDashboardPage() {
                 )}
 
             </main>
+
+            {student && (
+                <StudentFormModal
+                    show={showProfileEditor}
+                    editingStudent={student}
+                    onClose={handleProfileEditorClose}
+                    onSuccess={async () => {
+                        await loadProfile();
+                        setShowProfileEditor(false);
+                    }}
+                    onAuthError={handleProfileAuthError}
+                />
+            )}
 
         </div>
     );

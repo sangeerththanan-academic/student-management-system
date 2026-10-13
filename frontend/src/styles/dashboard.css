@@ -270,6 +270,86 @@
     background: #e2e8f0;
 }
 
+.student-photo-upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 10px 0 14px;
+}
+
+.student-photo-preview {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #eef2ff;
+    border: 2px solid #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.student-photo-preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.student-photo-placeholder {
+    color: #2563eb;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 300;
+}
+
+.student-photo-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.student-photo-button,
+.student-photo-remove-button {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.student-photo-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.student-photo-button:hover {
+    background: #1d4ed8;
+}
+
+.student-photo-remove-button {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.student-photo-remove-button:hover {
+    background: #fecaca;
+}
+
+.student-photo-name {
+    color: #475569;
+    font-size: 12px;
+    text-align: center;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .student-form {
     display: grid;
 
