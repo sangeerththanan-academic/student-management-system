@@ -145,3 +145,25 @@ CREATE INDEX idx_password_reset_expires
 -- ============================================================
 ALTER TABLE users
 ADD COLUMN last_login DATETIME NULL DEFAULT NULL;
+
+
+USE student_management;
+
+CREATE TABLE IF NOT EXISTS password_reset_otps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    otp_hash VARCHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    verified_at DATETIME NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_password_reset_otp_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_password_reset_otp_user
+    ON password_reset_otps(user_id);

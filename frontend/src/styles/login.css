@@ -401,8 +401,6 @@
 }
 
 
-/* CR-012: Force Student Dashboard theme colors */
-
 html[data-theme="dark"] .student-dashboard-page {
     background-color: #0f172a !important;
     color: #f1f5f9 !important;
@@ -441,7 +439,6 @@ html[data-theme="light"] .profile-details {
 }
 
 
-/* Dark theme: change blue login panel to dark */
 :root[data-theme="dark"] .login-info {
     background: #0f172a !important;
     color: #f8fafc;
@@ -450,4 +447,47 @@ html[data-theme="light"] .profile-details {
 :root[data-theme="dark"] .login-info h1,
 :root[data-theme="dark"] .login-info p {
     color: #f8fafc;
+}
+.forgot-password-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: #f8fafc;
+}
+
+.forgot-password-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+}
+
+.forgot-password-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.forgot-password-card input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+.forgot-password-card button {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.forgot-password-card button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

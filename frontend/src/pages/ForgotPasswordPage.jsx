@@ -1,59 +1,70 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-import { forgotPassword } from "../services/authService";
+import { Link, useNavigate } from "react-router-dom";
+import {
+    forgotPassword,
+    verifyResetOtp
+} from "../services/authService";
 import "../styles/login.css";
 
 function ForgotPasswordPage() {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
+    const [otp, setOtp] = useState("");
+    const [step, setStep] = useState("email");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [resetToken, setResetToken] = useState("");
 
-    const handleSubmit = async (event) => {
+    const handleSendOtp = async (event) => {
         event.preventDefault();
 
-        setMessage("");
+        setLoading(true);
         setError("");
-        setResetToken("");
-
-        const normalizedEmail =
-            email.trim().toLowerCase();
-
-        if (!normalizedEmail) {
-            setError(
-                "Email address is required"
-            );
-            return;
-        }
+        setMessage("");
 
         try {
-            setLoading(true);
+            const result = await forgotPassword(email);
 
-            const data =
-                await forgotPassword(
-                    normalizedEmail
-                );
+            setMessage(
+                result.message ||
+                "If the account exists, an OTP has been sent."
+            );
 
-            setMessage(data.message);
+            setStep("otp");
+        } catch (err) {
+            setError(
+                err.message || "Unable to send OTP. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            /*
-             * Development only.
-             * Remove before production email integration.
-             */
-            if (data.resetToken) {
-                setResetToken(
-                    data.resetToken
+    const handleVerifyOtp = async (event) => {
+        event.preventDefault();
+
+        setLoading(true);
+        setError("");
+        setMessage("");
+
+        try {
+            const result = await verifyResetOtp(email, otp);
+
+            if (!result.resetToken) {
+                throw new Error(
+                    "Reset token was not returned by the server."
                 );
             }
 
-        } catch (error) {
+            navigate(
+                `/reset-password?token=${encodeURIComponent(
+                    result.resetToken
+                )}`
+            );
+        } catch (err) {
             setError(
-                error.message ||
-                "Unable to process password reset request."
+                err.message || "OTP verification failed."
             );
         } finally {
             setLoading(false);
@@ -61,134 +72,113 @@ function ForgotPasswordPage() {
     };
 
     return (
-        <div className="login-page">
+        <main className="login-page">
+            <section className="login-form-section">
+                <div className="login-card">
+                    <h1>Forgot Password</h1>
 
-            <div className="login-container">
-
-                <section className="login-form-section">
-
-                    <div className="login-card">
-
-                        <div className="login-heading">
-
-                            <span>
-                                ACCOUNT RECOVERY
-                            </span>
-
-                            <h2>
-                                Forgot Password
-                            </h2>
-
+                    {step === "email" && (
+                        <>
                             <p>
-                                Enter your registered
-                                email address to reset
-                                your password.
+                                Enter your registered email address.
+                                We will send you a verification OTP.
                             </p>
 
-                        </div>
-
-
-                        {error && (
-                            <div className="login-error">
-                                {error}
-                            </div>
-                        )}
-
-
-                        {message && (
-                            <div className="login-success">
-                                {message}
-                            </div>
-                        )}
-
-
-                        <form
-                            className="login-form"
-                            onSubmit={handleSubmit}
-                        >
-
-                            <div className="form-group">
-
-                                <label htmlFor="email">
+                            <form onSubmit={handleSendOtp}>
+                                <label htmlFor="reset-email">
                                     Email Address
                                 </label>
 
                                 <input
-                                    id="email"
+                                    id="reset-email"
                                     type="email"
+                                    autoComplete="email"
+                                    placeholder="Enter your registered email"
                                     value={email}
                                     onChange={(event) =>
-                                        setEmail(
-                                            event.target.value
-                                        )
+                                        setEmail(event.target.value)
                                     }
-                                    placeholder="Enter your email"
-                                    autoComplete="email"
-                                    disabled={loading}
                                     required
                                 />
 
-                            </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Sending..." : "Send OTP"}
+                                </button>
+                            </form>
+                        </>
+                    )}
 
+                    {step === "otp" && (
+                        <>
+                            <p>
+                                Enter the 6-digit OTP sent to your email.
+                                It expires after 5 minutes.
+                            </p>
 
-                            <button
-                                type="submit"
-                                className="login-submit-button"
-                                disabled={loading}
-                            >
-                                {loading
-                                    ? "Sending..."
-                                    : "Send Reset Link"
-                                }
-                            </button>
+                            <form onSubmit={handleVerifyOtp}>
+                                <label htmlFor="reset-otp">
+                                    Verification OTP
+                                </label>
 
+                                <input
+                                    id="reset-otp"
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={6}
+                                    pattern="[0-9]{6}"
+                                    placeholder="Enter 6-digit OTP"
+                                    value={otp}
+                                    onChange={(event) =>
+                                        setOtp(
+                                            event.target.value
+                                                .replace(/\D/g, "")
+                                                .slice(0, 6)
+                                        )
+                                    }
+                                    required
+                                />
 
-                            <button
-                                type="button"
-                                className="forgot-password-button"
-                                onClick={() =>
-                                    navigate("/login")
-                                }
-                                disabled={loading}
-                            >
-                                Back to Login
-                            </button>
-
-                        </form>
-
-
-                        {resetToken && (
-                            <div className="development-reset-token">
-
-                                <p>
-                                    Development reset token:
-                                </p>
-
-                                <code>
-                                    {resetToken}
-                                </code>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Verifying..." : "Verify OTP"}
+                                </button>
 
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            `/reset-password?token=${encodeURIComponent(resetToken)}`
-                                        )
-                                    }
+                                    disabled={loading}
+                                    onClick={() => {
+                                        setStep("email");
+                                        setOtp("");
+                                        setError("");
+                                        setMessage("");
+                                    }}
                                 >
-                                    Continue to Reset Password
+                                    Change Email
                                 </button>
+                            </form>
+                        </>
+                    )}
 
-                            </div>
-                        )}
+                    {message && (
+                        <p role="status">{message}</p>
+                    )}
 
-                    </div>
+                    {error && (
+                        <p role="alert">{error}</p>
+                    )}
 
-                </section>
-
-            </div>
-
-        </div>
+                    <p>
+                        <Link to="/login">Back to Login</Link>
+                    </p>
+                </div>
+            </section>
+        </main>
     );
 }
 
