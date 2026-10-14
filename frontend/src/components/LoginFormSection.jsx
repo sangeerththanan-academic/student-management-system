@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-function LoginFormSection({ onSubmit, loading, error }) {
+function LoginFormSection({
+    onSubmit,
+    loading,
+    error
+}) {
+    const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -9,7 +15,15 @@ function LoginFormSection({ onSubmit, loading, error }) {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        onSubmit(username.trim(), password);
+
+        onSubmit(
+            username.trim(),
+            password
+        );
+    };
+
+    const handleForgotPassword = () => {
+        navigate("/forgot-password");
     };
 
     return (
@@ -57,7 +71,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(event.target.value)
+                                setUsername(
+                                    event.target.value
+                                )
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
@@ -74,33 +90,20 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             Password
                         </label>
 
-                        <div className="password-input-wrapper">
-                            <input
-                                id="password"
-                                type={showPassword ? "text" : "password"}
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                                placeholder="Enter your password"
-                                autoComplete="current-password"
-                                disabled={loading}
-                                required
-                            />
-                            <button
-                                type="button"
-                                className="password-visibility-toggle"
-                                aria-label={showPassword ? "Hide password" : "Show password"}
-                                aria-pressed={showPassword}
-                                onClick={() => setShowPassword((visible) => !visible)}
-                                disabled={loading}
-                            >
-                                {showPassword
-                                    ? <EyeOff size={18} aria-hidden="true" />
-                                    : <Eye size={18} aria-hidden="true" />
-                                }
-                            </button>
-                        </div>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(event) =>
+                                setPassword(
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            disabled={loading}
+                            required
+                        />
 
                     </div>
 
@@ -114,6 +117,16 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             ? "Signing in..."
                             : "Sign In"
                         }
+                    </button>
+
+
+                    <button
+                        type="button"
+                        className="forgot-password-button"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot Password?
                     </button>
 
                 </form>
