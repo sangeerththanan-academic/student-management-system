@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -24,6 +25,15 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+
+// Change current student's password
+router.put(
+    "/me/password",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
 );
 
 
