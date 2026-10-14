@@ -87,6 +87,11 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate("/login", { replace: true });
+    };
+
     const handleProfilePhotoChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -115,6 +120,31 @@ function StudentDashboardPage() {
 
     return (
         <div className="student-dashboard-page">
+
+            <header className="student-dashboard-header">
+                <div>
+                    <h1>Student Portal</h1>
+                    <p>Welcome, {user?.username || "Student"}</p>
+                </div>
+
+                <div className="student-header-actions">
+                    <span className="role-badge">STUDENT</span>
+                    <button
+                        type="button"
+                        className="header-action-button"
+                        onClick={handleOpenProfileEditor}
+                    >
+                        Edit Profile
+                    </button>
+                    <button
+                        type="button"
+                        className="header-action-button logout"
+                        onClick={handleLogout}
+                    >
+                        Logout
+                    </button>
+                </div>
+            </header>
 
             <main className="student-dashboard-main">
 
@@ -185,13 +215,6 @@ function StudentDashboardPage() {
                                 </div>
                             </div>
 
-                            <button
-                                type="button"
-                                className="edit-profile-button"
-                                onClick={handleOpenProfileEditor}
-                            >
-                                Edit Profile
-                            </button>
                         </div>
 
                         <div className="profile-details">

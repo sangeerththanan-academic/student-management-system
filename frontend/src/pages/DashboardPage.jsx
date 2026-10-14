@@ -35,6 +35,20 @@ function DashboardPage() {
 
     const [showForm, setShowForm] = useState(false);
 
+    const formatLastLogin = (value) => {
+        if (!value) {
+            return "Never logged in";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "Never logged in";
+        }
+
+        return date.toLocaleString();
+    };
+
     const [editingStudent, setEditingStudent] = useState(null);
 
     // Load current user
@@ -438,6 +452,10 @@ function DashboardPage() {
                                         </th>
 
                                         <th>
+                                            Last Login
+                                        </th>
+
+                                        <th>
                                             Actions
                                         </th>
                                     </tr>
@@ -468,6 +486,10 @@ function DashboardPage() {
 
                                             <td>
                                                 {student.phone_number}
+                                            </td>
+
+                                            <td>
+                                                {formatLastLogin(student.last_login)}
                                             </td>
 
                                             <td>

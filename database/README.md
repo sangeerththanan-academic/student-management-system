@@ -31,6 +31,8 @@ The database currently supports:
 ```text
 database/
 ├── README.md
+├── migrations/
+│   └── 001_add_last_login.sql
 ├── schema.sql
 └── seed.sql
 ````
@@ -93,6 +95,7 @@ students
 | `username` | Login username |
 | `password_hash` | Hashed password |
 | `role` | User role |
+| `last_login` | Date and time of the user's most recent successful login |
 | `created_at` | Account creation date |
 | `updated_at` | Last update date |
 
@@ -163,6 +166,18 @@ mysql -u root -p < schema.sql
 ```
 
  Alternatively, open `schema.sql` in MySQL Workbench and execute it.
+
+ ### Update an Existing Database
+
+ If the database was created before `last_login` was added to the `users` table,
+ running `schema.sql` again will not add the missing column because the table
+ already exists. Run this migration from the project root to update it:
+
+ ```bash
+ mysql -u root -p < database/migrations/001_add_last_login.sql
+ ```
+
+ The migration safely does nothing if `users.last_login` is already present.
 
  ### Load Sample Data
 

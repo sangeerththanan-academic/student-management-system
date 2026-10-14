@@ -41,17 +41,19 @@ const getAllStudents = async () => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students s
+        LEFT JOIN users u ON u.user_id = s.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;
@@ -63,17 +65,19 @@ const getStudentById = async (studentId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE student_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students s
+        LEFT JOIN users u ON u.user_id = s.user_id
+        WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
     );
@@ -133,17 +137,19 @@ const getStudentByUserId = async (userId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE user_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students s
+        LEFT JOIN users u ON u.user_id = s.user_id
+        WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
     );

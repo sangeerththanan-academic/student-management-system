@@ -8,6 +8,70 @@
     font-family: Arial, sans-serif;
 }
 
+.student-dashboard-header {
+    min-height: 78px;
+    padding: 18px 5%;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.student-dashboard-header h1 {
+    color: #0f172a;
+    font-size: 22px;
+    margin: 0 0 4px;
+}
+
+.student-dashboard-header p {
+    color: #64748b;
+    font-size: 13px;
+    margin: 0;
+}
+
+.student-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.role-badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.header-action-button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.header-action-button:hover {
+    background: #1d4ed8;
+}
+
+.header-action-button.logout {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.header-action-button.logout:hover {
+    background: #fecaca;
+}
+
 .student-dashboard-main {
     max-width: 780px;
     margin: 36px auto;
@@ -123,23 +187,6 @@
     color: rgba(255, 255, 255, 0.9);
     font-size: 14px;
     margin: 4px 0 0;
-}
-
-.edit-profile-button {
-    background: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.edit-profile-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
 }
 
 .profile-details {
