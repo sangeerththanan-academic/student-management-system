@@ -91,5 +91,35 @@ CREATE TABLE students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- 4. PASSWORD RESET TOKENS TABLE
+-- ============================================================
+-- Stores hashed OTP tokens for password recovery.
+-- ============================================================
+
+CREATE TABLE password_reset_tokens (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    token_hash VARCHAR(64) NOT NULL,
+
+    attempts INT NOT NULL DEFAULT 0,
+
+    expires_at DATETIME NOT NULL,
+
+    used_at DATETIME NULL DEFAULT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_reset_token_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- DATABASE SCHEMA - VERSION 2.0 COMPLETE
 -- ============================================================

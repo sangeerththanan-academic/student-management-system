@@ -47,23 +47,54 @@ export const forgotPassword = async (email) => {
 
 
 // ==========================================
-// RESET PASSWORD
+// VERIFY OTP
 // ==========================================
 
-export const resetPassword = async (
-    token,
-    password,
-    confirmPassword
-) => {
+export const verifyOtp = async (email, otp) => {
+    return await apiRequest(
+        "/api/auth/verify-otp",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email,
+                otp
+            })
+        }
+    );
+};
+
+
+// ==========================================
+// RESET PASSWORD
+// Supports both ({ email, otp, password, confirmPassword })
+// and legacy (token, password, confirmPassword)
+// ==========================================
+
+export const resetPassword = async (arg1, arg2, arg3, arg4) => {
+    let payload = {};
+
+    if (typeof arg1 === "object" && arg1 !== null) {
+        payload = arg1;
+    } else if (arg4 !== undefined) {
+        payload = {
+            email: arg1,
+            otp: arg2,
+            password: arg3,
+            confirmPassword: arg4
+        };
+    } else {
+        payload = {
+            token: arg1,
+            password: arg2,
+            confirmPassword: arg3
+        };
+    }
+
     return await apiRequest(
         "/api/auth/reset-password",
         {
             method: "POST",
-            body: JSON.stringify({
-                token,
-                password,
-                confirmPassword
-            })
+            body: JSON.stringify(payload)
         }
     );
 };

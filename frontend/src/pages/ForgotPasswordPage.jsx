@@ -11,49 +11,42 @@ function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [resetToken, setResetToken] = useState("");
+    const [sentEmail, setSentEmail] = useState("");
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setMessage("");
         setError("");
-        setResetToken("");
 
-        const normalizedEmail =
-            email.trim().toLowerCase();
+        const normalizedEmail = email.trim().toLowerCase();
 
         if (!normalizedEmail) {
-            setError(
-                "Email address is required"
-            );
+            setError("Email address is required.");
+            return;
+        }
+
+        const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailPattern.test(normalizedEmail)) {
+            setError("Please enter a valid email address.");
             return;
         }
 
         try {
             setLoading(true);
 
-            const data =
-                await forgotPassword(
-                    normalizedEmail
-                );
+            const data = await forgotPassword(normalizedEmail);
 
-            setMessage(data.message);
+            setSentEmail(normalizedEmail);
+            setMessage(
+                data.message ||
+                "If an account exists for this email address, a 6-digit verification code (OTP) has been sent."
+            );
 
-            /*
-             * Development only.
-             * Remove before production email integration.
-             */
-            if (data.resetToken) {
-                setResetToken(
-                    data.resetToken
-                );
-            }
-
-        } catch (error) {
+        } catch (err) {
             setError(
-                error.message ||
-                "Unable to process password reset request."
+                err.message ||
+                "Unable to process password reset request. Please try again."
             );
         } finally {
             setLoading(false);
@@ -62,132 +55,123 @@ function ForgotPasswordPage() {
 
     return (
         <div className="login-page">
-
             <div className="login-container">
+                {/* Information Branding Side */}
+                <aside className="login-info">
+                    <button
+                        type="button"
+                        className="back-button"
+                        onClick={() => navigate("/login")}
+                    >
+                        &larr; Back to Login
+                    </button>
 
+                    <div className="login-info-content">
+                        <div className="login-logo" aria-hidden="true">
+                            🎓
+                        </div>
+                        <h1>Account Recovery</h1>
+                        <p>
+                            Secure password recovery powered by Google App Password SMTP
+                            verification. Protect your student account with multi-layered verification.
+                        </p>
+                    </div>
+                </aside>
+
+                {/* Form Side */}
                 <section className="login-form-section">
-
                     <div className="login-card">
-
                         <div className="login-heading">
-
-                            <span>
-                                ACCOUNT RECOVERY
-                            </span>
-
-                            <h2>
-                                Forgot Password
-                            </h2>
-
+                            <span>RECOVERY</span>
+                            <h2>Forgot Password</h2>
                             <p>
-                                Enter your registered
-                                email address to reset
-                                your password.
+                                Enter your registered email to receive a 6-digit One-Time Password (OTP).
                             </p>
-
                         </div>
 
-
                         {error && (
-                            <div className="login-error">
+                            <div className="login-error" role="alert">
                                 {error}
                             </div>
                         )}
 
-
                         {message && (
-                            <div className="login-success">
-                                {message}
+                            <div className="login-success" role="status">
+                                <div className="success-icon" aria-hidden="true">✓</div>
+                                <div className="success-body">
+                                    <strong>Code Dispatched</strong>
+                                    <p>{message}</p>
+                                </div>
                             </div>
                         )}
 
+                        {!sentEmail ? (
+                            <form className="login-form" onSubmit={handleSubmit}>
+                                <div className="form-group">
+                                    <label htmlFor="email">Email Address</label>
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(event) => setEmail(event.target.value)}
+                                        placeholder="e.g. student@example.com"
+                                        autoComplete="email"
+                                        disabled={loading}
+                                        required
+                                    />
+                                </div>
 
-                        <form
-                            className="login-form"
-                            onSubmit={handleSubmit}
-                        >
-
-                            <div className="form-group">
-
-                                <label htmlFor="email">
-                                    Email Address
-                                </label>
-
-                                <input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(event) =>
-                                        setEmail(
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="Enter your email"
-                                    autoComplete="email"
+                                <button
+                                    type="submit"
+                                    className="login-submit-button"
                                     disabled={loading}
-                                    required
-                                />
-
-                            </div>
-
-
-                            <button
-                                type="submit"
-                                className="login-submit-button"
-                                disabled={loading}
-                            >
-                                {loading
-                                    ? "Sending..."
-                                    : "Send Reset Link"
-                                }
-                            </button>
-
-
-                            <button
-                                type="button"
-                                className="forgot-password-button"
-                                onClick={() =>
-                                    navigate("/login")
-                                }
-                                disabled={loading}
-                            >
-                                Back to Login
-                            </button>
-
-                        </form>
-
-
-                        {resetToken && (
-                            <div className="development-reset-token">
-
-                                <p>
-                                    Development reset token:
-                                </p>
-
-                                <code>
-                                    {resetToken}
-                                </code>
+                                >
+                                    {loading ? "Sending OTP..." : "Send Verification Code"}
+                                </button>
 
                                 <button
                                     type="button"
+                                    className="forgot-password-button"
+                                    onClick={() => navigate("/login")}
+                                    disabled={loading}
+                                >
+                                    Back to Login
+                                </button>
+                            </form>
+                        ) : (
+                            <div className="otp-dispatched-actions">
+                                <p className="otp-instructions">
+                                    Please check your inbox (and spam folder) for the 6-digit code.
+                                    The code expires in <strong>10 minutes</strong>.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    className="login-submit-button"
                                     onClick={() =>
                                         navigate(
-                                            `/reset-password?token=${encodeURIComponent(resetToken)}`
+                                            `/reset-password?email=${encodeURIComponent(sentEmail)}`
                                         )
                                     }
                                 >
-                                    Continue to Reset Password
+                                    Proceed to Enter OTP &rarr;
                                 </button>
 
+                                <button
+                                    type="button"
+                                    className="forgot-password-button"
+                                    onClick={() => {
+                                        setSentEmail("");
+                                        setMessage("");
+                                    }}
+                                >
+                                    Try another email
+                                </button>
                             </div>
                         )}
-
                     </div>
-
                 </section>
-
             </div>
-
         </div>
     );
 }

@@ -113,6 +113,19 @@ const updateStudent = async (
         ]
     );
 
+    // Keep linked user record (username and email) synchronized
+    await pool.execute(
+        `UPDATE users u
+         JOIN students s ON s.user_id = u.user_id
+         SET u.username = ?, u.email = ?
+         WHERE s.student_id = ?`,
+        [
+            registrationNo,
+            email,
+            studentId
+        ]
+    );
+
     return result;
 };
 

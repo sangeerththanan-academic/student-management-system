@@ -4,6 +4,7 @@ const {
     login,
     getCurrentUser,
     forgotPassword,
+    verifyOtp,
     resetPassword
 } = require("../controllers/authController");
 
@@ -26,8 +27,13 @@ router.get("/me", authenticate, getCurrentUser);
 router.post("/forgot-password", forgotPassword);
 
 
+// POST /api/auth/verify-otp
+router.post("/verify-otp", verifyOtp);
+
+
 // POST /api/auth/reset-password
 router.post("/reset-password", resetPassword);
+
 
 
 module.exports = router;
