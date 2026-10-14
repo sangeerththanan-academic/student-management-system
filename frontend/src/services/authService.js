@@ -10,12 +10,10 @@ export const login = async (username, password) => {
         })
     });
 
-    // Store JWT
     if (data.token) {
         localStorage.setItem("token", data.token);
     }
 
-    // Store user information
     if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
     }
@@ -55,7 +53,49 @@ export const logout = () => {
 };
 
 
-// Check whether a token exists
+// Check authentication
 export const isAuthenticated = () => {
     return Boolean(localStorage.getItem("token"));
+};
+
+
+// Request OTP
+export const requestPasswordOTP = async (email) => {
+    return await apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({
+            email
+        })
+    });
+};
+
+
+// Verify OTP
+export const verifyPasswordOTP = async (email, otp) => {
+    return await apiRequest("/api/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            otp
+        })
+    });
+};
+
+
+// Reset password without a reset token
+export const resetPassword = async ({
+    email,
+    otp,
+    newPassword,
+    confirmPassword
+}) => {
+    return await apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            otp,
+            newPassword,
+            confirmPassword
+        })
+    });
 };

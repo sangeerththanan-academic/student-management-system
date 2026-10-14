@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { login } from "../services/authService";
 import "../styles/login.css";
@@ -50,21 +50,28 @@ function LoginPage() {
 
     return (
         <div className="login-page">
-
             <div className="login-theme-toggle">
                 <ThemeToggle section="login" />
             </div>
 
             <div className="login-container">
+                <div className="login-content">
+                    <LoginInfo onBack={handleBack} />
 
-                <LoginInfo onBack={handleBack} />
+                    <div className="login-form-wrapper">
+                        <LoginFormSection
+                            onSubmit={handleLogin}
+                            loading={loading}
+                            error={error}
+                        />
 
-                <LoginFormSection
-                    onSubmit={handleLogin}
-                    loading={loading}
-                    error={error}
-                />
-
+                        <div className="forgot-password-link">
+                            <Link to="/forgot-password">
+                                Forgot Password?
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
