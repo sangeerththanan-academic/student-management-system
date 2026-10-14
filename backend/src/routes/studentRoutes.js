@@ -1,3 +1,52 @@
+// const express = require("express");
+// const router = express.Router();
+
+// const {
+//     addStudent,
+//     getStudents,
+//     getStudent,
+//     getMyProfile,
+//     editStudent,
+//     removeStudent
+// } = require("../controllers/studentController");
+
+// const { authenticate } = require("../middleware/authMiddleware");
+
+// const uploadStudentImage =
+//     require("../middleware/studentUploadMiddleware");
+
+// // GET /api/students/me
+// router.get("/me", authenticate, getMyProfile);
+
+// // GET /api/students
+// router.get("/", authenticate, getStudents);
+
+// // GET /api/students/:id
+// router.get("/:id", authenticate, getStudent);
+
+// // POST /api/students
+// router.post(
+//     "/",
+//     authenticate,
+//     uploadStudentImage.single("profileImage"),
+//     addStudent
+// );
+
+// // PUT /api/students/:id
+// router.put(
+//     "/:id",
+//     authenticate,
+//     uploadStudentImage.single("profileImage"),
+//     editStudent
+// );
+
+// // DELETE /api/students/:id
+// router.delete("/:id", authenticate, removeStudent);
+
+// module.exports = router;
+
+
+
 
 const express = require("express");
 const router = express.Router();
@@ -9,54 +58,21 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeStudentPassword
+    changeMyPassword
 } = require("../controllers/studentController");
 
 const { authenticate } = require("../middleware/authMiddleware");
+const uploadStudentImage = require("../middleware/studentUploadMiddleware");
 
-const uploadStudentImage =
-    require("../middleware/studentUploadMiddleware");
-
-// GET CURRENT STUDENT'S PROFILE
-// GET /api/students/me
 router.get("/me", authenticate, getMyProfile);
 
-// CHANGE STUDENT PASSWORD
-// POST /api/students/change-password
-router.post(
-    "/change-password",
-    authenticate,
-    changeStudentPassword
-);
+router.patch("/me/password", authenticate, changeMyPassword);
 
-// GET ALL STUDENTS
-// GET /api/students
 router.get("/", authenticate, getStudents);
+router.post("/", authenticate, uploadStudentImage.single("profileImage"), addStudent);
 
-// GET STUDENT BY ID
-// GET /api/students/:id
 router.get("/:id", authenticate, getStudent);
-
-// CREATE STUDENT
-// POST /api/students
-router.post(
-    "/",
-    authenticate,
-    uploadStudentImage.single("profileImage"),
-    addStudent
-);
-
-// UPDATE STUDENT
-// PUT /api/students/:id
-router.put(
-    "/:id",
-    authenticate,
-    uploadStudentImage.single("profileImage"),
-    editStudent
-);
-
-// DELETE STUDENT
-// DELETE /api/students/:id
+router.put("/:id", authenticate, uploadStudentImage.single("profileImage"), editStudent);
 router.delete("/:id", authenticate, removeStudent);
 
 module.exports = router;

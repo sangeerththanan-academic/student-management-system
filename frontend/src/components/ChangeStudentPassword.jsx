@@ -1,60 +1,83 @@
 
 import { useRef, useState } from "react";
-import apiRequest from "../services/api";
+import "../styles/changePassword.css";
 
-function ChangeStudentPassword({ onAuthError }) {
-    const oldPasswordRef = useRef(null);
+const API_BASE_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    const [oldPassword, setOldPassword] = useState("");
+export default function ChangeStudentPassword() {
+    const currentRef = useRef(null);
+
+    const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    const [loading, setLoading] = useState(false);
+    // CR-020: Separate show/hide states for each password
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const clearPasswords = () => {
-        setOldPassword("");
+    const clearFields = () => {
+        setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
 
-        requestAnimationFrame(() => {
-            oldPasswordRef.current?.focus();
-        });
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+
+        currentRef.current?.focus();
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleClear = () => {
+        clearFields();
+        setMessage("");
+        setMessageType("");
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
         setMessage("");
         setMessageType("");
 
-        if (!oldPassword || !newPassword || !confirmPassword) {
-            setMessage("Please fill in all password fields.");
-            setMessageType("error");
-            return;
-        }
-
-        if (newPassword.length < 8) {
-            setMessage(
-                "New password must be at least 8 characters."
-            );
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setMessage("Fill all password fields.");
             setMessageType("error");
             return;
         }
 
         if (newPassword !== confirmPassword) {
             setMessage(
-                "New password and re-entered password do not match."
+                "New password and re-enter password do not match."
             );
             setMessageType("error");
             return;
         }
 
-        if (oldPassword === newPassword) {
+        const strongPassword =
+            newPassword.length >= 8 &&
+            /[a-z]/.test(newPassword) &&
+            /[A-Z]/.test(newPassword) &&
+            /[0-9]/.test(newPassword) &&
+            /[^A-Za-z0-9]/.test(newPassword);
+
+        if (!strongPassword) {
             setMessage(
-                "New password must be different from the old password."
+                "Password must be 8+ characters with uppercase, lowercase, number, and special character."
             );
+            setMessageType("error");
+            return;
+        }
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            setMessage("Please login again.");
             setMessageType("error");
             return;
         }
@@ -62,35 +85,38 @@ function ChangeStudentPassword({ onAuthError }) {
         try {
             setLoading(true);
 
-            const data = await apiRequest(
-                "/api/students/change-password",
+            const response = await fetch(
+                `${API_BASE_URL}/api/students/me/password`,
                 {
-                    method: "POST",
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                     body: JSON.stringify({
-                        oldPassword,
+                        currentPassword,
                         newPassword,
-                        confirmPassword
-                    })
+                        confirmPassword,
+                    }),
                 }
             );
 
-            setMessage(
-                data.message || "Password changed successfully."
-            );
-            setMessageType("success");
+            const data = await response.json().catch(() => ({}));
 
-            clearPasswords();
-        } catch (error) {
-            if (error.status === 401) {
-                if (onAuthError) {
-                    onAuthError();
-                    return;
-                }
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Password change failed."
+                );
             }
 
+            clearFields();
+
             setMessage(
-                error.message || "Failed to change password."
+                data.message || "Password changed successfully!"
             );
+            setMessageType("success");
+        } catch (error) {
+            setMessage(error.message || "Something went wrong.");
             setMessageType("error");
         } finally {
             setLoading(false);
@@ -99,107 +125,148 @@ function ChangeStudentPassword({ onAuthError }) {
 
     return (
         <section className="change-password-card">
-            <div className="change-password-header">
-                <h2>Change Password</h2>
-                <p>
-                    Verify your current password before setting
-                    a new one.
-                </p>
-            </div>
+            <h2>Change Password</h2>
+            <p>Update your account password securely.</p>
 
             {message && (
                 <div
-                    className={`password-notification ${messageType}`}
-                    role={messageType === "error" ? "alert" : "status"}
+                    className={`password-message ${messageType}`}
+                    role="status"
                     aria-live="polite"
                 >
                     {message}
                 </div>
             )}
 
-            <form
-                className="change-password-form"
-                onSubmit={handleSubmit}
-            >
+            <form onSubmit={handleSubmit}>
+                {/* Current Password */}
                 <div className="password-field">
-                    <label htmlFor="oldPassword">
-                        Old Password
+                    <label htmlFor="currentPassword">
+                        Current Password
                     </label>
 
-                    <input
-                        ref={oldPasswordRef}
-                        id="oldPassword"
-                        name="oldPassword"
-                        type="password"
-                        autoComplete="current-password"
-                        value={oldPassword}
-                        onChange={(event) =>
-                            setOldPassword(event.target.value)
-                        }
-                        placeholder="Enter your current password"
-                        required
-                        disabled={loading}
-                    />
+                    <div className="password-input-wrapper">
+                        <input
+                            ref={currentRef}
+                            id="currentPassword"
+                            type={showCurrentPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            value={currentPassword}
+                            onChange={(e) =>
+                                setCurrentPassword(e.target.value)
+                            }
+                            required
+                        />
+
+                        <button
+                            type="button"
+                            className="password-toggle-button"
+                            onClick={() =>
+                                setShowCurrentPassword((previous) => !previous)
+                            }
+                            aria-label={
+                                showCurrentPassword
+                                    ? "Hide current password"
+                                    : "Show current password"
+                            }
+                            aria-pressed={showCurrentPassword}
+                        >
+                            {showCurrentPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
                 </div>
 
+                {/* New Password */}
                 <div className="password-field">
                     <label htmlFor="newPassword">
                         New Password
                     </label>
 
-                    <input
-                        id="newPassword"
-                        name="newPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        value={newPassword}
-                        onChange={(event) =>
-                            setNewPassword(event.target.value)
-                        }
-                        placeholder="Enter your new password"
-                        minLength={8}
-                        required
-                        disabled={loading}
-                    />
+                    <div className="password-input-wrapper">
+                        <input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            autoComplete="new-password"
+                            value={newPassword}
+                            onChange={(e) =>
+                                setNewPassword(e.target.value)
+                            }
+                            required
+                        />
 
-                    <small>
-                        Must contain at least 8 characters.
-                    </small>
+                        <button
+                            type="button"
+                            className="password-toggle-button"
+                            onClick={() =>
+                                setShowNewPassword((previous) => !previous)
+                            }
+                            aria-label={
+                                showNewPassword
+                                    ? "Hide new password"
+                                    : "Show new password"
+                            }
+                            aria-pressed={showNewPassword}
+                        >
+                            {showNewPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
                 </div>
 
+                {/* Confirm New Password */}
                 <div className="password-field">
                     <label htmlFor="confirmPassword">
                         Re-enter New Password
                     </label>
 
-                    <input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        value={confirmPassword}
-                        onChange={(event) =>
-                            setConfirmPassword(event.target.value)
-                        }
-                        placeholder="Re-enter your new password"
-                        minLength={8}
-                        required
-                        disabled={loading}
-                    />
+                    <div className="password-input-wrapper">
+                        <input
+                            id="confirmPassword"
+                            type={
+                                showConfirmPassword ? "text" : "password"
+                            }
+                            autoComplete="new-password"
+                            value={confirmPassword}
+                            onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                            }
+                            required
+                        />
+
+                        <button
+                            type="button"
+                            className="password-toggle-button"
+                            onClick={() =>
+                                setShowConfirmPassword(
+                                    (previous) => !previous
+                                )
+                            }
+                            aria-label={
+                                showConfirmPassword
+                                    ? "Hide confirmation password"
+                                    : "Show confirmation password"
+                            }
+                            aria-pressed={showConfirmPassword}
+                        >
+                            {showConfirmPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
                 </div>
 
-                <button
-                    type="submit"
-                    className="change-password-button"
-                    disabled={loading}
-                >
-                    {loading
-                        ? "Changing Password..."
-                        : "Change Password"}
-                </button>
+                {/* Action Buttons */}
+                <div className="password-actions">
+                    <button type="submit" disabled={loading}>
+                        {loading ? "Changing..." : "Change Password"}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        disabled={loading}
+                    >
+                        Clear
+                    </button>
+                </div>
             </form>
         </section>
     );
 }
-
-export default ChangeStudentPassword;
