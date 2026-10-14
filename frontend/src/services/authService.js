@@ -51,7 +51,8 @@ export const forgotPassword = async (email) => {
 // ==========================================
 
 export const resetPassword = async (
-    token,
+    email,
+    otp,
     password,
     confirmPassword
 ) => {
@@ -60,7 +61,8 @@ export const resetPassword = async (
         {
             method: "POST",
             body: JSON.stringify({
-                token,
+                email,
+                otp,
                 password,
                 confirmPassword
             })

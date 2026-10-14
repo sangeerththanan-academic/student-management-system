@@ -13,8 +13,9 @@ function ResetPasswordPage() {
     const [searchParams] =
         useSearchParams();
 
-    const token =
-        searchParams.get("token") || "";
+    const email = searchParams.get("email") || "";
+
+    const [otp, setOtp] = useState("");
 
     const [password, setPassword] =
         useState("");
@@ -37,16 +38,16 @@ function ResetPasswordPage() {
         setError("");
         setMessage("");
 
-        if (!token) {
+        if (!email) {
             setError(
-                "Invalid or missing password reset token."
+                "Enter your email address to reset your password."
             );
             return;
         }
 
-        if (!password || !confirmPassword) {
+        if (!/^\d{6}$/.test(otp) || !password || !confirmPassword) {
             setError(
-                "Please enter and confirm your new password."
+                "Enter the six-digit code and your new password."
             );
             return;
         }
@@ -70,7 +71,8 @@ function ResetPasswordPage() {
 
             const data =
                 await resetPassword(
-                    token,
+                    email,
+                    otp,
                     password,
                     confirmPassword
                 );
@@ -110,8 +112,7 @@ function ResetPasswordPage() {
                             </h2>
 
                             <p>
-                                Create a new password
-                                for your account.
+                                Enter the six-digit code sent to {email} and choose a new password.
                             </p>
 
                         </div>
@@ -136,6 +137,23 @@ function ResetPasswordPage() {
                                 className="login-form"
                                 onSubmit={handleSubmit}
                             >
+
+                                <div className="form-group">
+                                    <label htmlFor="otp">Email OTP</label>
+                                    <input
+                                        id="otp"
+                                        type="text"
+                                        inputMode="numeric"
+                                        autoComplete="one-time-code"
+                                        pattern="[0-9]{6}"
+                                        maxLength={6}
+                                        value={otp}
+                                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                                        placeholder="Enter the six-digit code"
+                                        disabled={loading}
+                                        required
+                                    />
+                                </div>
 
                                 <div className="form-group">
 

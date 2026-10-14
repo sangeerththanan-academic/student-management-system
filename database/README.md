@@ -303,3 +303,12 @@ MySQL
 | Tables | `users`, `students` |
 | Schema File | `schema.sql` |
 | Seed File | `seed.sql` |
+
+## CR26: Existing Database Update
+
+For an existing database, run these migrations in order from MySQL Workbench:
+
+1. `migrations/CR026_password_reset_setup.sql` adds `users.email`, copies existing student emails from `students`, and creates the OTP table.
+2. `migrations/CR026_password_reset_otp_attempts.sql` ensures OTP attempts are tracked.
+
+Existing administrator accounts without a student profile need an email assigned to `users.email` before they can use password recovery. New student accounts save their email to both `users` and `students`.

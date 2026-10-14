@@ -213,9 +213,9 @@ const addStudent = async (req, res) => {
 
         // Create student login account
         const [userResult] = await connection.execute(
-            `INSERT INTO users (username, password_hash, role)
-             VALUES (?, ?, 'STUDENT')`,
-            [normalizedRegistrationNo, passwordHash]
+            `INSERT INTO users (username, email, password_hash, role)
+             VALUES (?, ?, ?, 'STUDENT')`,
+            [normalizedRegistrationNo, normalizedEmail, passwordHash]
         );
 
         const userId = userResult.insertId;
@@ -421,15 +421,34 @@ const editStudent = async (req, res) => {
             });
         }
 
+        const [existingAccountEmail] = await pool.execute(
+            `SELECT user_id
+             FROM users
+             WHERE email = ?
+               AND user_id <> ?
+             LIMIT 1`,
+            [normalizedEmail, existingStudent.user_id]
+        );
+
+        if (existingAccountEmail.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered",
+                errors: {
+                    email: "Email address is already registered."
+                }
+            });
+        }
+
         connection = await pool.getConnection();
         await connection.beginTransaction();
 
         // Keep login username consistent with registration number
         await connection.execute(
             `UPDATE users
-             SET username = ?
+             SET username = ?, email = ?
              WHERE user_id = ?`,
-            [normalizedRegistrationNo, existingStudent.user_id]
+            [normalizedRegistrationNo, normalizedEmail, existingStudent.user_id]
         );
 
         // If a new image was uploaded, update it.

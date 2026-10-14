@@ -11,14 +11,14 @@ function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [resetToken, setResetToken] = useState("");
+    const [codeSent, setCodeSent] = useState(false);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setMessage("");
         setError("");
-        setResetToken("");
+        setCodeSent(false);
 
         const normalizedEmail =
             email.trim().toLowerCase();
@@ -39,16 +39,7 @@ function ForgotPasswordPage() {
                 );
 
             setMessage(data.message);
-
-            /*
-             * Development only.
-             * Remove before production email integration.
-             */
-            if (data.resetToken) {
-                setResetToken(
-                    data.resetToken
-                );
-            }
+            setCodeSent(true);
 
         } catch (error) {
             setError(
@@ -81,8 +72,8 @@ function ForgotPasswordPage() {
 
                             <p>
                                 Enter your registered
-                                email address to reset
-                                your password.
+                                email address and we will
+                                send a one-time code.
                             </p>
 
                         </div>
@@ -138,7 +129,7 @@ function ForgotPasswordPage() {
                             >
                                 {loading
                                     ? "Sending..."
-                                    : "Send Reset Link"
+                                : "Send OTP"
                                 }
                             </button>
 
@@ -157,26 +148,19 @@ function ForgotPasswordPage() {
                         </form>
 
 
-                        {resetToken && (
-                            <div className="development-reset-token">
-
-                                <p>
-                                    Development reset token:
-                                </p>
-
-                                <code>
-                                    {resetToken}
-                                </code>
+                        {codeSent && (
+                            <div className="reset-code-next-step">
+                                <p>Enter the six-digit code sent to your email to choose a new password.</p>
 
                                 <button
                                     type="button"
                                     onClick={() =>
                                         navigate(
-                                            `/reset-password?token=${encodeURIComponent(resetToken)}`
+                                            `/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`
                                         )
                                     }
                                 >
-                                    Continue to Reset Password
+                                    Enter OTP
                                 </button>
 
                             </div>

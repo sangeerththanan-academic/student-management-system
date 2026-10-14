@@ -1,12 +1,38 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const {
     findUserByUsername,
     findUserById,
-    updateLastLogin
+    findUserByEmail,
+    updateLastLogin,
+    createPasswordResetOTP,
+    findPasswordResetOTP,
+    invalidatePasswordResetOTPs,
+    incrementPasswordResetOTPAttempts,
+    updatePassword,
+    markPasswordResetOTPUsed
 } = require("../models/userModel");
+
+const createMailTransport = () => {
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+
+    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+        throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS.");
+    }
+
+    return nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: Number(SMTP_PORT),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS
+        }
+    });
+};
 
 
 // ==========================================
@@ -122,10 +148,10 @@ const forgotPassword = async (req, res) => {
     try {
         const email = req.body.email?.trim().toLowerCase();
 
-        if (!email) {
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             return res.status(400).json({
                 success: false,
-                message: "Email address is required"
+                message: "Enter a valid email address"
             });
         }
 
@@ -136,6 +162,13 @@ const forgotPassword = async (req, res) => {
          * account enumeration.
          */
         if (!user) {
+            if (process.env.NODE_ENV !== "production") {
+                return res.status(404).json({
+                    success: false,
+                    message: "No account matches this email. Enter the email saved on the student profile."
+                });
+            }
+
             return res.status(200).json({
                 success: true,
                 message:
@@ -143,66 +176,39 @@ const forgotPassword = async (req, res) => {
             });
         }
 
-        /*
-         * Remove previous unused reset tokens.
-         */
-        await deleteUnusedResetTokens(user.user_id);
+        const otp = crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+        const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-        /*
-         * Generate a cryptographically secure token.
-         */
-        const resetToken = crypto.randomBytes(32).toString("hex");
+        await invalidatePasswordResetOTPs(user.user_id);
+        await createPasswordResetOTP(user.user_id, otpHash, expiresAt);
 
-        /*
-         * Store only the hash of the token.
-         */
-        const tokenHash = crypto
-            .createHash("sha256")
-            .update(resetToken)
-            .digest("hex");
-
-        /*
-         * Token valid for 15 minutes.
-         */
-        const expiresAt = new Date(
-            Date.now() + 15 * 60 * 1000
-        );
-
-        await createPasswordResetToken(
-            user.user_id,
-            tokenHash,
-            expiresAt
-        );
-
-        /*
-         * Development implementation.
-         *
-         * In production, this token should be sent
-         * through an email service instead of returning
-         * it in the API response.
-         */
-        console.log(
-            `Password reset token for ${email}: ${resetToken}`
-        );
+        try {
+            const transporter = createMailTransport();
+            await transporter.sendMail({
+                from: process.env.SMTP_FROM || process.env.SMTP_USER,
+                to: user.email,
+                subject: "Your password reset code",
+                text: `Your password reset code is ${otp}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
+                html: `<p>Your password reset code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">${otp}</p><p>This code expires in 10 minutes. If you did not request this, you can ignore this email.</p>`
+            });
+        } catch (mailError) {
+            await invalidatePasswordResetOTPs(user.user_id);
+            throw mailError;
+        }
 
         return res.status(200).json({
             success: true,
             message:
-                "If an account exists for this email address, password reset instructions have been sent.",
-
-            /*
-             * DEVELOPMENT ONLY
-             * Remove this before production.
-             */
-            resetToken
+                "If an account exists for this email address, a password reset code has been sent."
         });
 
     } catch (error) {
-        console.error("Forgot password error:", error);
+        console.error("Forgot password email error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Internal server error"
+            message: "Unable to send the password reset code. Check the SMTP settings and try again."
         });
     }
 };
@@ -215,16 +221,19 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
     try {
         const {
-            token,
+            email: rawEmail,
+            otp: rawOtp,
             password,
             confirmPassword
         } = req.body;
+        const email = rawEmail?.trim().toLowerCase();
+        const otp = rawOtp?.trim();
 
-        if (!token || !password || !confirmPassword) {
+        if (!email || !/^\d{6}$/.test(otp || "") || !password || !confirmPassword) {
             return res.status(400).json({
                 success: false,
                 message:
-                    "Token, password and password confirmation are required"
+                    "Email, six-digit code, password and password confirmation are required"
             });
         }
 
@@ -249,37 +258,43 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        const tokenHash = crypto
-            .createHash("sha256")
-            .update(token)
-            .digest("hex");
+        const user = await findUserByEmail(email);
+        const resetOTP = user
+            ? await findPasswordResetOTP(user.user_id)
+            : null;
 
-        const resetToken = await findPasswordResetToken(
-            tokenHash
+        if (!resetOTP || resetOTP.used_at) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired password reset code"
+            });
+        }
+
+        if (resetOTP.attempts >= 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Too many incorrect attempts. Request a new code."
+            });
+        }
+
+        if (new Date(resetOTP.expires_at) <= new Date()) {
+            return res.status(400).json({
+                success: false,
+                message: "This password reset code has expired. Request a new code."
+            });
+        }
+
+        const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+        const matches = crypto.timingSafeEqual(
+            Buffer.from(otpHash, "hex"),
+            Buffer.from(resetOTP.otp_hash, "hex")
         );
 
-        if (!resetToken) {
+        if (!matches) {
+            await incrementPasswordResetOTPAttempts(resetOTP.id);
             return res.status(400).json({
                 success: false,
-                message: "Invalid or expired password reset token"
-            });
-        }
-
-        if (resetToken.used_at) {
-            return res.status(400).json({
-                success: false,
-                message: "This password reset token has already been used"
-            });
-        }
-
-        const currentTime = new Date();
-
-        if (
-            new Date(resetToken.expires_at) <= currentTime
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "This password reset token has expired"
+                message: "Incorrect code. Check the email and try again."
             });
         }
 
@@ -292,15 +307,15 @@ const resetPassword = async (req, res) => {
         );
 
         await updatePassword(
-            resetToken.user_id,
+            user.user_id,
             passwordHash
         );
 
         /*
          * Invalidate the token.
          */
-        await markPasswordResetTokenUsed(
-            resetToken.id
+        await markPasswordResetOTPUsed(
+            resetOTP.id
         );
 
         return res.status(200).json({
