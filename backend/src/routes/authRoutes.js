@@ -4,6 +4,7 @@ const {
     login,
     getCurrentUser,
     forgotPassword,
+    verifyResetOtp,
     resetPassword
 } = require("../controllers/authController");
 
@@ -13,21 +14,19 @@ const {
 
 const router = express.Router();
 
-
-// POST /api/auth/login
+// Login
 router.post("/login", login);
 
-
-// GET /api/auth/me
+// Current logged-in user
 router.get("/me", authenticate, getCurrentUser);
 
-
-// POST /api/auth/forgot-password
+// CR-026: Request email OTP
 router.post("/forgot-password", forgotPassword);
 
+// CR-026: Verify email OTP
+router.post("/verify-reset-otp", verifyResetOtp);
 
-// POST /api/auth/reset-password
+// CR-026: Reset password after OTP verification
 router.post("/reset-password", resetPassword);
-
 
 module.exports = router;

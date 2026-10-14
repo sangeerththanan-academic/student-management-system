@@ -26,6 +26,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
     "mysql2": "^3.24.2",
+    "nodemailer": "^10.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

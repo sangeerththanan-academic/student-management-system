@@ -1,10 +1,6 @@
 import apiRequest from "./api";
 
-
-// ==========================================
 // LOGIN
-// ==========================================
-
 export const login = async (username, password) => {
     const data = await apiRequest("/api/auth/login", {
         method: "POST",
@@ -28,28 +24,32 @@ export const login = async (username, password) => {
     return data;
 };
 
-
-// ==========================================
-// FORGOT PASSWORD
-// ==========================================
-
+// STEP 1: REQUEST OTP
 export const forgotPassword = async (email) => {
     return await apiRequest(
         "/api/auth/forgot-password",
         {
             method: "POST",
+            body: JSON.stringify({ email })
+        }
+    );
+};
+
+// STEP 2: VERIFY OTP
+export const verifyResetOtp = async (email, otp) => {
+    return await apiRequest(
+        "/api/auth/verify-reset-otp",
+        {
+            method: "POST",
             body: JSON.stringify({
-                email
+                email,
+                otp
             })
         }
     );
 };
 
-
-// ==========================================
-// RESET PASSWORD
-// ==========================================
-
+// STEP 3: RESET PASSWORD
 export const resetPassword = async (
     token,
     password,
@@ -68,11 +68,7 @@ export const resetPassword = async (
     );
 };
 
-
-// ==========================================
 // GET CURRENT USER
-// ==========================================
-
 export const getCurrentUser = async () => {
     return await apiRequest(
         "/api/auth/me",
@@ -82,11 +78,7 @@ export const getCurrentUser = async () => {
     );
 };
 
-
-// ==========================================
 // GET STORED USER
-// ==========================================
-
 export const getStoredUser = () => {
     const user = localStorage.getItem("user");
 
@@ -101,23 +93,13 @@ export const getStoredUser = () => {
     }
 };
 
-
-// ==========================================
 // LOGOUT
-// ==========================================
-
 export const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 };
 
-
-// ==========================================
 // AUTHENTICATION CHECK
-// ==========================================
-
 export const isAuthenticated = () => {
-    return Boolean(
-        localStorage.getItem("token")
-    );
+    return Boolean(localStorage.getItem("token"));
 };
