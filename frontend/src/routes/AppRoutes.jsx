@@ -1,8 +1,4 @@
-import {
-    BrowserRouter,
-    Routes,
-    Route
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
@@ -11,36 +7,16 @@ import StudentDashboardPage from "../pages/StudentDashboardPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 
-
 import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
-
     return (
         <BrowserRouter>
-
             <Routes>
-
-                <Route
-                    path="/"
-                    element={<LandingPage />}
-                />
-
-                <Route
-                    path="/login"
-                    element={<LoginPage />}
-                />
-
-                <Route
-    path="/forgot-password"
-    element={<ForgotPasswordPage />}
-/>
-
-<Route
-    path="/reset-password"
-    element={<ResetPasswordPage />}
-/>
-
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                 <Route
                     path="/dashboard"
@@ -59,9 +35,7 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
-
             </Routes>
-
         </BrowserRouter>
     );
 }
