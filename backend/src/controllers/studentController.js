@@ -13,6 +13,10 @@ const {
 } = require("../models/studentModel");
 
 const { validateStudentData } = require("../utils/validation");
+const {
+    findUserPasswordHashById,
+    updateUserPasswordHash
+} = require("../models/userModel");
 
 
 // ============================================================
@@ -186,7 +190,7 @@ const validateStudentInput = ({
                 "Password must contain at least one number.";
 
         } else if (
-            !/[!@#$%^&*(),.?":{}|<>_\-\\[\]\/';+=~`]/.test(password)
+            !/[^A-Za-z0-9]/.test(password)
         ) {
 
             errors.password =
@@ -800,6 +804,92 @@ const getMyProfile = async (req, res) => {
 };
 
 
+
+
+// ============================================================
+// CHANGE CURRENT STUDENT PASSWORD
+// PATCH /api/students/me/password
+// ============================================================
+const changeMyPassword = async (req, res) => {
+    try {
+        const { currentPassword, password, confirmPassword } = req.body || {};
+        const userId = req.user && req.user.userId;
+
+        if (!userId || req.user.role !== "STUDENT") {
+            return res.status(403).json({
+                success: false,
+                message: "Only an authenticated student can change this password."
+            });
+        }
+
+        if (!currentPassword || !password || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password, new password and re-enter password are required."
+            });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and re-enter password do not match."
+            });
+        }
+
+        if (password.length < 8 ||
+            !/[A-Z]/.test(password) ||
+            !/[a-z]/.test(password) ||
+            !/[0-9]/.test(password) ||
+            !/[^A-Za-z0-9]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 8 characters and include uppercase, lowercase, a number and a special character."
+            });
+        }
+
+        if (currentPassword === password) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different from your current password."
+            });
+        }
+
+        const user = await findUserPasswordHashById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found."
+            });
+        }
+
+        const currentPasswordMatches = await bcrypt.compare(
+            currentPassword,
+            user.password_hash
+        );
+        if (!currentPasswordMatches) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        await updateUserPasswordHash(userId, passwordHash);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully. Please use your new password next time you log in."
+        });
+    } catch (error) {
+        console.error("Change student password error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password. Please try again."
+        });
+    }
+};
+
+
 // ============================================================
 // EXPORTS
 // ============================================================
@@ -814,8 +904,9 @@ module.exports = {
 
     getMyProfile,
 
+    changeMyPassword,
+
     editStudent,
 
     removeStudent
 };
-

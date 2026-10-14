@@ -18,7 +18,28 @@ const findUserById = async (userId) => {
     return rows[0];
 };
 
+
+// Return only the password hash needed to verify a password change.
+const findUserPasswordHashById = async (userId) => {
+    const [rows] = await pool.execute(
+        "SELECT user_id, password_hash FROM users WHERE user_id = ? LIMIT 1",
+        [userId]
+    );
+    return rows[0];
+};
+
+// Store only a bcrypt hash; never store a plain-text password.
+const updateUserPasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        "UPDATE users SET password_hash = ? WHERE user_id = ?",
+        [passwordHash, userId]
+    );
+    return result;
+};
+
 module.exports = {
     findUserByUsername,
-    findUserById
+    findUserById,
+    findUserPasswordHashById,
+    updateUserPasswordHash
 };

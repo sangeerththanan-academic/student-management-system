@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import {
     getStoredUser,
@@ -33,7 +34,7 @@ const getProfileImageUrl = (profileImage) => {
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -237,6 +238,8 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
+
+                <ChangeStudentPassword />
 
             </main>
 

@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -25,6 +26,15 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+
+// Change the authenticated student's own password. The user ID comes from
+// the verified JWT in req.user, never from a client-supplied ID.
+router.patch(
+    "/me/password",
+    authenticate,
+    changeMyPassword
 );
 
 
@@ -80,5 +90,3 @@ router.delete(
 
 
 module.exports = router;
-
-
