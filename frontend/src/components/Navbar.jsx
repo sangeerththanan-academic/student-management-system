@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 
 function Navbar() {
     const { getTheme } = useTheme();
@@ -34,4 +34,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

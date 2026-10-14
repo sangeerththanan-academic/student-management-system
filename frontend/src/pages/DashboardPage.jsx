@@ -1,9 +1,9 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import ThemeToggle from "../components/ThemeToggle";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 
 import {
     getStoredUser,
@@ -108,7 +108,6 @@ function DashboardPage() {
                 if (error.status === 401) {
                     logout();
                     navigate("/login", { replace: true });
-                    navigate("/login", { replace: true });
                 }
             }
         };
@@ -117,11 +116,8 @@ function DashboardPage() {
     }, [navigate]);
 
     // Load students
-    const loadStudents = async () => {
+    const loadStudents = useCallback(async () => {
         try {
-            setLoading(true);
-            setError("");
-
             const data = await apiRequest("/api/students/", {
                 method: "GET"
             });
@@ -132,7 +128,6 @@ function DashboardPage() {
 
             if (error.status === 401) {
                 logout();
-                navigate("/login", { replace: true });
                 navigate("/login", { replace: true });
                 return;
             }
@@ -150,11 +145,57 @@ function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [navigate]);
 
     useEffect(() => {
-        loadStudents();
-    }, []);
+        let active = true;
+
+        apiRequest("/api/students/", {
+            method: "GET"
+        })
+            .then((data) => {
+                if (active) {
+                    setStudents(data.students || []);
+                }
+            })
+            .catch((error) => {
+                console.error("Failed to load students:", error);
+
+                if (!active) return;
+
+                if (error.status === 401) {
+                    logout();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+
+                if (error.status === 403) {
+                    setError(
+                        "You do not have permission to access students."
+                    );
+                    return;
+                }
+
+                setError(
+                    error.message || "Failed to retrieve students."
+                );
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [navigate]);
+
+    const refreshStudents = async () => {
+        setLoading(true);
+        setError("");
+        await loadStudents();
+    };
 
     // Client-side search (CR-001)
     const normalizedSearchTerm = normalizeSearchValue(searchTerm);
@@ -228,7 +269,7 @@ function DashboardPage() {
                 method: "DELETE"
             });
 
-            await loadStudents();
+            await refreshStudents();
         } catch (error) {
             console.error("Delete student error:", error);
 
@@ -307,13 +348,16 @@ function DashboardPage() {
                 )}
 
                 {/* Student form modal */}
-                <StudentFormModal
-                    show={showForm}
-                    editingStudent={editingStudent}
-                    onClose={handleFormClose}
-                    onSuccess={loadStudents}
-                    onAuthError={handleFormAuthError}
-                />
+                {showForm && (
+                    <StudentFormModal
+                        key={editingStudent?.student_id ?? "new-student"}
+                        show
+                        editingStudent={editingStudent}
+                        onClose={handleFormClose}
+                        onSuccess={refreshStudents}
+                        onAuthError={handleFormAuthError}
+                    />
+                )}
 
                 {/* Student search */}
                 <div className="students-search">

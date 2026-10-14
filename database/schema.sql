@@ -112,7 +112,7 @@ CREATE TABLE users (
 
     username VARCHAR(100) NOT NULL UNIQUE,
 
-    email VARCHAR(150) NOT NULL UNIQUE,
+    email VARCHAR(150) NULL UNIQUE,
 
     password_hash VARCHAR(255) NOT NULL,
 
@@ -167,5 +167,36 @@ CREATE TABLE students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- 4. PASSWORD RESET OTPs
+-- ============================================================
+-- Stores only keyed OTP hashes; OTPs expire and are single-use.
+-- ============================================================
+
+CREATE TABLE password_reset_otps (
+
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    otp_hash CHAR(64) NOT NULL,
+
+    expires_at DATETIME NOT NULL,
+
+    attempts INT NOT NULL DEFAULT 0,
+
+    used_at DATETIME NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_reset_otp_user (user_id),
+
+    CONSTRAINT fk_reset_otp_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- DATABASE SCHEMA - VERSION 1.1 COMPLETE
 -- ============================================================

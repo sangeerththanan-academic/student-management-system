@@ -29,21 +29,25 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-    const [formData, setFormData] = useState({
-        registrationNo: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNumber: "",
+    const [formData, setFormData] = useState(() => ({
+        registrationNo: editingStudent?.registration_no || "",
+        firstName: editingStudent?.first_name || "",
+        lastName: editingStudent?.last_name || "",
+        email: editingStudent?.email || "",
+        phoneNumber: editingStudent?.phone_number || "",
         password: ""
-    });
+    }));
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState("");
+    const [imagePreview, setImagePreview] = useState(() =>
+        editingStudent
+            ? getProfileImageUrl(editingStudent.profile_image)
+            : ""
+    );
     const [imageError, setImageError] = useState("");
     const previewUrlRef = useRef("");
 
@@ -63,43 +67,6 @@ function StudentFormModal({
             URL.revokeObjectURL(previewUrlRef.current);
         }
     }, []);
-
-    // Load student details and current image when the modal opens.
-    useEffect(() => {
-        if (!show) return;
-
-        if (editingStudent) {
-            setFormData({
-                registrationNo: editingStudent.registration_no || "",
-                firstName: editingStudent.first_name || "",
-                lastName: editingStudent.last_name || "",
-                email: editingStudent.email || "",
-                phoneNumber: editingStudent.phone_number || "",
-                password: ""
-            });
-
-            updateImagePreview(
-                getProfileImageUrl(editingStudent.profile_image)
-            );
-        } else {
-            setFormData({
-                registrationNo: "",
-                firstName: "",
-                lastName: "",
-                email: "",
-                phoneNumber: "",
-                password: ""
-            });
-
-            updateImagePreview("");
-        }
-
-        setFormError("");
-        setFieldErrors({});
-        setShowPassword(false);
-        setSelectedImage(null);
-        setImageError("");
-    }, [editingStudent, show]);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;

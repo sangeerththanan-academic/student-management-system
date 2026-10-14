@@ -1,5 +1,5 @@
-import apiRequest from "./api";
 
+import apiRequest from "./api";
 
 // ==========================================
 // LOGIN
@@ -30,7 +30,7 @@ export const login = async (username, password) => {
 
 
 // ==========================================
-// FORGOT PASSWORD
+// FORGOT PASSWORD - SEND OTP
 // ==========================================
 
 export const forgotPassword = async (email) => {
@@ -39,7 +39,7 @@ export const forgotPassword = async (email) => {
         {
             method: "POST",
             body: JSON.stringify({
-                email
+                email: email.trim().toLowerCase()
             })
         }
     );
@@ -47,11 +47,12 @@ export const forgotPassword = async (email) => {
 
 
 // ==========================================
-// RESET PASSWORD
+// RESET PASSWORD - VERIFY OTP
 // ==========================================
 
 export const resetPassword = async (
-    token,
+    email,
+    otp,
     password,
     confirmPassword
 ) => {
@@ -60,7 +61,8 @@ export const resetPassword = async (
         {
             method: "POST",
             body: JSON.stringify({
-                token,
+                email: email.trim().toLowerCase(),
+                otp,
                 password,
                 confirmPassword
             })

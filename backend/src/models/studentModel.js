@@ -102,28 +102,61 @@ const updateStudent = async (
     phoneNumber,
     profileImage = null
 ) => {
-    const [result] = await pool.execute(
-        `UPDATE students
-        SET
-            registration_no = ?,
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            phone_number = ?,
-            profile_image = COALESCE(?, profile_image)
-        WHERE student_id = ?`,
-        [
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            profileImage,
-            studentId
-        ]
-    );
+    const connection = await pool.getConnection();
 
-    return result;
+    try {
+        await connection.beginTransaction();
+
+        const [students] = await connection.execute(
+            `SELECT user_id
+             FROM students
+             WHERE student_id = ?
+             LIMIT 1
+             FOR UPDATE`,
+            [studentId]
+        );
+
+        if (students.length === 0) {
+            await connection.rollback();
+            return { affectedRows: 0 };
+        }
+
+        const [result] = await connection.execute(
+            `UPDATE students
+            SET
+                registration_no = ?,
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone_number = ?,
+                profile_image = COALESCE(?, profile_image)
+            WHERE student_id = ?`,
+            [
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                profileImage,
+                studentId
+            ]
+        );
+
+        await connection.execute(
+            `UPDATE users
+             SET email = ?
+             WHERE user_id = ?`,
+            [email, students[0].user_id]
+        );
+
+        await connection.commit();
+        return result;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
 
 

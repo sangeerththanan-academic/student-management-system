@@ -1,17 +1,28 @@
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 
 const {
     findUserByUsername,
     findUserById,
     findUserByEmail,
-    createPasswordResetToken,
-    findPasswordResetToken,
-    markPasswordResetTokenUsed,
     updatePassword,
-    deleteUnusedResetTokens
+    deletePreviousOtps,
+    createPasswordResetOtp,
+    findLatestPasswordResetOtp,
+    incrementOtpAttempts,
+    markOtpUsed
 } = require("../models/userModel");
+
+const {
+    generateOTP,
+    hashOTP,
+    safeHashCompare
+} = require("../services/otpService");
+
+const {
+    sendPasswordOtpEmail
+} = require("../services/emailService");
 
 
 // ==========================================
@@ -74,7 +85,7 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Login error:", error);
+        console.error("Login error:", error.message);
 
         return res.status(500).json({
             success: false,
@@ -105,7 +116,7 @@ const getCurrentUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Get current user error:", error);
+        console.error("Get current user error:", error.message);
 
         return res.status(500).json({
             success: false,
@@ -116,7 +127,7 @@ const getCurrentUser = async (req, res) => {
 
 
 // ==========================================
-// FORGOT PASSWORD
+// FORGOT PASSWORD - SEND EMAIL OTP
 // ==========================================
 
 const forgotPassword = async (req, res) => {
@@ -130,179 +141,197 @@ const forgotPassword = async (req, res) => {
             });
         }
 
-        const user = await findUserByEmail(email);
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        /*
-         * Generic response prevents unnecessary
-         * account enumeration.
-         */
-        if (!user) {
-            return res.status(200).json({
-                success: true,
-                message:
-                    "If an account exists for this email address, password reset instructions have been sent."
+        if (!emailPattern.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address"
             });
         }
 
-        /*
-         * Remove previous unused reset tokens.
-         */
-        await deleteUnusedResetTokens(user.user_id);
+        const user = await findUserByEmail(email);
 
-        /*
-         * Generate a cryptographically secure token.
-         */
-        const resetToken = crypto.randomBytes(32).toString("hex");
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "This email address is not registered."
+            });
+        }
 
-        /*
-         * Store only the hash of the token.
-         */
-        const tokenHash = crypto
-            .createHash("sha256")
-            .update(resetToken)
-            .digest("hex");
+        // Invalidate previously issued OTPs.
+        await deletePreviousOtps(user.user_id);
 
-        /*
-         * Token valid for 15 minutes.
-         */
+        // Generate a cryptographically secure six-digit OTP.
+        const otp = generateOTP();
+
+        // Store only the OTP hash in the database.
+        const otpHash = hashOTP(otp);
+
+        // OTP expires after five minutes.
         const expiresAt = new Date(
-            Date.now() + 15 * 60 * 1000
+            Date.now() + 5 * 60 * 1000
         );
 
-        await createPasswordResetToken(
+        await createPasswordResetOtp(
             user.user_id,
-            tokenHash,
+            otpHash,
             expiresAt
         );
 
-        /*
-         * Development implementation.
-         *
-         * In production, this token should be sent
-         * through an email service instead of returning
-         * it in the API response.
-         */
-        console.log(
-            `Password reset token for ${email}: ${resetToken}`
-        );
+        try {
+            // Send the OTP to the registered email address.
+            await sendPasswordOtpEmail(user.email, otp);
+        } catch (emailError) {
+            // Do not leave an active OTP if email delivery fails.
+            await deletePreviousOtps(user.user_id);
+
+            console.error(
+                "Password reset email delivery failed:",
+                emailError.message
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Unable to send the OTP right now. Please try again later."
+            });
+        }
 
         return res.status(200).json({
             success: true,
-            message:
-                "If an account exists for this email address, password reset instructions have been sent.",
-
-            /*
-             * DEVELOPMENT ONLY
-             * Remove this before production.
-             */
-            resetToken
+            message: "An OTP has been sent to your registered email address."
         });
 
     } catch (error) {
-        console.error("Forgot password error:", error);
+        console.error("Forgot password error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Internal server error"
+            message: "Unable to process your request right now."
         });
     }
 };
 
 
 // ==========================================
-// RESET PASSWORD
+// RESET PASSWORD - VERIFY OTP
 // ==========================================
 
 const resetPassword = async (req, res) => {
     try {
-        const {
-            token,
-            password,
-            confirmPassword
-        } = req.body;
+        const email = req.body.email?.trim().toLowerCase();
+        const { otp, password, confirmPassword } = req.body;
 
-        if (!token || !password || !confirmPassword) {
+        if (!email || !otp || !password || !confirmPassword) {
             return res.status(400).json({
                 success: false,
                 message:
-                    "Token, password and password confirmation are required"
+                    "Email, OTP, password and password confirmation are required."
+            });
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address."
+            });
+        }
+
+        if (!/^\d{6}$/.test(String(otp))) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid six-digit OTP."
             });
         }
 
         if (password !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Passwords do not match"
+                message: "Passwords do not match."
             });
         }
 
-        /*
-         * Password policy.
-         *
-         * Adjust this if your existing project
-         * already has a specific password policy.
-         */
         if (password.length < 8) {
             return res.status(400).json({
                 success: false,
                 message:
-                    "Password must be at least 8 characters long"
+                    "Password must be at least 8 characters long."
             });
         }
 
-        const tokenHash = crypto
-            .createHash("sha256")
-            .update(token)
-            .digest("hex");
+        const user = await findUserByEmail(email);
 
-        const resetToken = await findPasswordResetToken(
-            tokenHash
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired OTP."
+            });
+        }
+
+        const resetOtp = await findLatestPasswordResetOtp(
+            user.user_id
         );
 
-        if (!resetToken) {
+        if (!resetOtp || resetOtp.used_at) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid or expired password reset token"
+                message: "Invalid or expired OTP."
             });
         }
 
-        if (resetToken.used_at) {
-            return res.status(400).json({
+        if (resetOtp.attempts >= 5) {
+            return res.status(429).json({
                 success: false,
-                message: "This password reset token has already been used"
+                message:
+                    "Too many incorrect OTP attempts. Please request a new OTP."
             });
         }
 
-        const currentTime = new Date();
-
-        if (
-            new Date(resetToken.expires_at) <= currentTime
-        ) {
+        if (new Date(resetOtp.expires_at) <= new Date()) {
             return res.status(400).json({
                 success: false,
-                message: "This password reset token has expired"
+                message: "Your OTP has expired. Please request a new one."
             });
         }
 
-        /*
-         * Hash the new password.
-         */
-        const passwordHash = await bcrypt.hash(
-            password,
-            12
+        // Compare the submitted OTP against its stored hash.
+        const otpMatches = safeHashCompare(
+            resetOtp.otp_hash,
+            String(otp)
         );
+
+        if (!otpMatches) {
+            await incrementOtpAttempts(resetOtp.id);
+
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired OTP."
+            });
+        }
+
+        // Claim the OTP before changing the password.
+        // Only one request can successfully mark it as used.
+        const otpClaimed = await markOtpUsed(resetOtp.id);
+
+        if (!otpClaimed) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "This OTP has expired or has already been used. Please request a new OTP."
+            });
+        }
+
+        // Hash the new password before storing it.
+        const passwordHash = await bcrypt.hash(password, 12);
 
         await updatePassword(
-            resetToken.user_id,
+            user.user_id,
             passwordHash
         );
 
-        /*
-         * Invalidate the token.
-         */
-        await markPasswordResetTokenUsed(
-            resetToken.id
-        );
+        // Invalidate any other outstanding OTPs for this account.
+        await deletePreviousOtps(user.user_id);
 
         return res.status(200).json({
             success: true,
@@ -311,15 +340,19 @@ const resetPassword = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Reset password error:", error);
+        console.error("Reset password error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Internal server error"
+            message: "Unable to reset your password right now."
         });
     }
 };
 
+
+// ==========================================
+// EXPORT CONTROLLER FUNCTIONS
+// ==========================================
 
 module.exports = {
     login,

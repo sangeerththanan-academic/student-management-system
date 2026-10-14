@@ -8,7 +8,7 @@ import "../styles/login.css";
 import LoginInfo from "../components/LoginInfo";
 import LoginFormSection from "../components/LoginFormSection";
 import ThemeToggle from "../components/ThemeToggle";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -73,4 +73,3 @@ function LoginPage() {
 }
 
 export default LoginPage;
-

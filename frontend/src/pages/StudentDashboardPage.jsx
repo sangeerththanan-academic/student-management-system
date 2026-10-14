@@ -7,7 +7,7 @@ import { getStoredUser, logout } from "../services/authService";
 import apiRequest from "../services/api";
 
 import ThemeToggle from "../components/ThemeToggle";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 
 import "../styles/studentDashboard.css";
 
@@ -37,7 +37,7 @@ function StudentDashboardPage() {
     const { getTheme } = useTheme();
     const theme = getTheme("student");
 
-    const [user, setUser] = useState(getStoredUser());
+    const user = getStoredUser();
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");

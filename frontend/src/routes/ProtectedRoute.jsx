@@ -26,18 +26,20 @@ function ProtectedRoute({ children, role }) {
             );
         }
 
-        try {
-            const user = JSON.parse(storedUser);
+        let user;
 
-            if (user.role !== role) {
-                return (
-                    <Navigate
-                        to="/login"
-                        replace
-                    />
-                );
-            }
+        try {
+            user = JSON.parse(storedUser);
         } catch {
+            return (
+                <Navigate
+                    to="/login"
+                    replace
+                />
+            );
+        }
+
+        if (user.role !== role) {
             return (
                 <Navigate
                     to="/login"

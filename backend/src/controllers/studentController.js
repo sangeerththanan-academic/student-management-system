@@ -338,8 +338,15 @@ const addStudent = async (req, res) => {
             [cleanEmail]
         );
 
+        const [existingAccountEmail] = await connection.execute(
+            `SELECT user_id
+             FROM users
+             WHERE email = ?
+             LIMIT 1`,
+            [cleanEmail]
+        );
 
-        if (existingStudent.length > 0) {
+        if (existingStudent.length > 0 || existingAccountEmail.length > 0) {
             await connection.rollback();
             transactionStarted = false;
 
@@ -366,12 +373,14 @@ const addStudent = async (req, res) => {
             `INSERT INTO users
             (
                 username,
+                email,
                 password_hash,
                 role
             )
-            VALUES (?, ?, 'STUDENT')`,
+            VALUES (?, ?, ?, 'STUDENT')`,
             [
                 cleanRegistrationNo,
+                cleanEmail,
                 passwordHash
             ]
         );
@@ -643,8 +652,23 @@ const editStudent = async (req, res) => {
                 ]
             );
 
+        const [duplicateAccountEmail] =
+            await pool.execute(
+                `SELECT user_id
+                 FROM users
+                 WHERE email = ?
+                 AND user_id != ?
+                 LIMIT 1`,
+                [
+                    cleanEmail,
+                    existingStudent.user_id
+                ]
+            );
 
-        if (duplicateEmail.length > 0) {
+        if (
+            duplicateEmail.length > 0 ||
+            duplicateAccountEmail.length > 0
+        ) {
 
             return res.status(409).json({
                 success: false,

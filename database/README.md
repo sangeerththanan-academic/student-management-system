@@ -32,7 +32,8 @@ The database currently supports:
 database/
 ├── README.md
 ├── schema.sql
-└── seed.sql
+├── seed.sql
+└── migrations/
 ````
 
  ### `schema.sql`
@@ -62,28 +63,43 @@ database/
 
 ---
 
- ## 4\. Current Database Structure
+ ## 4. Applying Migrations
 
- The current database contains two main tables:
+ Apply migration scripts to an existing database in filename order. Back up the
+ database before changing its schema. Run:
+
+ ```text
+ mysql -u root -p student_management < migrations/20261014_add_user_email.sql
+ mysql -u root -p student_management < migrations/20261014_add_password_reset_otps.sql
+ ```
+
+ The account email migration adds nullable, unique `users.email` support and
+ copies existing student emails into linked user accounts without overwriting
+ existing account emails. The OTP migration creates the single-use password
+ reset code table.
+
+ ---
+
+ ## 5. Current Database Structure
+
+ The database contains three main tables:
 
 ```
 users
+  +---- 0..1 students
   |
-  | 1
-  |
-  | 0..1
-  |
-students
+  +---- 0..* password_reset_otps
 ```
 
- A user may have zero or one associated student record.
+ A user may have zero or one associated student record and may have multiple
+ historical password-reset OTP records.
 
  - Administrator users do not require a student profile.
 - Student users should have an associated student profile.
 
 ---
 
- ## 5\. Users Table
+## 6. Users Table
 
  The `users` table stores authentication and role information.
 
@@ -91,6 +107,7 @@ students
 | --- | --- |
 | `user_id` | Unique user identifier |
 | `username` | Login username |
+| `email` | Optional account email used for password recovery |
 | `password_hash` | Hashed password |
 | `role` | User role |
 | `created_at` | Account creation date |
@@ -105,7 +122,7 @@ Supported roles:
 
 ---
 
- ## 6\. Students Table
+## 7. Students Table
 
  The `students` table stores student information.
 
@@ -123,7 +140,7 @@ Supported roles:
 
 ---
 
- ## 7\. Database Relationship
+## 8. Database Relationship
 
  The `students.user_id` column references `users.user_id`.
 
@@ -141,7 +158,7 @@ students.user_id
 
 ---
 
- ## 8\. Database Setup
+## 9. Database Setup
 
  ### Prerequisites
 
@@ -176,7 +193,7 @@ mysql -u root -p student_management < seed.sql
 
 ---
 
- ## 9\. Verify the Database
+## 10. Verify the Database
 
  Connect to MySQL and run:
 
@@ -191,6 +208,7 @@ SHOW TABLES;
 ```
 users
 students
+password_reset_otps
 ```
 
  To view the sample users:
@@ -207,7 +225,7 @@ SELECT * FROM students;
 
 ---
 
- ## 10\. Database Constraints
+## 11. Database Constraints
 
  The current database applies the following important constraints.
 
@@ -215,7 +233,8 @@ SELECT * FROM students;
 
  - `user_id` is the primary key.
 - `username` must be unique.
-- Required fields cannot be `NULL`.
+- Non-null user email addresses must be unique. Student account emails are copied from the associated student profile.
+- Required account fields cannot be `NULL`; email may be `NULL` for accounts without a recovery email.
 - `role` must be either `ADMIN` or `STUDENT`.
 
  ### Students
@@ -229,7 +248,7 @@ SELECT * FROM students;
 
 ---
 
- ## 11\. Security
+## 12. Security
 
  Database credentials should not be hard-coded into application source code.
 
@@ -251,7 +270,7 @@ DB_PORT=3306
 
 ---
 
- ## 12\. Application Architecture
+## 13. Application Architecture
 
  The React frontend does not connect directly to MySQL.
 
@@ -280,11 +299,12 @@ MySQL
 
 ---
 
- ## 13\. Development Guidelines
+## 14. Development Guidelines
 
  When modifying the database:
 
  - Update `schema.sql` when the database structure changes.
+- Apply any new scripts in `migrations/` to an existing database before using the changed application.
 - Update `seed.sql` when sample data changes.
 - Test database changes before using them with the application.
 - Do not commit database passwords.
@@ -293,13 +313,14 @@ MySQL
 
 ---
 
- ## 14\. Current Version
+## 15. Current Version
 
  | Item | Value |
 | --- | --- |
-| Database Version | 1.0 |
+| Database Version | 1.1 |
 | Database Name | `student_management` |
 | Database Technology | MySQL |
-| Tables | `users`, `students` |
+| Tables | `users`, `students`, `password_reset_otps` |
 | Schema File | `schema.sql` |
 | Seed File | `seed.sql` |
+| Migrations | `migrations/` |

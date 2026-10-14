@@ -4,16 +4,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function LoginFormSection({ onSubmit, loading, error }) {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const handleSubmit = (event) => {
         event.preventDefault();
         onSubmit(username.trim(), password);
-    };
-
-    const togglePasswordVisibility = () => {
-        setShowPassword((currentState) => !currentState);
     };
 
     return (
@@ -101,6 +98,15 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             </button>
                         </div>
                     </div>
+                    <div className="forgot-password-link-container">
+                        <button
+                            type="button"
+                            className="forgot-password-button"
+                            onClick={() => navigate("/forgot-password")}
+                        >
+                            Forgot Password?
+                        </button>
+                    </div>
 
                     <button
                         type="submit"
@@ -117,4 +123,3 @@ function LoginFormSection({ onSubmit, loading, error }) {
 }
 
 export default LoginFormSection;
-
