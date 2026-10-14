@@ -49,6 +49,7 @@ const getAllStudents = async () => {
             students.email,
             students.phone_number,
             users.profile_img_url,
+            users.last_login_at,
             students.created_at,
             students.updated_at
         FROM students
@@ -73,6 +74,7 @@ const getStudentById = async (studentId) => {
             students.email,
             students.phone_number,
             users.profile_img_url,
+            users.last_login_at,
             students.created_at,
             students.updated_at
         FROM students
@@ -146,6 +148,7 @@ const getStudentByUserId = async (userId) => {
             students.email,
             students.phone_number,
             users.profile_img_url,
+            users.last_login_at,
             students.created_at,
             students.updated_at
         FROM students

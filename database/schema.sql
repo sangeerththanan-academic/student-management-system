@@ -71,6 +71,10 @@ CREATE TABLE IF NOT EXISTS students (
 ALTER TABLE users
 ADD COLUMN profile_img_url VARCHAR(500) DEFAULT NULL;
 
+-- login trace deatils store
+ALTER TABLE users
+ADD COLUMN last_login_at TIMESTAMP NULL DEFAULT NULL;
+
 
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
