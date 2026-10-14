@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function LoginFormSection({ onSubmit, loading, error }) {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -160,6 +161,15 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             : "Sign In"}
                     </button>
 
+                    <button
+                        type="button"
+                        className="login-forgot-password"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot password?
+                    </button>
+
                 </form>
             </div>
         </section>
@@ -167,4 +177,3 @@ function LoginFormSection({ onSubmit, loading, error }) {
 }
 
 export default LoginFormSection;
-

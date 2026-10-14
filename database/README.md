@@ -31,6 +31,9 @@ The database currently supports:
 ```text
 database/
 ├── README.md
+├── migrations/
+│   ├── 001_create_password_reset_otps.sql
+│   └── 002_add_user_last_login.sql
 ├── schema.sql
 └── seed.sql
 ````
@@ -47,6 +50,16 @@ database/
 - Data types
 - Relationships
 - Database constraints
+
+### `migrations/001_create_password_reset_otps.sql`
+
+Adds the OTP table required by the forgot-password flow to an existing
+database without dropping or recreating it.
+
+### `migrations/002_add_user_last_login.sql`
+
+Adds the nullable `users.last_login` column used by login to an existing
+database without dropping or recreating it.
 
  ### `seed.sql`
 
@@ -191,7 +204,21 @@ SHOW TABLES;
 ```
 users
 students
+password_reset_tokens
+password_reset_otps
 ```
+
+### Update an existing database
+
+Do not rerun `schema.sql` to apply this change: it drops and recreates the
+database. Run the migration instead:
+
+```
+mysql -u root -p < migrations/001_create_password_reset_otps.sql
+mysql -u root -p < migrations/002_add_user_last_login.sql
+```
+
+Alternatively, open the migration in MySQL Workbench and execute it.
 
  To view the sample users:
 
@@ -297,9 +324,11 @@ MySQL
 
  | Item | Value |
 | --- | --- |
-| Database Version | 1.0 |
+| Database Version | 2.1 |
 | Database Name | `student_management` |
 | Database Technology | MySQL |
-| Tables | `users`, `students` |
+| Tables | `users`, `students`, `password_reset_tokens`, `password_reset_otps` |
 | Schema File | `schema.sql` |
+| Migration | `migrations/001_create_password_reset_otps.sql` |
+|  | `migrations/002_add_user_last_login.sql` |
 | Seed File | `seed.sql` |

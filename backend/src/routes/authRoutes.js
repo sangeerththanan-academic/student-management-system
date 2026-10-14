@@ -1,11 +1,15 @@
+
 const express = require("express");
 
 const {
     login,
-    getCurrentUser,
+    getCurrentUser
+} = require("../controllers/authController");
+
+const {
     forgotPassword,
     resetPassword
-} = require("../controllers/authController");
+} = require("../controllers/passwordResetController");
 
 const {
     authenticate
@@ -13,21 +17,12 @@ const {
 
 const router = express.Router();
 
-
-// POST /api/auth/login
+// Existing login and authentication routes
 router.post("/login", login);
-
-
-// GET /api/auth/me
 router.get("/me", authenticate, getCurrentUser);
 
-
-// POST /api/auth/forgot-password
+// OTP-based password reset routes
 router.post("/forgot-password", forgotPassword);
-
-
-// POST /api/auth/reset-password
 router.post("/reset-password", resetPassword);
-
 
 module.exports = router;

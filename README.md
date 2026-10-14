@@ -132,7 +132,20 @@ DB_NAME=student_management
 DB_PORT=3306
 
 JWT_SECRET=your_secret_key
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-gmail-address@gmail.com
+SMTP_PASS=your-16-character-google-app-password
+SMTP_FROM=your-gmail-address@gmail.com
+OTP_EXPIRY_MINUTES=10
 ```
+
+For Gmail, enable 2-Step Verification and create an App Password. Set
+`SMTP_USER` and `SMTP_FROM` to the same Gmail address and `SMTP_PASS` to that
+App Password (not the normal Gmail password). Replace every example value in
+`backend/.env`; OTP emails cannot be sent with placeholder credentials.
 
 Do not commit the `.env` file to Git.
 

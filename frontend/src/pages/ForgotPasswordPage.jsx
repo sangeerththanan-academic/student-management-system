@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,47 +10,34 @@ function ForgotPasswordPage() {
 
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [resetToken, setResetToken] = useState("");
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        setMessage("");
         setError("");
-        setResetToken("");
 
-        const normalizedEmail =
-            email.trim().toLowerCase();
+        const normalizedEmail = email.trim().toLowerCase();
 
         if (!normalizedEmail) {
-            setError(
-                "Email address is required"
-            );
+            setError("Email address is required");
             return;
         }
 
         try {
             setLoading(true);
 
-            const data =
-                await forgotPassword(
-                    normalizedEmail
-                );
+            const data = await forgotPassword(normalizedEmail);
 
-            setMessage(data.message);
-
-            /*
-             * Development only.
-             * Remove before production email integration.
-             */
-            if (data.resetToken) {
-                setResetToken(
-                    data.resetToken
+            if (!data.success) {
+                throw new Error(
+                    data.message || "Unable to send a password reset OTP."
                 );
             }
 
+            navigate(
+                `/reset-password?email=${encodeURIComponent(normalizedEmail)}`
+            );
         } catch (error) {
             setError(
                 error.message ||
@@ -62,31 +50,20 @@ function ForgotPasswordPage() {
 
     return (
         <div className="login-page">
-
             <div className="login-container">
-
                 <section className="login-form-section">
-
                     <div className="login-card">
 
                         <div className="login-heading">
+                            <span>ACCOUNT RECOVERY</span>
 
-                            <span>
-                                ACCOUNT RECOVERY
-                            </span>
-
-                            <h2>
-                                Forgot Password
-                            </h2>
+                            <h2>Forgot Password</h2>
 
                             <p>
-                                Enter your registered
-                                email address to reset
-                                your password.
+                                Enter your registered email address
+                                to receive a password reset OTP.
                             </p>
-
                         </div>
-
 
                         {error && (
                             <div className="login-error">
@@ -94,21 +71,11 @@ function ForgotPasswordPage() {
                             </div>
                         )}
 
-
-                        {message && (
-                            <div className="login-success">
-                                {message}
-                            </div>
-                        )}
-
-
                         <form
                             className="login-form"
                             onSubmit={handleSubmit}
                         >
-
                             <div className="form-group">
-
                                 <label htmlFor="email">
                                     Email Address
                                 </label>
@@ -118,76 +85,36 @@ function ForgotPasswordPage() {
                                     type="email"
                                     value={email}
                                     onChange={(event) =>
-                                        setEmail(
-                                            event.target.value
-                                        )
+                                        setEmail(event.target.value)
                                     }
-                                    placeholder="Enter your email"
+                                    placeholder="Enter your registered email"
                                     autoComplete="email"
                                     disabled={loading}
                                     required
                                 />
-
                             </div>
-
 
                             <button
                                 type="submit"
                                 className="login-submit-button"
                                 disabled={loading}
                             >
-                                {loading
-                                    ? "Sending..."
-                                    : "Send Reset Link"
-                                }
+                                {loading ? "Sending OTP..." : "Send OTP"}
                             </button>
-
 
                             <button
                                 type="button"
-                                className="forgot-password-button"
-                                onClick={() =>
-                                    navigate("/login")
-                                }
+                                className="recovery-secondary-button"
+                                onClick={() => navigate("/login")}
                                 disabled={loading}
                             >
                                 Back to Login
                             </button>
-
                         </form>
 
-
-                        {resetToken && (
-                            <div className="development-reset-token">
-
-                                <p>
-                                    Development reset token:
-                                </p>
-
-                                <code>
-                                    {resetToken}
-                                </code>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            `/reset-password?token=${encodeURIComponent(resetToken)}`
-                                        )
-                                    }
-                                >
-                                    Continue to Reset Password
-                                </button>
-
-                            </div>
-                        )}
-
                     </div>
-
                 </section>
-
             </div>
-
         </div>
     );
 }

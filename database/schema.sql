@@ -1,6 +1,6 @@
 -- ============================================================
 -- Student Management System
--- Database Schema - Version 2.0
+-- Database Schema - Version 2.1
 -- Organization: ABC Institute
 -- Database: MySQL
 --
@@ -48,7 +48,9 @@ CREATE TABLE users (
 
     updated_at TIMESTAMP NOT NULL
         DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    last_login DATETIME NULL
 );
 
 
@@ -121,7 +123,44 @@ CREATE TABLE password_reset_tokens (
 
 
 -- ============================================================
--- 5. INDEXES
+-- 5. PASSWORD RESET OTPs TABLE
+-- ============================================================
+-- Stores hashed, short-lived OTPs used by the forgot-password flow.
+-- ============================================================
+
+CREATE TABLE password_reset_otps (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    otp_hash CHAR(64) NOT NULL,
+
+    expires_at DATETIME NOT NULL,
+
+    attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+
+    verified_at DATETIME NULL,
+
+    used_at DATETIME NULL,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_password_reset_otps_user_status (user_id, used_at, id),
+
+    INDEX idx_password_reset_otps_expires (expires_at),
+
+    CONSTRAINT fk_password_reset_otps_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- 6. INDEXES
 -- ============================================================
 
 CREATE INDEX idx_users_email
@@ -141,5 +180,5 @@ CREATE INDEX idx_password_reset_expires
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 2.0 COMPLETE
+-- DATABASE SCHEMA - VERSION 2.1 COMPLETE
 -- ============================================================

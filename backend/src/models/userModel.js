@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 const findUserByUsername = async (username) => {
     const [rows] = await pool.execute(
-        `SELECT user_id, username, email, password_hash, role
+        `SELECT user_id, username, password_hash, role
          FROM users
          WHERE username = ?
          LIMIT 1`,
@@ -14,9 +14,10 @@ const findUserByUsername = async (username) => {
 
 const findUserById = async (userId) => {
     const [rows] = await pool.execute(
-        `SELECT user_id, username, email, role
-         FROM users
-         WHERE user_id = ?
+        `SELECT u.user_id, u.username, s.email, u.role
+         FROM users u
+         LEFT JOIN students s ON s.user_id = u.user_id
+         WHERE u.user_id = ?
          LIMIT 1`,
         [userId]
     );

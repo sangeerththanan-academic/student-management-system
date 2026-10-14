@@ -394,6 +394,60 @@
     opacity: 0.65;
 }
 
+.login-forgot-password {
+    align-self: center;
+    border: 0;
+    padding: 0;
+    color: #2563eb;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-forgot-password:hover:not(:disabled) {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.login-forgot-password:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.recovery-secondary-button {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: #334155;
+    background: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.recovery-secondary-button:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #1d4ed8;
+    background: #eff6ff;
+}
+
+.recovery-secondary-button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.recovery-secondary-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
 
 /* =========================================================
    Responsive
@@ -461,4 +515,3 @@
 :root[data-theme="dark"] .login-heading p,
 :root[data-theme="dark"] .login-form label { color:var(--text-primary); }
 :root[data-theme="dark"] .login-form input { background:var(--input-bg); color:var(--input-text); border-color:var(--border-color); }
-
