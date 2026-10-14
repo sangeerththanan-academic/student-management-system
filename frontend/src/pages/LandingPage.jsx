@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useTheme } from "../context/useTheme";
 
 import "../styles/landing.css";
 
@@ -14,9 +15,10 @@ import {
 
 
 function LandingPage() {
+    const { theme } = useTheme();
 
     return (
-        <div className="landing-page">
+        <div className={`landing-page theme-${theme}`}>
 
             <Navbar />
 

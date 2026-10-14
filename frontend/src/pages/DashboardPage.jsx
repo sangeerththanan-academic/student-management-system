@@ -10,6 +10,8 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/useTheme";
 
 import "../styles/dashboard.css";
 
@@ -23,6 +25,7 @@ const normalizeSearchValue = (value) => {
 
 function DashboardPage() {
     const navigate = useNavigate();
+    const { theme } = useTheme();
 
     const [user, setUser] = useState(getStoredUser());
 
@@ -254,7 +257,7 @@ function DashboardPage() {
 
     // Render
     return (
-        <div className="dashboard-page">
+        <div className={`dashboard-page theme-${theme}`}>
 
             <header className="dashboard-header">
 
@@ -270,6 +273,8 @@ function DashboardPage() {
 
 
                 <div className="dashboard-header-actions">
+
+                    <ThemeToggle />
 
                     <div className="admin-info">
                         <strong>

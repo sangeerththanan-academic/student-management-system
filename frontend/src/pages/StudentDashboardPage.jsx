@@ -9,11 +9,14 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/useTheme";
 
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
+    const { theme } = useTheme();
 
     const [user, setUser] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
@@ -114,11 +117,14 @@ function StudentDashboardPage() {
     };
 
     return (
-        <div className="student-dashboard-page">
+        <div className={`student-dashboard-page theme-${theme}`}>
 
             <main className="student-dashboard-main">
 
-                <h2 className="section-title">My Profile</h2>
+                <div className="student-page-heading">
+                    <h2 className="section-title">My Profile</h2>
+                    <ThemeToggle />
+                </div>
 
                 {error && (
                     <div className="student-error">
