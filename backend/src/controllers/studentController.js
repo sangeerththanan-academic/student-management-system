@@ -420,11 +420,61 @@ const getMyProfile = async (req, res) => {
 };
 
 
+// CHANGE OWN PASSWORD (CR-020)
+// PUT /api/students/me/change-password
+const changeMyPassword = async (req, res) => {
+    try {
+        // SEC-001: Must be authenticated (middleware enforces this)
+        const userId = req.user.userId;
+
+        const { password } = req.body;
+
+        // FR-001 / FR-002: Validate that password is provided
+        if (!password || typeof password !== "string" || password.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Password is required."
+            });
+        }
+
+        // SEC-002 / FR-002: Hash new password before storing
+        const passwordHash = await bcrypt.hash(password.trim(), 10);
+
+        // Update in users table for the authenticated student
+        const [result] = await pool.execute(
+            "UPDATE users SET password_hash = ? WHERE user_id = ?",
+            [passwordHash, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+
+    } catch (error) {
+        console.error("Change password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password."
+        });
+    }
+};
+
+
 module.exports = {
     addStudent,
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 };

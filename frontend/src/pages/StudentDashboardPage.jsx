@@ -8,6 +8,7 @@ import {
 
 import apiRequest from "../services/api";
 import ThemeToggle from "../components/ThemeToggle";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 import { useTheme } from "../context/ThemeContext";
 
 import "../styles/studentDashboard.css";
@@ -190,6 +191,9 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
+
+                {/* CR-020: Change Password section */}
+                <ChangeStudentPassword />
 
             </main>
 

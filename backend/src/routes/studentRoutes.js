@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -28,6 +29,15 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+
+// Change own password (CR-020)
+// Student must be logged in; no ADMIN role required
+router.put(
+    "/me/change-password",
+    authenticate,
+    changeMyPassword
 );
 
 
