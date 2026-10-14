@@ -1,14 +1,28 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
-function LoginFormSection({ onSubmit, loading, error }) {
+function LoginFormSection({
+    onSubmit,
+    loading,
+    error
+}) {
+    const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 const [showPassword, setShowPassword] = useState(false);
     const handleSubmit = (event) => {
         event.preventDefault();
-        onSubmit(username.trim(), password);
+
+        onSubmit(
+            username.trim(),
+            password
+        );
+    };
+
+    const handleForgotPassword = () => {
+        navigate("/forgot-password");
     };
 
     return (
@@ -56,7 +70,9 @@ const [showPassword, setShowPassword] = useState(false);
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(event.target.value)
+                                setUsername(
+                                    event.target.value
+                                )
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
@@ -125,6 +141,16 @@ const [showPassword, setShowPassword] = useState(false);
                             ? "Signing in..."
                             : "Sign In"
                         }
+                    </button>
+
+
+                    <button
+                        type="button"
+                        className="forgot-password-button"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot Password?
                     </button>
 
                 </form>
