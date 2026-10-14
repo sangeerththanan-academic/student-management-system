@@ -210,3 +210,142 @@
     overflow: hidden;
     flex-shrink: 0;
 }
+
+
+
+/* ========================================
+   CR-020: Change Student Password
+======================================== */
+
+.change-password-card {
+    width: 100%;
+    max-width: 650px;
+    box-sizing: border-box;
+    margin: 30px 0;
+    padding: 28px;
+    background: var(--surface-color, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 4px 14px var(--shadow-color, rgba(0, 0, 0, 0.06));
+}
+
+.change-password-header {
+    margin-bottom: 24px;
+}
+
+.change-password-header h2 {
+    margin: 0 0 8px;
+    color: var(--text-color, #1e293b);
+    font-size: 22px;
+}
+
+.change-password-header p {
+    margin: 0;
+    color: var(--muted-text, #64748b);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.change-password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.password-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.password-field label {
+    color: var(--text-color, #334155);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.password-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 7px;
+    background: var(--input-bg, #ffffff);
+    color: var(--text-color, #1e293b);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.password-field input:focus {
+    border-color: var(--primary-color, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.password-field input:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.password-field small {
+    color: var(--muted-text, #64748b);
+    font-size: 12px;
+}
+
+.change-password-button {
+    align-self: flex-start;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 7px;
+    background: var(--primary-color, #2563eb);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.change-password-button:hover:not(:disabled) {
+    background: var(--primary-hover, #1d4ed8);
+}
+
+.change-password-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.password-notification {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.password-notification.success {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.password-notification.error {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+@media (max-width: 600px) {
+    .change-password-card {
+        margin: 20px 0;
+        padding: 20px 16px;
+    }
+
+    .change-password-header h2 {
+        font-size: 20px;
+    }
+
+    .change-password-button {
+        width: 100%;
+    }
+}

@@ -20,14 +20,19 @@ const removeUploadedFile = (file) => {
 
     fs.unlink(file.path, (error) => {
         if (error && error.code !== "ENOENT") {
-            console.error("Failed to remove uploaded image:", error);
+            console.error(
+                "Failed to remove uploaded image:",
+                error
+            );
         }
     });
 };
 
 // Return a relative image URL for the frontend
 const getProfileImageUrl = (filename) => {
-    return filename ? `/uploads/students/${filename}` : null;
+    return filename
+        ? `/uploads/students/${filename}`
+        : null;
 };
 
 
@@ -53,6 +58,7 @@ const addStudent = async (req, res) => {
             !lastName?.trim() ||
             !email?.trim() ||
             !phoneNumber?.trim() ||
+            typeof password !== "string" ||
             !password
         ) {
             if (req.file) removeUploadedFile(req.file);
@@ -122,7 +128,7 @@ const addStudent = async (req, res) => {
 
         const userId = userResult.insertId;
 
-        // Create student profile using the existing model
+        // Create student profile using existing model
         const studentId = await createStudent(
             connection,
             userId,
@@ -133,7 +139,7 @@ const addStudent = async (req, res) => {
             phoneNumber.trim()
         );
 
-        // Save the uploaded image path against this student_id
+        // Save uploaded image path
         const imagePath = req.file
             ? getProfileImageUrl(req.file.filename)
             : null;
@@ -169,7 +175,10 @@ const addStudent = async (req, res) => {
             try {
                 await connection.rollback();
             } catch (rollbackError) {
-                console.error("Transaction rollback error:", rollbackError);
+                console.error(
+                    "Transaction rollback error:",
+                    rollbackError
+                );
             }
         }
 
@@ -189,6 +198,7 @@ const addStudent = async (req, res) => {
 
 
 // GET ALL STUDENTS
+// GET /api/students
 const getStudents = async (req, res) => {
     try {
         const students = await getAllStudents();
@@ -211,6 +221,7 @@ const getStudents = async (req, res) => {
 
 
 // GET STUDENT BY ID
+// GET /api/students/:id
 const getStudent = async (req, res) => {
     try {
         const student = await getStudentById(req.params.id);
@@ -239,6 +250,7 @@ const getStudent = async (req, res) => {
 
 
 // UPDATE STUDENT
+// PUT /api/students/:id
 const editStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
@@ -300,6 +312,7 @@ const editStudent = async (req, res) => {
 
 
 // DELETE STUDENT
+// DELETE /api/students/:id
 const removeStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
@@ -315,9 +328,10 @@ const removeStudent = async (req, res) => {
 
         const result = await deleteStudent(studentId);
 
-        // Remove image after the student record is deleted
+        // Remove image after student record is deleted
         if (result.affectedRows > 0 && student.profile_image) {
             const filename = path.basename(student.profile_image);
+
             const imagePath = path.join(
                 __dirname,
                 "../../uploads/students",
@@ -326,7 +340,10 @@ const removeStudent = async (req, res) => {
 
             fs.unlink(imagePath, (error) => {
                 if (error && error.code !== "ENOENT") {
-                    console.error("Image cleanup error:", error);
+                    console.error(
+                        "Image cleanup error:",
+                        error
+                    );
                 }
             });
         }
@@ -349,9 +366,12 @@ const removeStudent = async (req, res) => {
 
 
 // GET CURRENT STUDENT'S OWN PROFILE
+// GET /api/students/me
 const getMyProfile = async (req, res) => {
     try {
-        const student = await getStudentByUserId(req.user.userId);
+        const student = await getStudentByUserId(
+            req.user.userId
+        );
 
         if (!student) {
             return res.status(404).json({
@@ -376,11 +396,144 @@ const getMyProfile = async (req, res) => {
 };
 
 
+// CHANGE STUDENT PASSWORD
+// POST /api/students/change-password
+const changeStudentPassword = async (req, res) => {
+    try {
+        const {
+            oldPassword,
+            newPassword,
+            confirmPassword
+        } = req.body;
+
+        // Validate all password fields
+        if (
+            typeof oldPassword !== "string" ||
+            typeof newPassword !== "string" ||
+            typeof confirmPassword !== "string" ||
+            !oldPassword ||
+            !newPassword ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required."
+            });
+        }
+
+        // Validate new password length
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 8 characters."
+            });
+        }
+
+        // Validate confirmation
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and re-entered password do not match."
+            });
+        }
+
+        // Prevent reusing the old password
+        if (oldPassword === newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different from the old password."
+            });
+        }
+
+        // Obtain the user ID from the authenticated session/token
+        const userId = req.user.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required."
+            });
+        }
+
+        // Only allow an authenticated student account
+        const [users] = await pool.execute(
+            `SELECT user_id, password_hash
+             FROM users
+             WHERE user_id = ?
+               AND role = 'STUDENT'
+             LIMIT 1`,
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found."
+            });
+        }
+
+        const user = users[0];
+
+        // Verify old password
+        const oldPasswordMatches = await bcrypt.compare(
+            oldPassword,
+            user.password_hash
+        );
+
+        if (!oldPasswordMatches) {
+            return res.status(400).json({
+                success: false,
+                message: "Old password is incorrect."
+            });
+        }
+
+        // Hash the new password
+        const newPasswordHash = await bcrypt.hash(
+            newPassword,
+            10
+        );
+
+        // Update only the authenticated student's account
+        const [result] = await pool.execute(
+            `UPDATE users
+             SET password_hash = ?
+             WHERE user_id = ?
+               AND role = 'STUDENT'`,
+            [newPasswordHash, userId]
+        );
+
+        if (result.affectedRows !== 1) {
+            return res.status(500).json({
+                success: false,
+                message: "Password could not be updated."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+
+    } catch (error) {
+        console.error(
+            "Change student password error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password."
+        });
+    }
+};
+
+
 module.exports = {
     addStudent,
     getStudents,
     getStudent,
     getMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeStudentPassword
 };

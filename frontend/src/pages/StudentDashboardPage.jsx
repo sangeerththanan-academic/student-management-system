@@ -8,6 +8,7 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import "../styles/studentDashboard.css";
 
@@ -33,7 +34,7 @@ const getProfileImageUrl = (profileImage) => {
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -79,6 +80,11 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const handleAuthError = () => {
+        logout();
+        navigate("/login", { replace: true });
+    };
+
     const profileImageUrl = getProfileImageUrl(
         student?.profile_image
     );
@@ -87,8 +93,11 @@ function StudentDashboardPage() {
         Boolean(profileImageUrl) && !imageError;
 
     const getInitials = () => {
-        const firstInitial = student?.first_name?.charAt(0) || "";
-        const lastInitial = student?.last_name?.charAt(0) || "";
+        const firstInitial =
+            student?.first_name?.charAt(0) || "";
+
+        const lastInitial =
+            student?.last_name?.charAt(0) || "";
 
         return `${firstInitial}${lastInitial}`.toUpperCase();
     };
@@ -104,9 +113,12 @@ function StudentDashboardPage() {
                 </div>
 
                 <div className="student-header-actions">
-                    <span className="role-badge">STUDENT</span>
+                    <span className="role-badge">
+                        STUDENT
+                    </span>
 
                     <button
+                        type="button"
                         className="logout-button"
                         onClick={handleLogout}
                     >
@@ -118,10 +130,12 @@ function StudentDashboardPage() {
             {/* Main Content */}
             <main className="student-dashboard-main">
 
-                <h2 className="section-title">My Profile</h2>
+                <h2 className="section-title">
+                    My Profile
+                </h2>
 
                 {error && (
-                    <div className="student-error">
+                    <div className="student-error" role="alert">
                         {error}
                     </div>
                 )}
@@ -135,7 +149,6 @@ function StudentDashboardPage() {
 
                         {/* Profile Image and Name */}
                         <div className="profile-header">
-
                             <div className="profile-avatar">
                                 {showProfileImage ? (
                                     <img
@@ -159,9 +172,10 @@ function StudentDashboardPage() {
                                     {student.last_name}
                                 </h3>
 
-                                <p>{student.registration_no}</p>
+                                <p>
+                                    {student.registration_no}
+                                </p>
                             </div>
-
                         </div>
 
                         {/* Profile Details */}
@@ -223,7 +237,6 @@ function StudentDashboardPage() {
                             </div>
 
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -233,8 +246,14 @@ function StudentDashboardPage() {
                     )
                 )}
 
-            </main>
+                {/* Change Password */}
+                {!loading && student && (
+                    <ChangeStudentPassword
+                        onAuthError={handleAuthError}
+                    />
+                )}
 
+            </main>
         </div>
     );
 }
