@@ -23,6 +23,24 @@ export const login = async (username, password) => {
     return data;
 };
 
+export const requestPasswordReset = async (email) =>
+    apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+    });
+
+export const verifyPasswordResetOtp = async (email, otp) =>
+    apiRequest("/api/auth/verify-reset-otp", {
+        method: "POST",
+        body: JSON.stringify({ email, otp })
+    });
+
+export const resetPassword = async (resetToken, password, confirmPassword) =>
+    apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ resetToken, password, confirmPassword })
+    });
+
 
 // Get currently logged-in user
 export const getCurrentUser = async () => {

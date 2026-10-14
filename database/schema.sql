@@ -39,7 +39,41 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 -- ============================================================
--- 2. STUDENTS TABLE
+-- 2. PASSWORD RESET TOKENS
+-- Stores hashed, short-lived OTP and reset credentials
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    reset_id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    otp_hash CHAR(64) NOT NULL,
+
+    attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+
+    expires_at DATETIME NOT NULL,
+
+    verified_at DATETIME NULL,
+
+    reset_token_hash CHAR(64) NULL,
+
+    reset_token_expires_at DATETIME NULL,
+
+    used_at DATETIME NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_password_reset_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+
+-- ============================================================
+-- 3. STUDENTS TABLE
 -- Stores basic student information
 -- ============================================================
 
@@ -72,5 +106,5 @@ CREATE TABLE IF NOT EXISTS students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- DATABASE SCHEMA - VERSION 1.1 COMPLETE
 -- ============================================================

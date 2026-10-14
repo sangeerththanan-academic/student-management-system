@@ -132,9 +132,24 @@ DB_NAME=student_management
 DB_PORT=3306
 
 JWT_SECRET=your_secret_key
+
+# Gmail password reset email
+# EMAIL_PASS must be a Google App Password, not your normal Gmail password.
+EMAIL_USER=your_gmail_address@gmail.com
+EMAIL_PASS=your_16_character_google_app_password
+EMAIL_FROM=your_gmail_address@gmail.com
+EMAIL_PORT=465
+
+# Legacy names are also accepted:
+# SMTP_EMAIL=your_gmail_address@gmail.com
+# SMTP_PASSWORD=your_16_character_google_app_password
 ```
 
 Do not commit the `.env` file to Git.
+
+Run the latest `database/schema.sql` after pulling this change so the
+`password_reset_tokens` table is created. Configure the Gmail variables above
+before using Forgot Password.
 
 Start the backend:
 

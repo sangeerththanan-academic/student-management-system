@@ -178,6 +178,16 @@
     margin-bottom: 20px;
 }
 
+.login-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
 /* =========================================================
    Form
    ========================================================= */
@@ -323,6 +333,26 @@
 .login-submit-button:disabled {
     cursor: not-allowed;
 
+    opacity: 0.65;
+}
+
+.forgot-password-link {
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0;
+}
+
+.forgot-password-link:hover:not(:disabled) {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.forgot-password-link:disabled {
+    cursor: not-allowed;
     opacity: 0.65;
 }
 

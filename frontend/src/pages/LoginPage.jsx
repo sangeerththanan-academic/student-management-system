@@ -6,12 +6,14 @@ import "../styles/login.css";
 
 import LoginInfo from "../components/LoginInfo";
 import LoginFormSection from "../components/LoginFormSection";
+import ForgotPasswordForm from "../components/ForgotPasswordForm";
 
 function LoginPage() {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
 
     const handleLogin = async (username, password) => {
         setError("");
@@ -54,11 +56,24 @@ function LoginPage() {
                 <LoginInfo onBack={handleBack} />
 
                 {/* Form Side */}
-                <LoginFormSection
-                    onSubmit={handleLogin}
-                    loading={loading}
-                    error={error}
-                />
+                {showForgotPassword ? (
+                    <ForgotPasswordForm
+                        onBackToLogin={() => {
+                            setError("");
+                            setShowForgotPassword(false);
+                        }}
+                    />
+                ) : (
+                    <LoginFormSection
+                        onSubmit={handleLogin}
+                        onForgotPassword={() => {
+                            setError("");
+                            setShowForgotPassword(true);
+                        }}
+                        loading={loading}
+                        error={error}
+                    />
+                )}
 
             </div>
 

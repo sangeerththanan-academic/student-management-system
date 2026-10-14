@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-function LoginFormSection({ onSubmit, loading, error }) {
+function LoginFormSection({ onSubmit, onForgotPassword, loading, error }) {
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -116,6 +116,15 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             ? "Signing in..."
                             : "Sign In"
                         }
+                    </button>
+
+                    <button
+                        type="button"
+                        className="forgot-password-link"
+                        onClick={onForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot password?
                     </button>
 
                 </form>
