@@ -9,7 +9,8 @@ const {
     getStudentByUserId,
     updateStudent,
     deleteStudent,
-    updateStudentPassword
+    updateStudentPassword,
+    getStudentPasswordHash
 } = require("../models/studentModel");
 
 
@@ -286,6 +287,7 @@ const addStudent = async (req, res) => {
         );
 
         const userId = userResult.insertId;
+
 
 
       
@@ -674,9 +676,21 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+
 const changeMyPassword = async (req, res) => {
     try {
-        const { password, confirmPassword } = req.body;
+        const {
+            currentPassword,
+            newPassword,
+            confirmPassword
+        } = req.body;
+
+        console.log("Change password request received:", {
+    hasCurrentPassword: typeof req.body?.currentPassword === "string",
+    hasNewPassword: typeof req.body?.newPassword === "string",
+    hasConfirmPassword: typeof req.body?.confirmPassword === "string"
+});
+
         const userId = req.user?.userId;
 
         if (!userId) {
@@ -687,25 +701,27 @@ const changeMyPassword = async (req, res) => {
         }
 
         if (
-            typeof password !== "string" ||
+            typeof currentPassword !== "string" ||
+            typeof newPassword !== "string" ||
             typeof confirmPassword !== "string" ||
-            !password ||
+            !currentPassword ||
+            !newPassword ||
             !confirmPassword
         ) {
             return res.status(400).json({
                 success: false,
-                message: "Both password fields are required"
+                message: "All password fields are required"
             });
         }
 
-        if (password !== confirmPassword) {
+        if (newPassword !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: "Passwords do not match"
+                message: "New passwords do not match"
             });
         }
 
-        const passwordError = validatePassword(password);
+        const passwordError = validatePassword(newPassword);
 
         if (passwordError) {
             return res.status(400).json({
@@ -714,7 +730,35 @@ const changeMyPassword = async (req, res) => {
             });
         }
 
-        const passwordHash = await bcrypt.hash(password, 10);
+        const user = await getStudentPasswordHash(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found"
+            });
+        }
+
+        const isCurrentPasswordValid = await bcrypt.compare(
+            currentPassword,
+            user.password_hash
+        );
+
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect"
+            });
+        }
+
+        if (currentPassword === newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must differ from current password"
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
 
         const result = await updateStudentPassword(
             userId,

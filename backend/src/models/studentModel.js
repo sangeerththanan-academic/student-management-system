@@ -168,6 +168,18 @@ const updateStudentPassword = async (userId, passwordHash) => {
 
     return result;
 };
+const getStudentPasswordHash = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+         FROM users
+         WHERE user_id = ?
+           AND role = 'STUDENT'
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0] || null;
+};
 module.exports = {
     createStudent,
     getAllStudents,
@@ -175,5 +187,6 @@ module.exports = {
     getStudentByUserId,
     updateStudent,
     deleteStudent,
-    updateStudentPassword
+    updateStudentPassword,
+    getStudentPasswordHash
 };
