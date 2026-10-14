@@ -11,6 +11,11 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
+const {
+    findUserByIdWithPasswordHash,
+    updatePasswordHash
+} = require("../models/userModel");
+
 const { validateStudentData } = require("../utils/validation");
 
 
@@ -789,6 +794,125 @@ const getMyProfile = async (req, res) => {
 };
 
 
+
+// ============================================================
+// CHANGE CURRENT STUDENT PASSWORD
+// PATCH /api/students/:id
+// The authenticated user ID is authoritative; the URL ID must
+// match it and is never used to select another user's account.
+// ============================================================
+
+const changeMyPassword = async (req, res) => {
+    const authenticatedUserId = req.user && req.user.userId;
+    const requestedUserId = req.params.id;
+    const {
+        currentPassword,
+        password,
+        confirmPassword
+    } = req.body || {};
+
+    try {
+        if (
+            !authenticatedUserId ||
+            String(requestedUserId) !== String(authenticatedUserId)
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "You can change only your own password."
+            });
+        }
+
+        if (
+            typeof currentPassword !== "string" ||
+            typeof password !== "string" ||
+            typeof confirmPassword !== "string" ||
+            !currentPassword ||
+            !password ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password, new password, and confirmation are required."
+            });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and re-entered password do not match."
+            });
+        }
+
+        // Match the password complexity rules used during student creation.
+        const passwordErrors = [];
+        if (password.length < 8) passwordErrors.push("Password must contain at least 8 characters.");
+        if (!/[A-Z]/.test(password)) passwordErrors.push("Password must contain at least one uppercase letter.");
+        if (!/[a-z]/.test(password)) passwordErrors.push("Password must contain at least one lowercase letter.");
+        if (!/[0-9]/.test(password)) passwordErrors.push("Password must contain at least one number.");
+        if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]\/';+=~`]/.test(password)) {
+            passwordErrors.push("Password must contain at least one special character.");
+        }
+
+        if (passwordErrors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: passwordErrors[0]
+            });
+        }
+
+        const user = await findUserByIdWithPasswordHash(authenticatedUserId);
+
+        if (!user || user.role !== "STUDENT") {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found."
+            });
+        }
+
+        const currentPasswordMatches = await bcrypt.compare(
+            currentPassword,
+            user.password_hash
+        );
+
+        if (!currentPasswordMatches) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        if (await bcrypt.compare(password, user.password_hash)) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different from the current password."
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const result = await updatePasswordHash(authenticatedUserId, passwordHash);
+
+        if (!result.affectedRows) {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        // Do not log password values, request bodies, or password hashes.
+        console.error("Change student password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password. Please try again."
+        });
+    }
+};
+
 // ============================================================
 // EXPORTS
 // ============================================================
@@ -802,6 +926,8 @@ module.exports = {
     getStudent,
 
     getMyProfile,
+
+    changeMyPassword,
 
     editStudent,
 
