@@ -1,15 +1,23 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 function LoginFormSection({ onSubmit, loading, error }) {
+    const navigate = useNavigate();
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
+
         onSubmit(username.trim(), password);
+    };
+
+    const handleForgotPassword = () => {
+        navigate("/forgot-password");
     };
 
     return (
@@ -38,6 +46,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     className="login-form"
                     onSubmit={handleSubmit}
                 >
+                    {/* Username */}
                     <div className="form-group">
                         <label htmlFor="username">
                             Username
@@ -57,6 +66,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                         />
                     </div>
 
+                    {/* Password */}
                     <div className="form-group">
                         <label htmlFor="password">
                             Password
@@ -84,7 +94,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                                 type="button"
                                 className="password-toggle-button"
                                 onClick={() =>
-                                    setShowPassword((previous) => !previous)
+                                    setShowPassword(
+                                        (previous) => !previous
+                                    )
                                 }
                                 aria-label={
                                     showPassword
@@ -103,6 +115,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                         </div>
                     </div>
 
+                    {/* Sign In Button */}
                     <button
                         type="submit"
                         className="login-submit-button"
@@ -112,6 +125,16 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             ? "Signing in..."
                             : "Sign In"}
                     </button>
+
+                    {/* Forgot Password */}
+                    <button
+                        type="button"
+                        className="forgot-password-button"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot Password?
+                    </button>
                 </form>
             </div>
         </section>
@@ -119,4 +142,3 @@ function LoginFormSection({ onSubmit, loading, error }) {
 }
 
 export default LoginFormSection;
-

@@ -4,6 +4,7 @@ export const API_BASE_URL =
 
 const apiRequest = async (endpoint, options = {}) => {
     const token = localStorage.getItem("token");
+
     const isFormData =
         typeof FormData !== "undefined" &&
         options.body instanceof FormData;
