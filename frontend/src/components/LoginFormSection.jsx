@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function LoginFormSection({ onSubmit, loading, error }) {
     const [username, setUsername] = useState("");
@@ -46,7 +47,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(event.target.value)
+                                setUsername(
+                                    event.target.value
+                                )
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
@@ -143,3 +146,4 @@ function LoginFormSection({ onSubmit, loading, error }) {
 }
 
 export default LoginFormSection;
+
