@@ -1,8 +1,8 @@
+
 import apiRequest from "./api";
 
-
 // ==========================================
-// LOGIN
+// LOGIN - Existing username/password login
 // ==========================================
 
 export const login = async (username, password) => {
@@ -28,9 +28,60 @@ export const login = async (username, password) => {
     return data;
 };
 
+// ==========================================
+// STUDENT LOGIN - REQUEST OTP
+// ==========================================
+
+export const requestStudentLoginOtp = async (email) => {
+    return await apiRequest(
+        "/api/auth/student/request-login-otp",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email: email.trim().toLowerCase()
+            })
+        }
+    );
+};
 
 // ==========================================
-// FORGOT PASSWORD
+// STUDENT LOGIN - VERIFY OTP
+// ==========================================
+
+export const verifyStudentLoginOtp = async (email, otp) => {
+    const data = await apiRequest(
+        "/api/auth/student/verify-login-otp",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email: email.trim().toLowerCase(),
+                otp: otp.trim()
+            })
+        }
+    );
+
+    if (
+        data.token &&
+        data.user &&
+        String(data.user.role).toUpperCase() === "STUDENT"
+    ) {
+        localStorage.setItem("token", data.token);
+
+        localStorage.setItem(
+            "user",
+            JSON.stringify(data.user)
+        );
+    } else if (data.token || data.user) {
+        throw new Error(
+            "Student login response is invalid."
+        );
+    }
+
+    return data;
+};
+
+// ==========================================
+// FORGOT PASSWORD - Existing function
 // ==========================================
 
 export const forgotPassword = async (email) => {
@@ -45,9 +96,8 @@ export const forgotPassword = async (email) => {
     );
 };
 
-
 // ==========================================
-// RESET PASSWORD
+// RESET PASSWORD - Existing function
 // ==========================================
 
 export const resetPassword = async (
@@ -68,7 +118,6 @@ export const resetPassword = async (
     );
 };
 
-
 // ==========================================
 // GET CURRENT USER
 // ==========================================
@@ -81,7 +130,6 @@ export const getCurrentUser = async () => {
         }
     );
 };
-
 
 // ==========================================
 // GET STORED USER
@@ -101,7 +149,6 @@ export const getStoredUser = () => {
     }
 };
 
-
 // ==========================================
 // LOGOUT
 // ==========================================
@@ -111,13 +158,10 @@ export const logout = () => {
     localStorage.removeItem("user");
 };
 
-
 // ==========================================
 // AUTHENTICATION CHECK
 // ==========================================
 
 export const isAuthenticated = () => {
-    return Boolean(
-        localStorage.getItem("token")
-    );
+    return Boolean(localStorage.getItem("token"));
 };

@@ -1,10 +1,13 @@
+
 const express = require("express");
 
 const {
     login,
     getCurrentUser,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    requestStudentLoginOtp,
+    verifyStudentLoginOtp
 } = require("../controllers/authController");
 
 const {
@@ -13,21 +16,25 @@ const {
 
 const router = express.Router();
 
-
-// POST /api/auth/login
+// Existing login for Admin and other supported roles.
 router.post("/login", login);
 
-
-// GET /api/auth/me
+// Get the currently authenticated user.
 router.get("/me", authenticate, getCurrentUser);
 
+// Student login using email OTP.
+router.post(
+    "/student/request-login-otp",
+    requestStudentLoginOtp
+);
 
-// POST /api/auth/forgot-password
+router.post(
+    "/student/verify-login-otp",
+    verifyStudentLoginOtp
+);
+
+// Existing password reset routes.
 router.post("/forgot-password", forgotPassword);
-
-
-// POST /api/auth/reset-password
 router.post("/reset-password", resetPassword);
-
 
 module.exports = router;
