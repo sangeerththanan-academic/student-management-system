@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function LoginFormSection({ onSubmit, loading, error }) {
+    const navigate = useNavigate();
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -8,6 +11,10 @@ function LoginFormSection({ onSubmit, loading, error }) {
     const handleSubmit = (event) => {
         event.preventDefault();
         onSubmit(username.trim(), password);
+    };
+
+    const handleForgotPassword = () => {
+        navigate("/forgot-password");
     };
 
     return (
@@ -25,9 +32,14 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     </div>
                 )}
 
-                <form className="login-form" onSubmit={handleSubmit}>
+                <form
+                    className="login-form"
+                    onSubmit={handleSubmit}
+                >
                     <div className="form-group">
-                        <label htmlFor="username">Username</label>
+                        <label htmlFor="username">
+                            Username
+                        </label>
 
                         <input
                             id="username"
@@ -44,13 +56,19 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="loginPassword">Password</label>
+                        <label htmlFor="loginPassword">
+                            Password
+                        </label>
 
                         <div className="password-input-wrapper">
                             <input
                                 id="loginPassword"
                                 className="password-input"
-                                type={showPassword ? "text" : "password"}
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
                                 value={password}
                                 onChange={(event) =>
                                     setPassword(event.target.value)
@@ -65,7 +83,9 @@ function LoginFormSection({ onSubmit, loading, error }) {
                                 type="button"
                                 className="password-toggle-button"
                                 onClick={() =>
-                                    setShowPassword((previous) => !previous)
+                                    setShowPassword(
+                                        (previous) => !previous
+                                    )
                                 }
                                 aria-label={
                                     showPassword
@@ -81,7 +101,6 @@ function LoginFormSection({ onSubmit, loading, error }) {
                                 disabled={loading}
                             >
                                 {showPassword ? (
-                                    // Password visible: eye-slash icon
                                     <svg
                                         viewBox="0 0 24 24"
                                         width="22"
@@ -99,7 +118,6 @@ function LoginFormSection({ onSubmit, loading, error }) {
                                         <path d="M6.2 6.2A13 13 0 002.5 12c1 2.5 4.5 7 9.5 7 1.2 0 2.3-.3 3.3-.7" />
                                     </svg>
                                 ) : (
-                                    // Password hidden: eye icon
                                     <svg
                                         viewBox="0 0 24 24"
                                         width="22"
@@ -125,6 +143,15 @@ function LoginFormSection({ onSubmit, loading, error }) {
                         disabled={loading}
                     >
                         {loading ? "Signing in..." : "Sign In"}
+                    </button>
+
+                    <button
+                        type="button"
+                        className="forgot-password-button"
+                        onClick={handleForgotPassword}
+                        disabled={loading}
+                    >
+                        Forgot Password?
                     </button>
                 </form>
             </div>
