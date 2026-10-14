@@ -2,28 +2,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-<<<<<<< HEAD
 function LoginFormSection({ onSubmit, loading, error }) {
-=======
-function LoginFormSection({
-    onSubmit,
-    loading,
-    error
-}) {
     const navigate = useNavigate();
 
->>>>>>> origin/JFICT26/CR026
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
-
-        onSubmit(
-            username.trim(),
-            password
-        );
+        onSubmit(username.trim(), password);
     };
 
     const handleForgotPassword = () => {
@@ -48,15 +36,12 @@ function LoginFormSection({
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
-
                         <input
                             id="username"
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(
-                                    event.target.value
-                                )
+                                setUsername(event.target.value)
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
@@ -68,7 +53,6 @@ function LoginFormSection({
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
 
-<<<<<<< HEAD
                         <div className="password-input-wrapper">
                             <input
                                 id="password"
@@ -82,26 +66,6 @@ function LoginFormSection({
                                 disabled={loading}
                                 required
                             />
-=======
-                        <label htmlFor="password">
-                            Password
-                        </label>
-
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                            disabled={loading}
-                            required
-                        />
->>>>>>> origin/JFICT26/CR026
 
                             <button
                                 type="button"
@@ -161,9 +125,6 @@ function LoginFormSection({
                     >
                         {loading ? "Signing in..." : "Sign In"}
                     </button>
-<<<<<<< HEAD
-=======
-
 
                     <button
                         type="button"
@@ -173,8 +134,6 @@ function LoginFormSection({
                     >
                         Forgot Password?
                     </button>
-
->>>>>>> origin/JFICT26/CR026
                 </form>
             </div>
         </section>

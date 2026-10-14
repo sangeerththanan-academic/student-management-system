@@ -1,6 +1,5 @@
 import apiRequest from "./api";
 
-
 // ==========================================
 // LOGIN
 // ==========================================
@@ -19,32 +18,38 @@ export const login = async (username, password) => {
     }
 
     if (data.user) {
-        localStorage.setItem(
-            "user",
-            JSON.stringify(data.user)
-        );
+        localStorage.setItem("user", JSON.stringify(data.user));
     }
 
     return data;
 };
 
-
 // ==========================================
-// FORGOT PASSWORD
+// SEND PASSWORD RESET OTP
 // ==========================================
 
 export const forgotPassword = async (email) => {
-    return await apiRequest(
-        "/api/auth/forgot-password",
-        {
-            method: "POST",
-            body: JSON.stringify({
-                email
-            })
-        }
-    );
+    return await apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({
+            email: email.trim().toLowerCase()
+        })
+    });
 };
 
+// ==========================================
+// VERIFY PASSWORD RESET OTP
+// ==========================================
+
+export const verifyResetOtp = async (email, otp) => {
+    return await apiRequest("/api/auth/verify-reset-otp", {
+        method: "POST",
+        body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            otp: otp.trim()
+        })
+    });
+};
 
 // ==========================================
 // RESET PASSWORD
@@ -55,33 +60,25 @@ export const resetPassword = async (
     password,
     confirmPassword
 ) => {
-    return await apiRequest(
-        "/api/auth/reset-password",
-        {
-            method: "POST",
-            body: JSON.stringify({
-                token,
-                password,
-                confirmPassword
-            })
-        }
-    );
+    return await apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+            token,
+            password,
+            confirmPassword
+        })
+    });
 };
-
 
 // ==========================================
 // GET CURRENT USER
 // ==========================================
 
 export const getCurrentUser = async () => {
-    return await apiRequest(
-        "/api/auth/me",
-        {
-            method: "GET"
-        }
-    );
+    return await apiRequest("/api/auth/me", {
+        method: "GET"
+    });
 };
-
 
 // ==========================================
 // GET STORED USER
@@ -101,7 +98,6 @@ export const getStoredUser = () => {
     }
 };
 
-
 // ==========================================
 // LOGOUT
 // ==========================================
@@ -111,13 +107,10 @@ export const logout = () => {
     localStorage.removeItem("user");
 };
 
-
 // ==========================================
 // AUTHENTICATION CHECK
 // ==========================================
 
 export const isAuthenticated = () => {
-    return Boolean(
-        localStorage.getItem("token")
-    );
+    return Boolean(localStorage.getItem("token"));
 };

@@ -1,3 +1,4 @@
+
 import {
     BrowserRouter,
     Routes,
@@ -11,37 +12,37 @@ import StudentDashboardPage from "../pages/StudentDashboardPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 
-
 import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
-
     return (
         <BrowserRouter>
-
             <Routes>
-
+                {/* Landing Page */}
                 <Route
                     path="/"
                     element={<LandingPage />}
                 />
 
+                {/* Login Page */}
                 <Route
                     path="/login"
                     element={<LoginPage />}
                 />
 
+                {/* Forgot Password - Email OTP */}
                 <Route
-    path="/forgot-password"
-    element={<ForgotPasswordPage />}
-/>
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
 
-<Route
-    path="/reset-password"
-    element={<ResetPasswordPage />}
-/>
+                {/* Reset Password - New Password */}
+                <Route
+                    path="/reset-password"
+                    element={<ResetPasswordPage />}
+                />
 
-
+                {/* Admin Dashboard */}
                 <Route
                     path="/dashboard"
                     element={
@@ -51,6 +52,7 @@ function AppRoutes() {
                     }
                 />
 
+                {/* Student Dashboard */}
                 <Route
                     path="/student-dashboard"
                     element={
@@ -59,9 +61,7 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
-
             </Routes>
-
         </BrowserRouter>
     );
 }
