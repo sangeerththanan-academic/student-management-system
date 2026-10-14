@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import apiRequest from "../services/api";
 
 // CR-020: Change Student Password Component
 function ChangeStudentPassword() {
     const [password, setPassword]             = useState("");
     const [rePassword, setRePassword]         = useState("");
+    const [showPassword, setShowPassword]     = useState(false);
+    const [showRePassword, setShowRePassword] = useState(false);
     const [message, setMessage]               = useState(null);   // { type: "success"|"error", text }
     const [loading, setLoading]               = useState(false);
 
@@ -12,6 +15,8 @@ function ChangeStudentPassword() {
     const resetForm = () => {
         setPassword("");
         setRePassword("");
+        setShowPassword(false);
+        setShowRePassword(false);
         // Autofocus the password field after clearing
         setTimeout(() => {
             const el = document.getElementById("cp-password");
@@ -83,40 +88,74 @@ function ChangeStudentPassword() {
                 noValidate
             >
 
-                {/* FR-001: Password field */}
+                {/* FR-001: Password field with show/hide toggle */}
                 <div className="cp-field-group">
                     <label htmlFor="cp-password" className="cp-label">
                         New Password
                     </label>
-                    <input
-                        id="cp-password"
-                        type="password"
-                        className="cp-input"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter new password"
-                        autoComplete="new-password"
-                        disabled={loading}
-                        required
-                    />
+                    <div className="cp-password-wrapper">
+                        <input
+                            id="cp-password"
+                            type={showPassword ? "text" : "password"}
+                            className="cp-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            autoComplete="new-password"
+                            disabled={loading}
+                            required
+                        />
+                        <button
+                            type="button"
+                            id="cp-toggle-password-btn"
+                            className="cp-password-toggle-btn"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            aria-pressed={showPassword}
+                            disabled={loading}
+                        >
+                            {showPassword ? (
+                                <EyeOff size={18} className="cp-eye-icon" aria-hidden="true" />
+                            ) : (
+                                <Eye size={18} className="cp-eye-icon" aria-hidden="true" />
+                            )}
+                        </button>
+                    </div>
                 </div>
 
-                {/* FR-001: Re-enter password field */}
+                {/* FR-001: Re-enter password field with show/hide toggle */}
                 <div className="cp-field-group">
                     <label htmlFor="cp-re-password" className="cp-label">
                         Re-enter Password
                     </label>
-                    <input
-                        id="cp-re-password"
-                        type="password"
-                        className="cp-input"
-                        value={rePassword}
-                        onChange={(e) => setRePassword(e.target.value)}
-                        placeholder="Re-enter new password"
-                        autoComplete="new-password"
-                        disabled={loading}
-                        required
-                    />
+                    <div className="cp-password-wrapper">
+                        <input
+                            id="cp-re-password"
+                            type={showRePassword ? "text" : "password"}
+                            className="cp-input"
+                            value={rePassword}
+                            onChange={(e) => setRePassword(e.target.value)}
+                            placeholder="Re-enter new password"
+                            autoComplete="new-password"
+                            disabled={loading}
+                            required
+                        />
+                        <button
+                            type="button"
+                            id="cp-toggle-re-password-btn"
+                            className="cp-password-toggle-btn"
+                            onClick={() => setShowRePassword((prev) => !prev)}
+                            aria-label={showRePassword ? "Hide re-entered password" : "Show re-entered password"}
+                            aria-pressed={showRePassword}
+                            disabled={loading}
+                        >
+                            {showRePassword ? (
+                                <EyeOff size={18} className="cp-eye-icon" aria-hidden="true" />
+                            ) : (
+                                <Eye size={18} className="cp-eye-icon" aria-hidden="true" />
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="cp-actions">

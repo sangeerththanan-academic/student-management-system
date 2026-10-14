@@ -317,6 +317,56 @@
     box-sizing: border-box;
 }
 
+.cp-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.cp-password-wrapper .cp-input {
+    width: 100%;
+    padding-right: 44px;
+}
+
+.cp-password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    line-height: 1;
+}
+
+.cp-password-toggle-btn:hover:not(:disabled) {
+    color: #1e293b;
+    background-color: #f1f5f9;
+}
+
+.cp-password-toggle-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+
+.cp-password-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.cp-eye-icon {
+    display: block;
+    pointer-events: none;
+}
+
 .cp-input:focus {
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
@@ -443,4 +493,21 @@
     background: rgba(239, 68, 68, 0.15);
     color: #fca5a5;
     border-color: rgba(239, 68, 68, 0.35);
-}
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-password-toggle-btn,
+.student-dashboard-page.dark .cp-password-toggle-btn {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-password-toggle-btn:hover:not(:disabled),
+.student-dashboard-page.dark .cp-password-toggle-btn:hover:not(:disabled) {
+    color: #f8fafc;
+    background-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-password-toggle-btn:focus-visible,
+.student-dashboard-page.dark .cp-password-toggle-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+}
+
