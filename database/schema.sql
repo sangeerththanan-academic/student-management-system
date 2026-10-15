@@ -153,3 +153,15 @@ CREATE TABLE IF NOT EXISTS students (
 
 ALTER TABLE users
 ADD COLUMN last_login DATETIME NULL DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS password_reset_otps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    otp_hash VARCHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_reset_user (user_id),
+    INDEX idx_reset_expiry (expires_at)
+);

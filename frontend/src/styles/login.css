@@ -312,3 +312,68 @@
         right: 10px;
     }
 }
+
+/* Forgot password link */
+.forgot-password-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: 4px 0 16px;
+}
+
+.forgot-password-link,
+.forgot-back-button {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    padding: 6px 0;
+}
+
+.forgot-password-link:hover,
+.forgot-back-button:hover {
+    text-decoration: underline;
+}
+
+.forgot-password-link:disabled,
+.forgot-back-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Password reset success message */
+.login-success-message {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    color: #065f46;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    padding: 12px;
+}
+
+.reset-show-password {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    font-size: 14px;
+    margin: 4px 0 12px;
+}
+
+.reset-show-password input {
+    cursor: pointer;
+}
+
+.reset-password-hint {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0 0 12px;
+}
+
+.forgot-back-button {
+    display: block;
+    margin: 12px auto 0;
+}
