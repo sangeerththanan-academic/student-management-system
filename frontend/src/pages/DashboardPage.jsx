@@ -23,13 +23,11 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
-// Build the image URL from the backend's public uploads route.
 const getProfileImageUrl = (profileImage) => {
     if (!profileImage) {
         return null;
     }
 
-    // Supports either a stored filename or /uploads/students/filename.
     const imagePath = String(profileImage).replace(/\\/g, "/");
 
     if (/^https?:\/\//i.test(imagePath)) {
@@ -51,9 +49,14 @@ const getProfileImageUrl = (profileImage) => {
 
 function StudentProfileImage({ student }) {
     const [imageFailed, setImageFailed] = useState(false);
-    const fullName = `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim();
-    const initials = `${student.first_name?.[0] ?? ""}${student.last_name?.[0] ?? ""}`
-        .toUpperCase();
+
+    const fullName =
+        `${student.first_name ?? ""} ${student.last_name ?? ""}`.trim();
+
+    const initials =
+        `${student.first_name?.[0] ?? ""}${student.last_name?.[0] ?? ""}`
+            .toUpperCase();
+
     const imageUrl = getProfileImageUrl(student.profile_image);
 
     return (
@@ -76,7 +79,6 @@ function StudentProfileImage({ student }) {
 function DashboardPage() {
     const navigate = useNavigate();
 
-    // Admin theme
     const { getTheme } = useTheme();
     const theme = getTheme("admin");
 
@@ -85,17 +87,21 @@ function DashboardPage() {
     const [searchTerm, setSearchTerm] = useState("");
 
     const [loading, setLoading] = useState(true);
+    const [exportingCsv, setExportingCsv] = useState(false);
     const [error, setError] = useState("");
 
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
+    // Load current administrator
     useEffect(() => {
+        let active = true;
+
         const loadUser = async () => {
             try {
                 const data = await getCurrentUser();
 
-                if (data.user) {
+                if (active && data.user) {
                     setUser({
                         id: data.user.user_id,
                         username: data.user.username,
@@ -105,7 +111,7 @@ function DashboardPage() {
             } catch (error) {
                 console.error("Failed to load current user:", error);
 
-                if (error.status === 401) {
+                if (active && error.status === 401) {
                     logout();
                     navigate("/login", { replace: true });
                 }
@@ -113,6 +119,10 @@ function DashboardPage() {
         };
 
         loadUser();
+
+        return () => {
+            active = false;
+        };
     }, [navigate]);
 
     // Load students
@@ -123,6 +133,7 @@ function DashboardPage() {
             });
 
             setStudents(data.students || []);
+            setError("");
         } catch (error) {
             console.error("Failed to load students:", error);
 
@@ -133,71 +144,26 @@ function DashboardPage() {
             }
 
             if (error.status === 403) {
-                setError(
-                    "You do not have permission to access students."
-                );
+                setError("You do not have permission to access students.");
                 return;
             }
 
-            setError(
-                error.message || "Failed to retrieve students."
-            );
+            setError(error.message || "Failed to retrieve students.");
         } finally {
             setLoading(false);
         }
     }, [navigate]);
 
     useEffect(() => {
-        let active = true;
-
-        apiRequest("/api/students/", {
-            method: "GET"
-        })
-            .then((data) => {
-                if (active) {
-                    setStudents(data.students || []);
-                }
-            })
-            .catch((error) => {
-                console.error("Failed to load students:", error);
-
-                if (!active) return;
-
-                if (error.status === 401) {
-                    logout();
-                    navigate("/login", { replace: true });
-                    return;
-                }
-
-                if (error.status === 403) {
-                    setError(
-                        "You do not have permission to access students."
-                    );
-                    return;
-                }
-
-                setError(
-                    error.message || "Failed to retrieve students."
-                );
-            })
-            .finally(() => {
-                if (active) {
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            active = false;
-        };
-    }, [navigate]);
+        loadStudents();
+    }, [loadStudents]);
 
     const refreshStudents = async () => {
         setLoading(true);
-        setError("");
         await loadStudents();
     };
 
-    // Client-side search (CR-001)
+    // Search students
     const normalizedSearchTerm = normalizeSearchValue(searchTerm);
     const isSearching = normalizedSearchTerm !== "";
 
@@ -207,9 +173,14 @@ function DashboardPage() {
         }
 
         return students.filter((student) => {
-            const registrationNo = normalizeSearchValue(student.registration_no);
-            const firstName = normalizeSearchValue(student.first_name);
-            const lastName = normalizeSearchValue(student.last_name);
+            const registrationNo =
+                normalizeSearchValue(student.registration_no);
+
+            const firstName =
+                normalizeSearchValue(student.first_name);
+
+            const lastName =
+                normalizeSearchValue(student.last_name);
 
             const fullName = normalizeSearchValue(
                 `${student.first_name ?? ""} ${student.last_name ?? ""}`
@@ -231,12 +202,87 @@ function DashboardPage() {
         setSearchTerm("");
     };
 
-    // Form handling
+    // CR-015: Export student records to CSV
+    const handleExportCsv = async () => {
+        if (exportingCsv) {
+            return;
+        }
+
+        setExportingCsv(true);
+        setError("");
+
+        try {
+            const apiBaseUrl = (
+                import.meta.env.VITE_API_URL || "http://localhost:5000"
+            ).replace(/\/+$/, "");
+
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(
+                `${apiBaseUrl}/api/students/export/csv`,
+                {
+                    method: "GET",
+                    headers: token
+                        ? { Authorization: `Bearer ${token}` }
+                        : {}
+                }
+            );
+
+            if (!response.ok) {
+                let message = "Failed to export student records.";
+
+                try {
+                    const data = await response.json();
+                    message = data.message || message;
+                } catch {
+                    // Use the fallback error message.
+                }
+
+                if (response.status === 401) {
+                    logout();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+
+                if (response.status === 403) {
+                    message =
+                        "You do not have permission to export student records.";
+                }
+
+                throw new Error(message);
+            }
+
+            const blob = await response.blob();
+
+            const objectUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = objectUrl;
+            link.download = "students.csv";
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(objectUrl);
+        } catch (exportError) {
+            console.error("Student CSV export failed:", exportError);
+
+            setError(
+                exportError.message || "Failed to export student records."
+            );
+        } finally {
+            setExportingCsv(false);
+        }
+    };
+
+    // Add student
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
     };
 
+    // Edit student
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
@@ -279,9 +325,7 @@ function DashboardPage() {
                 return;
             }
 
-            setError(
-                error.message || "Failed to delete student."
-            );
+            setError(error.message || "Failed to delete student.");
         }
     };
 
@@ -292,10 +336,7 @@ function DashboardPage() {
     };
 
     return (
-        <div
-            className="dashboard-page"
-            data-theme={theme}
-        >
+        <div className="dashboard-page" data-theme={theme}>
             <header className="dashboard-header">
                 <div>
                     <h1>Student Management System</h1>
@@ -308,7 +349,6 @@ function DashboardPage() {
                         <span>{user?.role}</span>
                     </div>
 
-                    {/* Admin Dark / Light Mode Toggle */}
                     <ThemeToggle scope="admin" />
 
                     <button
@@ -322,32 +362,38 @@ function DashboardPage() {
             </header>
 
             <main className="dashboard-content">
-                {/* Page heading */}
                 <div className="students-heading">
                     <div>
                         <h2>Students</h2>
-                        <p>
-                            Manage student accounts and profiles.
-                        </p>
+                        <p>Manage student accounts and profiles.</p>
                     </div>
 
-                    <button
-                        type="button"
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+                        <button
+                            type="button"
+                            className="export-csv-button"
+                            onClick={handleExportCsv}
+                            disabled={exportingCsv}
+                        >
+                            {exportingCsv ? "Exporting..." : "Export CSV"}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
                 </div>
 
-                {/* Error */}
                 {error && (
-                    <div className="dashboard-error">
+                    <div className="dashboard-error" role="alert">
                         {error}
                     </div>
                 )}
 
-                {/* Student form modal */}
                 {showForm && (
                     <StudentFormModal
                         key={editingStudent?.student_id ?? "new-student"}
@@ -359,7 +405,6 @@ function DashboardPage() {
                     />
                 )}
 
-                {/* Student search */}
                 <div className="students-search">
                     <input
                         type="text"
@@ -381,24 +426,22 @@ function DashboardPage() {
                     )}
                 </div>
 
-                {/* Search result count */}
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
                             ? `${filteredStudents.length} ${
-                                filteredStudents.length === 1
-                                    ? "student"
-                                    : "students"
-                            } found`
+                                  filteredStudents.length === 1
+                                      ? "student"
+                                      : "students"
+                              } found`
                             : `${students.length} ${
-                                students.length === 1
-                                    ? "student"
-                                    : "students"
-                            }`}
+                                  students.length === 1
+                                      ? "student"
+                                      : "students"
+                              }`}
                     </p>
                 )}
 
-                {/* Students table */}
                 <div className="students-card">
                     {loading ? (
                         <div className="students-loading">
@@ -407,14 +450,11 @@ function DashboardPage() {
                     ) : students.length === 0 ? (
                         <div className="students-empty">
                             <h3>No students found</h3>
-                            <p>
-                                Add your first student to get started.
-                            </p>
+                            <p>Add your first student to get started.</p>
                         </div>
                     ) : filteredStudents.length === 0 ? (
                         <div className="students-empty">
                             <h3>No matching students found</h3>
-
                             <p>
                                 No students match &quot;
                                 {searchTerm.trim()}&quot;.
@@ -450,19 +490,19 @@ function DashboardPage() {
                                                     student={student}
                                                 />
                                             </td>
+
                                             <td>
                                                 <strong>
                                                     {student.registration_no}
                                                 </strong>
                                             </td>
 
-                                                <td>
-                                                    {student.first_name}{" "}
-                                                    {student.last_name}
-                                                </td>
+                                            <td>
+                                                {student.first_name}{" "}
+                                                {student.last_name}
+                                            </td>
 
                                             <td>{student.email}</td>
-
                                             <td>{student.phone_number}</td>
 
                                             <td>

@@ -1,9 +1,11 @@
+
 const express = require("express");
 const router = express.Router();
 
 const {
     addStudent,
     getStudents,
+    exportStudentsCsv,
     getStudent,
     getMyProfile,
     editStudent,
@@ -19,9 +21,10 @@ const {
 const uploadStudentImage =
     require("../middleware/studentUploadMiddleware");
 
-// GET /api/students/me
+// Get logged-in student's profile
 router.get("/me", authenticate, getMyProfile);
 
+// Change student password
 router.put(
     "/change-password",
     authenticate,
@@ -29,7 +32,7 @@ router.put(
     changeStudentPassword
 );
 
-// GET /api/students
+// Get all students
 router.get(
     "/",
     authenticate,
@@ -37,7 +40,16 @@ router.get(
     getStudents
 );
 
-// GET /api/students/:id
+// CR-015: Export student records to CSV
+// IMPORTANT: Keep this before /:id
+router.get(
+    "/export/csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    exportStudentsCsv
+);
+
+// Get student by ID
 router.get(
     "/:id",
     authenticate,
@@ -45,7 +57,7 @@ router.get(
     getStudent
 );
 
-// POST /api/students
+// Add student
 router.post(
     "/",
     authenticate,
@@ -54,7 +66,7 @@ router.post(
     addStudent
 );
 
-// PUT /api/students/:id
+// Update student
 router.put(
     "/:id",
     authenticate,
@@ -63,7 +75,7 @@ router.put(
     editStudent
 );
 
-// DELETE /api/students/:id
+// Delete student
 router.delete(
     "/:id",
     authenticate,

@@ -883,13 +883,88 @@ const changeStudentPassword = async (req, res) => {
 };
 
 
+/* =========================================
+   CR-015: EXPORT STUDENT RECORDS TO CSV
+========================================= */
+
+const exportStudentsCsv = async (req, res) => {
+    try {
+        const students = await getAllStudents();
+
+        const columns = [
+            ["Student ID", "student_id"],
+            ["Registration Number", "registration_no"],
+            ["First Name", "first_name"],
+            ["Last Name", "last_name"],
+            ["Email", "email"],
+            ["Phone Number", "phone_number"]
+        ];
+
+        const escapeCsvValue = (value) => {
+            let text =
+                value === null || value === undefined
+                    ? ""
+                    : String(value);
+
+            // Prevent spreadsheet formula injection
+            if (/^[\t\r ]*[=+\-@]/.test(text)) {
+                text = "'" + text;
+            }
+
+            // Escape quotation marks
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+
+        const headers = columns
+            .map(([header]) => escapeCsvValue(header))
+            .join(",");
+
+        const dataRows = students.map((student) =>
+            columns
+                .map(([, field]) =>
+                    escapeCsvValue(student[field])
+                )
+                .join(",")
+        );
+
+        const csv =
+            "\uFEFF" +
+            [headers, ...dataRows].join("\r\n") +
+            "\r\n";
+
+        res.status(200);
+        res.setHeader(
+            "Content-Type",
+            "text/csv; charset=utf-8"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="students.csv"'
+        );
+        res.setHeader("Cache-Control", "no-store");
+
+        return res.send(csv);
+
+    } catch (error) {
+        console.error("Export students CSV error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export student records."
+        });
+    }
+};
+
+
 // =====================================================
 // EXPORT CONTROLLERS
 // =====================================================
 
+
 module.exports = {
     addStudent,
     getStudents,
+    exportStudentsCsv,
     getStudent,
     getMyProfile,
     editStudent,
