@@ -343,6 +343,53 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.student-form .student-csv-import {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.student-csv-import label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.student-csv-import input {
+    max-width: 100%;
+}
+
+.student-csv-import small,
+.student-csv-status,
+.student-csv-error {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.student-csv-import small {
+    color: #64748b;
+}
+
+.student-csv-status {
+    color: #166534;
+}
+
+.student-csv-error {
+    color: #b91c1c;
+}
+
+@media (max-width: 800px) {
+    .student-form .student-csv-import {
+        grid-column: auto;
+    }
+}
+
 /* ── CR-004: Inline field validation ── */
 
 .student-form .form-group.field-error input {
