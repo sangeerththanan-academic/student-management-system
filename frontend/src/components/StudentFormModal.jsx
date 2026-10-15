@@ -2,6 +2,104 @@
 import { useEffect, useState } from "react";
 import apiRequest from "../services/api";
 
+const INITIAL_FORM_DATA = {
+    registrationNo: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    password: ""
+};
+
+const MAX_CSV_SIZE = 1024 * 1024; // 1 MB
+
+// Parse CSV including quoted commas, escaped quotes and newlines.
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let value = "";
+    let inQuotes = false;
+
+    const input = text.replace(/^\uFEFF/, "");
+
+    for (let i = 0; i < input.length; i++) {
+        const char = input[i];
+
+        if (inQuotes) {
+            if (char === '"') {
+                if (input[i + 1] === '"') {
+                    value += '"';
+                    i++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                value += char;
+            }
+        } else if (char === '"' && value.length === 0) {
+            inQuotes = true;
+        } else if (char === ",") {
+            row.push(value);
+            value = "";
+        } else if (char === "\n" || char === "\r") {
+            if (char === "\r" && input[i + 1] === "\n") {
+                i++;
+            }
+
+            row.push(value);
+
+            if (row.some((cell) => cell.trim() !== "")) {
+                rows.push(row);
+            }
+
+            row = [];
+            value = "";
+        } else {
+            value += char;
+        }
+    }
+
+    if (inQuotes) {
+        throw new Error("CSV contains an unclosed quotation mark.");
+    }
+
+    row.push(value);
+
+    if (row.some((cell) => cell.trim() !== "")) {
+        rows.push(row);
+    }
+
+    return rows;
+}
+
+function normalizeHeader(header) {
+    return String(header ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]+/g, "");
+}
+
+const CSV_HEADER_MAP = {
+    registrationno: "registrationNo",
+    registrationnumber: "registrationNo",
+    registrationnum: "registrationNo",
+    firstname: "firstName",
+    lastname: "lastName",
+    email: "email",
+    emailaddress: "email",
+    phonenumber: "phoneNumber",
+    phone: "phoneNumber",
+    password: "password"
+};
+
+const REQUIRED_CSV_FIELDS = [
+    "registrationNo",
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber"
+];
+
 function StudentFormModal({
     show,
     editingStudent,
@@ -9,26 +107,30 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-    const initialFormData = {
-        registrationNo: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNumber: "",
-        password: ""
-    };
+    const [formData, setFormData] = useState({
+        ...INITIAL_FORM_DATA
+    });
 
-    const [formData, setFormData] = useState(initialFormData);
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const [touched, setTouched] = useState({});
     const [showPassword, setShowPassword] = useState(false);
 
+    const [csvError, setCsvError] = useState("");
+    const [csvMessage, setCsvMessage] = useState("");
+    const [csvFileName, setCsvFileName] = useState("");
+
     useEffect(() => {
         if (!show) return;
 
         setShowPassword(false);
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
+        setFormError("");
+        setFieldErrors({});
+        setTouched({});
 
         if (editingStudent) {
             setFormData({
@@ -36,97 +138,97 @@ function StudentFormModal({
                 firstName: editingStudent.first_name || "",
                 lastName: editingStudent.last_name || "",
                 email: editingStudent.email || "",
-                phoneNumber: String(editingStudent.phone_number || ""),
+                phoneNumber: String(
+                    editingStudent.phone_number ?? ""
+                ),
                 password: ""
             });
         } else {
-            setFormData({ ...initialFormData });
+            setFormData({ ...INITIAL_FORM_DATA });
         }
-
-        setFormError("");
-        setFieldErrors({});
-        setTouched({});
     }, [editingStudent, show]);
 
-    // FIELD VALIDATION
+    // Field validation
     const validateField = (name, value) => {
         const v = String(value ?? "").trim();
 
-<<<<<<< HEAD
         switch (name) {
             case "registrationNo":
                 if (!v) {
                     return "Registration number is required.";
                 }
-                if (!/^[A-Za-z0-9_-]+$/.test(v)) {
-                    return "Only letters, numbers, hyphens, and underscores are allowed.";
+
+                if (!/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(v)) {
+                    return "Use letters, numbers, hyphens, or underscores.";
                 }
+
                 return null;
 
             case "firstName":
-                if (!v) {
-                    return "First name is required.";
-                }
-                if (v.length < 3) {
-                    return "First name must be at least 3 characters.";
-                }
-                if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
-                    return "First name must contain letters and spaces only.";
-                }
-                return null;
-
             case "lastName":
                 if (!v) {
-                    return "Last name is required.";
+                    return `${name === "firstName" ? "First" : "Last"} name is required.`;
                 }
+
                 if (v.length < 3) {
-                    return "Last name must be at least 3 characters.";
+                    return "Name must be at least 3 characters.";
                 }
+
                 if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
-                    return "Last name must contain letters and spaces only.";
+                    return "Name must contain letters and spaces only.";
                 }
+
                 return null;
 
             case "email":
                 if (!v) {
                     return "Email address is required.";
                 }
+
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
                     return "Please enter a valid email address.";
                 }
+
                 return null;
 
             case "phoneNumber":
                 if (!v) {
                     return "Phone number is required.";
                 }
+
                 if (!/^\d{10}$/.test(v)) {
                     return "Phone number must contain exactly 10 digits.";
                 }
+
                 return null;
 
             case "password":
-                if (editingStudent) {
-                    return null;
-                }
+                if (editingStudent) return null;
+
                 if (!value) {
                     return "Password is required.";
                 }
+
                 if (value.length < 8) {
                     return "Password must be at least 8 characters.";
                 }
+
                 if (!/[A-Z]/.test(value)) {
                     return "Password must contain an uppercase letter.";
                 }
+
                 if (!/[a-z]/.test(value)) {
                     return "Password must contain a lowercase letter.";
                 }
+
                 if (!/\d/.test(value)) {
                     return "Password must contain a number.";
                 }
-                if (!/[@$!*?&%]/.test(value)) {
+
+                if (!/[^A-Za-z0-9]/.test(value)) {
                     return "Password must contain a special character.";
                 }
+
                 return null;
 
             default:
@@ -134,13 +236,9 @@ function StudentFormModal({
         }
     };
 
-    const validateAll = () => {
+    const validateAll = (data = formData) => {
         const fields = [
-            "registrationNo",
-            "firstName",
-            "lastName",
-            "email",
-            "phoneNumber"
+            ...REQUIRED_CSV_FIELDS
         ];
 
         if (!editingStudent) {
@@ -150,7 +248,8 @@ function StudentFormModal({
         const errors = {};
 
         fields.forEach((name) => {
-            const error = validateField(name, formData[name]);
+            const error = validateField(name, data[name]);
+
             if (error) {
                 errors[name] = error;
             }
@@ -159,98 +258,185 @@ function StudentFormModal({
         return errors;
     };
 
-    // INPUT CHANGE
-=======
-    const sanitizeInput = (name, value) => {
-        switch (name) {
-            case "registrationNo":
-                return value.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 30);
-            case "firstName":
-            case "lastName":
-                return value.replace(/[^A-Za-z]/g, "").slice(0, 30);
-            case "phoneNumber":
-                return value.replace(/\D/g, "").slice(0, 10);
-            default:
-                return value;
+    // CSV file upload and form auto-fill
+    const handleCSVUpload = async (event) => {
+        const file = event.target.files?.[0];
+
+        setCsvError("");
+        setCsvMessage("");
+        setFormError("");
+
+        if (!file) return;
+
+        // Allow selecting the same file again later.
+        event.target.value = "";
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            setCsvError("Please select a CSV file.");
+            return;
+        }
+
+        if (file.size === 0) {
+            setCsvError("The selected CSV file is empty.");
+            return;
+        }
+
+        if (file.size > MAX_CSV_SIZE) {
+            setCsvError("CSV file must not exceed 1 MB.");
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const rows = parseCSV(text);
+
+            if (rows.length < 2) {
+                setCsvError(
+                    "CSV must contain a header row and one student record."
+                );
+                return;
+            }
+
+            const headers = rows[0].map(normalizeHeader);
+
+            if (headers.some((header) => !header)) {
+                setCsvError(
+                    "CSV contains an empty column header."
+                );
+                return;
+            }
+
+            const mappedHeaders = headers.map(
+                (header) => CSV_HEADER_MAP[header] || null
+            );
+
+            const supportedHeaders = mappedHeaders.filter(Boolean);
+
+            if (
+                new Set(supportedHeaders).size !==
+                supportedHeaders.length
+            ) {
+                setCsvError(
+                    "CSV contains duplicate or ambiguous student columns."
+                );
+                return;
+            }
+
+            const missingHeaders = REQUIRED_CSV_FIELDS.filter(
+                (field) => !supportedHeaders.includes(field)
+            );
+
+            if (missingHeaders.length > 0) {
+                setCsvError(
+                    `Missing required CSV columns: ${missingHeaders.join(", ")}.`
+                );
+                return;
+            }
+
+            if (rows.length > 2) {
+                setCsvError(
+                    "This form imports one student at a time. Please use a CSV containing only one student data row."
+                );
+                return;
+            }
+
+            const values = rows[1];
+
+            if (values.length !== headers.length) {
+                setCsvError(
+                    "CSV row has a different number of values than the header row."
+                );
+                return;
+            }
+
+            const importedData = {
+                ...INITIAL_FORM_DATA
+            };
+
+            mappedHeaders.forEach((field, index) => {
+                if (field) {
+                    importedData[field] = values[index].trim();
+                }
+            });
+
+            const errors = validateAll(importedData);
+            const allFieldsTouched = {};
+
+            REQUIRED_CSV_FIELDS.forEach((field) => {
+                allFieldsTouched[field] = true;
+            });
+
+            if (!editingStudent) {
+                allFieldsTouched.password = true;
+            }
+
+            setFormData(importedData);
+            setTouched(allFieldsTouched);
+            setFieldErrors(errors);
+            setCsvFileName(file.name);
+
+            if (Object.keys(errors).length > 0) {
+                setCsvMessage(
+                    "CSV values were imported. Please correct the highlighted fields before saving."
+                );
+            } else {
+                setCsvMessage(
+                    "CSV imported successfully. Review the values before creating the student."
+                );
+            }
+        } catch (error) {
+            console.error("CSV import error:", error);
+            setCsvError(
+                error.message || "Unable to read the CSV file."
+            );
         }
     };
 
-    const validateStudentForm = (data, isEditing) => {
-        const registrationNo = data.registrationNo.trim();
-        const firstName = data.firstName.trim();
-        const lastName = data.lastName.trim();
-        const email = data.email.trim();
-        const phoneNumber = data.phoneNumber.trim();
-        const password = data.password;
-
-        if (!registrationNo) {
-            return "Registration number is required.";
-        }
-
-        if (!/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(registrationNo)) {
-            return "Registration number must contain only letters, numbers, hyphen, or underscore.";
-        }
-
-        if (firstName.length < 3 || !/^[A-Za-z]+$/.test(firstName)) {
-            return "First name must be at least 3 letters and contain only alphabetic characters.";
-        }
-
-        if (lastName.length < 3 || !/^[A-Za-z]+$/.test(lastName)) {
-            return "Last name must be at least 3 letters and contain only alphabetic characters.";
-        }
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return "Please enter a valid email address.";
-        }
-
-        if (!/^\d{10}$/.test(phoneNumber)) {
-            return "Phone number must contain exactly 10 digits.";
-        }
-
-        if (!isEditing) {
-            if (!password) {
-                return "Password is required for a new student.";
-            }
-
-            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
-                return "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.";
-            }
-        }
-
-        return "";
+    const handleClearCSV = () => {
+        setFormData({ ...INITIAL_FORM_DATA });
+        setFieldErrors({});
+        setTouched({});
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
+        setFormError("");
     };
 
->>>>>>> origin/JFICT22/CR022
+    // Input change
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         let nextValue = value;
 
-        if (name === "phoneNumber") {
+        if (name === "registrationNo") {
+            nextValue = value
+                .replace(/[^A-Za-z0-9_-]/g, "")
+                .slice(0, 30);
+        } else if (name === "firstName" || name === "lastName") {
+            nextValue = value
+                .replace(/[^A-Za-z ]/g, "")
+                .slice(0, 30);
+        } else if (name === "phoneNumber") {
             if (!/^\d*$/.test(value) || value.length > 10) {
                 return;
             }
-            nextValue = value;
         }
 
-        setFormData((previous) => ({
-            ...previous,
-<<<<<<< HEAD
+        const nextData = {
+            ...formData,
             [name]: nextValue
-        }));
+        };
 
+        setFormData(nextData);
         setFormError("");
 
         if (touched[name]) {
-            const error = validateField(name, nextValue);
-
             setFieldErrors((previous) => ({
                 ...previous,
-                [name]: error
+                [name]: validateField(name, nextValue)
             }));
         }
     };
 
-    // INPUT BLUR
     const handleBlur = (event) => {
         const { name, value } = event.target;
 
@@ -259,50 +445,37 @@ function StudentFormModal({
             [name]: true
         }));
 
-        const error = validateField(name, value);
-
         setFieldErrors((previous) => ({
             ...previous,
-            [name]: error
-=======
-            [name]: sanitizeInput(name, value)
->>>>>>> origin/JFICT22/CR022
+            [name]: validateField(name, value)
         }));
     };
 
-    // CLOSE MODAL
     const handleClose = () => {
         if (formLoading) return;
 
         setShowPassword(false);
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
         setFormError("");
         setFieldErrors({});
         setTouched({});
         onClose();
     };
 
-    // SUBMIT FORM
+    // Submit using the existing student creation API
     const handleSubmit = async (event) => {
         event.preventDefault();
         setFormError("");
 
-<<<<<<< HEAD
         const errors = validateAll();
-
-        const fields = [
-            "registrationNo",
-            "firstName",
-            "lastName",
-            "email",
-            "phoneNumber"
-        ];
-
-        if (!editingStudent) {
-            fields.push("password");
-        }
-
         const allTouched = {};
-        fields.forEach((field) => {
+
+        [
+            ...REQUIRED_CSV_FIELDS,
+            ...(!editingStudent ? ["password"] : [])
+        ].forEach((field) => {
             allTouched[field] = true;
         });
 
@@ -313,12 +486,6 @@ function StudentFormModal({
             setFormError(
                 "Please fix the highlighted errors before submitting."
             );
-=======
-        const validationError = validateStudentForm(formData, Boolean(editingStudent));
-
-        if (validationError) {
-            setFormError(validationError);
->>>>>>> origin/JFICT22/CR022
             return;
         }
 
@@ -351,7 +518,7 @@ function StudentFormModal({
                 });
             }
 
-            onSuccess();
+            await onSuccess();
             handleClose();
         } catch (error) {
             console.error("Student save error:", error);
@@ -368,10 +535,10 @@ function StudentFormModal({
                 return;
             }
 
-            if (error.status === 400 && error.errors) {
+            if (error.status === 400 && error.data?.errors) {
                 setFieldErrors((previous) => ({
                     ...previous,
-                    ...error.errors
+                    ...error.data.errors
                 }));
 
                 setFormError(
@@ -380,15 +547,19 @@ function StudentFormModal({
                 return;
             }
 
-            setFormError(error.message || "Failed to save student.");
+            setFormError(
+                error.message || "Failed to save student."
+            );
         } finally {
             setFormLoading(false);
         }
     };
 
-    // FORM FIELD
     const renderField = (label, name, type = "text", hint = "") => {
-        const hasError = Boolean(touched[name] && fieldErrors[name]);
+        const hasError = Boolean(
+            touched[name] && fieldErrors[name]
+        );
+
         const hintId = `sf-${name}-hint`;
         const isPassword = name === "password";
 
@@ -429,39 +600,7 @@ function StudentFormModal({
                             }
                             aria-pressed={showPassword}
                         >
-                            {showPassword ? (
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    width="20"
-                                    height="20"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden="true"
-                                >
-                                    <path d="M3 3l18 18" />
-                                    <path d="M10.6 10.6a2 2 0 002.8 2.8" />
-                                    <path d="M9.9 5.2A11 11 0 0121 12a11.8 11.8 0 01-4 4.8" />
-                                    <path d="M6.2 6.2A12 12 0 003 12a11 11 0 0014.2 6.3" />
-                                </svg>
-                            ) : (
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    width="20"
-                                    height="20"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden="true"
-                                >
-                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
-                                    <circle cx="12" cy="12" r="3" />
-                                </svg>
-                            )}
+                            {showPassword ? "Hide" : "Show"}
                         </button>
                     </div>
                 ) : (
@@ -475,7 +614,13 @@ function StudentFormModal({
                         disabled={formLoading}
                         required
                         autoComplete="off"
-                        maxLength={name === "phoneNumber" ? 10 : undefined}
+                        maxLength={
+                            name === "phoneNumber"
+                                ? 10
+                                : name === "email"
+                                    ? 254
+                                    : 100
+                        }
                         inputMode={
                             name === "phoneNumber" ? "numeric" : undefined
                         }
@@ -514,8 +659,11 @@ function StudentFormModal({
                 <div className="form-card-header">
                     <div>
                         <h3>
-                            {editingStudent ? "Edit Student" : "Add New Student"}
+                            {editingStudent
+                                ? "Edit Student"
+                                : "Add New Student"}
                         </h3>
+
                         <p>
                             {editingStudent
                                 ? "Update student information."
@@ -545,11 +693,73 @@ function StudentFormModal({
                     onSubmit={handleSubmit}
                     noValidate
                 >
+                    {!editingStudent && (
+                        <section className="csv-import-section">
+                            <h4>Import Student Details from CSV</h4>
+
+                            <p>
+                                Select a CSV file with one student record.
+                                Review and edit the imported values before
+                                creating the student.
+                            </p>
+
+                            <label htmlFor="student-csv-file">
+                                Choose CSV file
+                            </label>
+
+                            <input
+                                id="student-csv-file"
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={handleCSVUpload}
+                                disabled={formLoading}
+                            />
+
+                            <p className="field-hint">
+                                Required columns: registration_no,
+                                first_name, last_name, email, phone_number.
+                                Password can be entered manually.
+                            </p>
+
+                            {csvFileName && (
+                                <p className="csv-import-filename">
+                                    Selected file: {csvFileName}
+                                </p>
+                            )}
+
+                            {csvError && (
+                                <p className="csv-import-error" role="alert">
+                                    {csvError}
+                                </p>
+                            )}
+
+                            {csvMessage && (
+                                <p
+                                    className="csv-import-success"
+                                    role="status"
+                                >
+                                    {csvMessage}
+                                </p>
+                            )}
+
+                            {csvFileName && (
+                                <button
+                                    type="button"
+                                    className="cancel-button"
+                                    onClick={handleClearCSV}
+                                    disabled={formLoading}
+                                >
+                                    Clear Imported Data
+                                </button>
+                            )}
+                        </section>
+                    )}
+
                     {renderField(
                         "Registration Number",
                         "registrationNo",
                         "text",
-                        "Letters, numbers, hyphens, or underscores only."
+                        "Letters, numbers, hyphens, or underscores."
                     )}
 
                     {renderField(

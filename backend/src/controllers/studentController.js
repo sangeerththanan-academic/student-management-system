@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
@@ -10,12 +11,17 @@ const {
     deleteStudent
 } = require("../models/studentModel");
 
-<<<<<<< HEAD
 const {
     getPasswordHashByUserId,
     updatePasswordHash
 } = require("../models/userModel");
-=======
+
+const { validateStudentData } = require("../utils/validation");
+
+// =====================================================
+// VALIDATION HELPERS
+// =====================================================
+
 const normalizeStudentValue = (value) => {
     if (typeof value !== "string") {
         return "";
@@ -28,82 +34,6 @@ const isValidRegistrationNumber = (value) => {
     const normalized = normalizeStudentValue(value);
     return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(normalized);
 };
-
-const isValidName = (value) => {
-    const normalized = normalizeStudentValue(value);
-    return normalized.length >= 3 && /^[A-Za-z]+$/.test(normalized);
-};
-
-const isValidEmail = (value) => {
-    const normalized = normalizeStudentValue(value);
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
-};
-
-const isValidPhoneNumber = (value) => {
-    const normalized = normalizeStudentValue(value);
-    return /^\d{10}$/.test(normalized);
-};
-
-const isStrongPassword = (value) => {
-    if (typeof value !== "string") {
-        return false;
-    }
-
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value);
-};
-
-const validateStudentPayload = (payload, requirePassword = false) => {
-    const registrationNo = normalizeStudentValue(payload.registrationNo);
-    const firstName = normalizeStudentValue(payload.firstName);
-    const lastName = normalizeStudentValue(payload.lastName);
-    const email = normalizeStudentValue(payload.email);
-    const phoneNumber = normalizeStudentValue(payload.phoneNumber);
-    const password = payload.password;
-
-    if (!registrationNo) {
-        return "Registration number is required.";
-    }
-
-    if (!isValidRegistrationNumber(registrationNo)) {
-        return "Registration number must contain only letters, numbers, hyphen, or underscore.";
-    }
-
-    if (!isValidName(firstName)) {
-        return "First name must be at least 3 letters and contain only alphabetic characters.";
-    }
-
-    if (!isValidName(lastName)) {
-        return "Last name must be at least 3 letters and contain only alphabetic characters.";
-    }
-
-    if (!isValidEmail(email)) {
-        return "Please enter a valid email address.";
-    }
-
-    if (!isValidPhoneNumber(phoneNumber)) {
-        return "Phone number must contain exactly 10 digits.";
-    }
-
-    if (requirePassword) {
-        if (!password) {
-            return "Password is required for a new student.";
-        }
-
-        if (!isStrongPassword(password)) {
-            return "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.";
-        }
-    }
-
-    return "";
-};
-
->>>>>>> origin/JFICT22/CR022
-
-const { validateStudentData } = require("../utils/validation");
-
-// =====================================================
-// VALIDATION HELPERS
-// =====================================================
 
 const validateName = (name, fieldName) => {
     if (typeof name !== "string" || !name.trim()) {
@@ -180,9 +110,7 @@ const validatePassword = (password) => {
 // POST /api/students
 // =====================================================
 
-<<<<<<< HEAD
 const addStudent = async (req, res) => {
-=======
     const payload = {
         registrationNo: req.body.registrationNo,
         firstName: req.body.firstName,
@@ -192,16 +120,6 @@ const addStudent = async (req, res) => {
         password: req.body.password
     };
 
-    const validationMessage = validateStudentPayload(payload, true);
-
-    if (validationMessage) {
-        return res.status(400).json({
-            success: false,
-            message: validationMessage
-        });
-    }
-
->>>>>>> origin/JFICT22/CR022
     const {
         registrationNo,
         firstName,
@@ -221,9 +139,15 @@ const addStudent = async (req, res) => {
     let connection;
 
     try {
-        const validation = validateStudentData(req.body, false);
+        const validation = validateStudentData({
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            password
+        }, false);
 
-<<<<<<< HEAD
         if (!validation.isValid) {
             return res.status(400).json({
                 success: false,
@@ -232,13 +156,10 @@ const addStudent = async (req, res) => {
             });
         }
 
-        if (
-            typeof registrationNo !== "string" ||
-            !registrationNo.trim()
-        ) {
+        if (!isValidRegistrationNumber(registrationNo)) {
             return res.status(400).json({
                 success: false,
-                message: "Registration number is required"
+                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
             });
         }
 
@@ -287,9 +208,6 @@ const addStudent = async (req, res) => {
             });
         }
 
-=======
-        // Get database connection
->>>>>>> origin/JFICT22/CR022
         connection = await pool.getConnection();
         await connection.beginTransaction();
 
@@ -298,7 +216,7 @@ const addStudent = async (req, res) => {
              FROM users
              WHERE username = ?
              LIMIT 1`,
-            [registrationNo.trim()]
+            [registrationNo]
         );
 
         if (existingUser.length > 0) {
@@ -315,7 +233,7 @@ const addStudent = async (req, res) => {
              FROM students
              WHERE email = ?
              LIMIT 1`,
-            [email.trim()]
+            [email]
         );
 
         if (existingStudent.length > 0) {
@@ -332,7 +250,7 @@ const addStudent = async (req, res) => {
         const [userResult] = await connection.execute(
             `INSERT INTO users (username, password_hash, role)
              VALUES (?, ?, 'STUDENT')`,
-            [registrationNo.trim(), passwordHash]
+            [registrationNo, passwordHash]
         );
 
         const userId = userResult.insertId;
@@ -340,11 +258,11 @@ const addStudent = async (req, res) => {
         const studentId = await createStudent(
             connection,
             userId,
-            registrationNo.trim(),
-            firstName.trim(),
-            lastName.trim(),
-            email.trim(),
-            String(phoneNumber).trim()
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
         );
 
         await connection.commit();
@@ -355,11 +273,11 @@ const addStudent = async (req, res) => {
             student: {
                 studentId,
                 userId,
-                registrationNo: registrationNo.trim(),
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
-                email: email.trim(),
-                phoneNumber: String(phoneNumber).trim(),
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
                 role: "STUDENT"
             }
         });
@@ -456,19 +374,20 @@ const editStudent = async (req, res) => {
         const studentId = req.params.id;
 
         const payload = {
-            registrationNo: req.body.registrationNo,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            phoneNumber: req.body.phoneNumber
+            registrationNo: normalizeStudentValue(req.body.registrationNo),
+            firstName: normalizeStudentValue(req.body.firstName),
+            lastName: normalizeStudentValue(req.body.lastName),
+            email: normalizeStudentValue(req.body.email),
+            phoneNumber: normalizeStudentValue(req.body.phoneNumber)
         };
 
-        const validationMessage = validateStudentPayload(payload, false);
+        const validation = validateStudentData(payload, true);
 
-        if (validationMessage) {
+        if (!validation.isValid) {
             return res.status(400).json({
                 success: false,
-                message: validationMessage
+                message: validation.firstError,
+                errors: validation.errors
             });
         }
 
@@ -478,35 +397,12 @@ const editStudent = async (req, res) => {
             lastName,
             email,
             phoneNumber
-<<<<<<< HEAD
-        } = req.body;
+        } = payload;
 
-        const validation = validateStudentData(req.body, true);
-
-        if (!validation.isValid) {
+        if (!isValidRegistrationNumber(registrationNo)) {
             return res.status(400).json({
                 success: false,
-                message: validation.firstError,
-                errors: validation.errors
-            });
-        }
-=======
-        } = {
-            registrationNo: normalizeStudentValue(payload.registrationNo),
-            firstName: normalizeStudentValue(payload.firstName),
-            lastName: normalizeStudentValue(payload.lastName),
-            email: normalizeStudentValue(payload.email),
-            phoneNumber: normalizeStudentValue(payload.phoneNumber)
-        };
->>>>>>> origin/JFICT22/CR022
-
-        if (
-            typeof registrationNo !== "string" ||
-            !registrationNo.trim()
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Registration number is required"
+                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
             });
         }
 
@@ -557,11 +453,11 @@ const editStudent = async (req, res) => {
 
         const result = await updateStudent(
             studentId,
-            registrationNo.trim(),
-            firstName.trim(),
-            lastName.trim(),
-            email.trim(),
-            String(phoneNumber).trim()
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
         );
 
         return res.status(200).json({
