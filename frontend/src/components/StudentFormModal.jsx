@@ -540,7 +540,7 @@ const API_BASE_URL = (
 ).replace(/\/+$/, "");
 
 const MAX_CSV_SIZE = 1024 * 1024; // 1 MB
-const MAX_CSV_ROWS = 2; // Header + one student record
+const MAX_CSV_STUDENTS = 500;
 
 const CSV_FIELD_ALIASES = {
     registrationNo: [
@@ -871,196 +871,443 @@ function StudentFormModal({
         setFormError("");
     };
 
-    const handleCSVChange = async (event) => {
-        const file = event.target.files?.[0];
+    // const handleCSVChange = async (event) => {
+    //     const file = event.target.files?.[0];
 
-        setCsvError("");
-        setCsvSuccess("");
-        setFormError("");
+    //     setCsvError("");
+    //     setCsvSuccess("");
+    //     setFormError("");
 
-        if (!file) return;
+    //     if (!file) return;
 
-        const isCSV =
-            /\.csv$/i.test(file.name) &&
-            (
-                file.type === "" ||
-                file.type === "text/csv" ||
-                file.type === "application/vnd.ms-excel" ||
-                file.type === "application/csv" ||
-                file.type === "text/plain"
+    //     const isCSV =
+    //         /\.csv$/i.test(file.name) &&
+    //         (
+    //             file.type === "" ||
+    //             file.type === "text/csv" ||
+    //             file.type === "application/vnd.ms-excel" ||
+    //             file.type === "application/csv" ||
+    //             file.type === "text/plain"
+    //         );
+
+    //     if (!isCSV) {
+    //         setCsvError("Please select a valid .csv file.");
+    //         event.target.value = "";
+    //         return;
+    //     }
+
+    //     if (file.size === 0) {
+    //         setCsvError("The selected CSV file is empty.");
+    //         event.target.value = "";
+    //         return;
+    //     }
+
+    //     if (file.size > MAX_CSV_SIZE) {
+    //         setCsvError("CSV file size must not exceed 1 MB.");
+    //         event.target.value = "";
+    //         return;
+    //     }
+
+    //     setCsvLoading(true);
+
+    //     try {
+    //         const content = await file.text();
+
+    //         if (content.includes("\u0000")) {
+    //             throw new Error(
+    //                 "The file contains invalid characters and cannot be read as CSV."
+    //             );
+    //         }
+
+    //         const rows = parseCSV(content);
+
+    //         if (rows.length === 0) {
+    //             throw new Error("The CSV file does not contain any data.");
+    //         }
+
+    //         const headers = rows[0].map(normalizeHeader);
+
+    //         if (headers.some((header) => !header)) {
+    //             throw new Error(
+    //                 "The CSV header contains an empty column name."
+    //             );
+    //         }
+
+    //         const headerMap = {};
+
+    //         headers.forEach((header, index) => {
+    //             const matches = Object.entries(CSV_FIELD_ALIASES)
+    //                 .filter(([, aliases]) => aliases.includes(header))
+    //                 .map(([field]) => field);
+
+    //             if (matches.length > 1) {
+    //                 throw new Error(
+    //                     `The CSV column "${header}" has an ambiguous mapping.`
+    //                 );
+    //             }
+
+    //             if (matches.length === 1) {
+    //                 const field = matches[0];
+
+    //                 if (
+    //                     Object.prototype.hasOwnProperty.call(
+    //                         headerMap,
+    //                         field
+    //                     )
+    //                 ) {
+    //                     throw new Error(
+    //                         `Multiple CSV columns map to ${CSV_FIELD_LABELS[field]}. Keep only one matching column.`
+    //                     );
+    //                 }
+
+    //                 headerMap[field] = index;
+    //             }
+    //         });
+
+    //         const missingColumns = REQUIRED_CSV_FIELDS.filter(
+    //             (field) =>
+    //                 !Object.prototype.hasOwnProperty.call(
+    //                     headerMap,
+    //                     field
+    //                 )
+    //         );
+
+    //         if (missingColumns.length > 0) {
+    //             throw new Error(
+    //                 "Missing required CSV columns: " +
+    //                 missingColumns
+    //                     .map((field) => CSV_FIELD_LABELS[field])
+    //                     .join(", ") +
+    //                 "."
+    //             );
+    //         }
+
+    //         if (rows.length === 1) {
+    //             throw new Error(
+    //                 "The CSV contains headers but no student record."
+    //             );
+    //         }
+
+    //         if (rows.length > MAX_CSV_ROWS) {
+    //             throw new Error(
+    //                 "This form imports one student at a time. Please use a CSV containing one student record and a header row."
+    //             );
+    //         }
+
+    //         const record = rows[1];
+
+    //         if (record.length !== headers.length) {
+    //             throw new Error(
+    //                 "The number of CSV values does not match the number of headers."
+    //             );
+    //         }
+
+    //         const importedData = {};
+
+    //         REQUIRED_CSV_FIELDS.forEach((field) => {
+    //             importedData[field] = String(
+    //                 record[headerMap[field]] ?? ""
+    //             ).trim();
+    //         });
+
+    //         const hasEmptyValues = REQUIRED_CSV_FIELDS.filter(
+    //             (field) => !importedData[field]
+    //         );
+
+    //         // Populate the form so the administrator can correct
+    //         // invalid or empty imported values before submission.
+    //         setFormData((previous) => ({
+    //             ...previous,
+    //             ...importedData
+    //         }));
+
+    //         setFieldErrors((previous) => ({
+    //             ...previous,
+    //             ...Object.fromEntries(
+    //                 REQUIRED_CSV_FIELDS.map((field) => [field, ""])
+    //             )
+    //         }));
+
+    //         const validationErrors = validateStudent(
+    //             { ...formData, ...importedData },
+    //             false
+    //         );
+
+    //         setFieldErrors((previous) => ({
+    //             ...previous,
+    //             ...validationErrors
+    //         }));
+
+    //         if (hasEmptyValues.length > 0) {
+    //             setCsvSuccess(
+    //                 "CSV imported. Please complete the highlighted required fields."
+    //             );
+    //         } else if (Object.keys(validationErrors).length > 0) {
+    //             setCsvSuccess(
+    //                 "CSV imported. Please correct the highlighted validation errors."
+    //             );
+    //         } else {
+    //             setCsvSuccess(
+    //                 "CSV imported successfully. Review the values before creating the student."
+    //             );
+    //         }
+    //     } catch (error) {
+    //         console.error("CSV import error:", error);
+    //         setCsvError(
+    //             error.message || "Unable to read the selected CSV file."
+    //         );
+    //     } finally {
+    //         setCsvLoading(false);
+    //         event.target.value = "";
+    //     }
+    // };
+
+    
+const handleCSVChange = async (event) => {
+    const file = event.target.files?.[0];
+
+    setCsvError("");
+    setCsvSuccess("");
+    setFormError("");
+
+    if (!file) return;
+
+    const isCSV =
+        /\.csv$/i.test(file.name) &&
+        (
+            file.type === "" ||
+            file.type === "text/csv" ||
+            file.type === "application/vnd.ms-excel" ||
+            file.type === "application/csv" ||
+            file.type === "text/plain"
+        );
+
+    if (!isCSV) {
+        setCsvError("Please select a valid .csv file.");
+        event.target.value = "";
+        return;
+    }
+
+    if (file.size === 0) {
+        setCsvError("The selected CSV file is empty.");
+        event.target.value = "";
+        return;
+    }
+
+    if (file.size > MAX_CSV_SIZE) {
+        setCsvError("CSV file size must not exceed 1 MB.");
+        event.target.value = "";
+        return;
+    }
+
+    setCsvLoading(true);
+
+    try {
+        const content = await file.text();
+
+        if (content.includes("\u0000")) {
+            throw new Error("The file contains invalid characters.");
+        }
+
+        const rows = parseCSV(content);
+
+        if (rows.length < 2) {
+            throw new Error(
+                "CSV must contain a header and at least one student."
             );
-
-        if (!isCSV) {
-            setCsvError("Please select a valid .csv file.");
-            event.target.value = "";
-            return;
         }
 
-        if (file.size === 0) {
-            setCsvError("The selected CSV file is empty.");
-            event.target.value = "";
-            return;
+        const headers = rows[0].map(normalizeHeader);
+
+        if (headers.some((header) => !header)) {
+            throw new Error(
+                "The CSV header contains an empty column name."
+            );
         }
 
-        if (file.size > MAX_CSV_SIZE) {
-            setCsvError("CSV file size must not exceed 1 MB.");
-            event.target.value = "";
-            return;
-        }
+        const headerMap = {};
 
-        setCsvLoading(true);
+        headers.forEach((header, index) => {
+            const matches = Object.entries(CSV_FIELD_ALIASES)
+                .filter(([, aliases]) => aliases.includes(header))
+                .map(([field]) => field);
 
-        try {
-            const content = await file.text();
-
-            if (content.includes("\u0000")) {
+            if (matches.length > 1) {
                 throw new Error(
-                    "The file contains invalid characters and cannot be read as CSV."
+                    `Ambiguous CSV column: "${header}".`
                 );
             }
 
-            const rows = parseCSV(content);
+            if (matches.length === 1) {
+                const field = matches[0];
 
-            if (rows.length === 0) {
-                throw new Error("The CSV file does not contain any data.");
-            }
-
-            const headers = rows[0].map(normalizeHeader);
-
-            if (headers.some((header) => !header)) {
-                throw new Error(
-                    "The CSV header contains an empty column name."
-                );
-            }
-
-            const headerMap = {};
-
-            headers.forEach((header, index) => {
-                const matches = Object.entries(CSV_FIELD_ALIASES)
-                    .filter(([, aliases]) => aliases.includes(header))
-                    .map(([field]) => field);
-
-                if (matches.length > 1) {
-                    throw new Error(
-                        `The CSV column "${header}" has an ambiguous mapping.`
-                    );
-                }
-
-                if (matches.length === 1) {
-                    const field = matches[0];
-
-                    if (
-                        Object.prototype.hasOwnProperty.call(
-                            headerMap,
-                            field
-                        )
-                    ) {
-                        throw new Error(
-                            `Multiple CSV columns map to ${CSV_FIELD_LABELS[field]}. Keep only one matching column.`
-                        );
-                    }
-
-                    headerMap[field] = index;
-                }
-            });
-
-            const missingColumns = REQUIRED_CSV_FIELDS.filter(
-                (field) =>
-                    !Object.prototype.hasOwnProperty.call(
+                if (
+                    Object.prototype.hasOwnProperty.call(
                         headerMap,
                         field
                     )
+                ) {
+                    throw new Error(
+                        `Multiple columns map to ${CSV_FIELD_LABELS[field]}.`
+                    );
+                }
+
+                headerMap[field] = index;
+            }
+        });
+
+        const missingColumns = REQUIRED_CSV_FIELDS.filter(
+            (field) =>
+                !Object.prototype.hasOwnProperty.call(
+                    headerMap,
+                    field
+                )
+        );
+
+        if (missingColumns.length > 0) {
+            throw new Error(
+                "Missing required columns: " +
+                missingColumns
+                    .map((field) => CSV_FIELD_LABELS[field])
+                    .join(", ")
             );
+        }
 
-            if (missingColumns.length > 0) {
+        const studentRows = rows.slice(1);
+
+        if (studentRows.length > MAX_CSV_STUDENTS) {
+            throw new Error(
+                `You can import a maximum of ${MAX_CSV_STUDENTS} students at a time.`
+            );
+        }
+
+        const students = studentRows.map((row, index) => {
+            if (row.length !== headers.length) {
                 throw new Error(
-                    "Missing required CSV columns: " +
-                    missingColumns
-                        .map((field) => CSV_FIELD_LABELS[field])
-                        .join(", ") +
-                    "."
+                    `CSV row ${index + 2}: the number of values does not match the header columns.`
                 );
             }
 
-            if (rows.length === 1) {
-                throw new Error(
-                    "The CSV contains headers but no student record."
-                );
-            }
-
-            if (rows.length > MAX_CSV_ROWS) {
-                throw new Error(
-                    "This form imports one student at a time. Please use a CSV containing one student record and a header row."
-                );
-            }
-
-            const record = rows[1];
-
-            if (record.length !== headers.length) {
-                throw new Error(
-                    "The number of CSV values does not match the number of headers."
-                );
-            }
-
-            const importedData = {};
+            const student = {};
 
             REQUIRED_CSV_FIELDS.forEach((field) => {
-                importedData[field] = String(
-                    record[headerMap[field]] ?? ""
+                student[field] = String(
+                    row[headerMap[field]] ?? ""
                 ).trim();
             });
 
-            const hasEmptyValues = REQUIRED_CSV_FIELDS.filter(
-                (field) => !importedData[field]
-            );
+            return student;
+        });
 
-            // Populate the form so the administrator can correct
-            // invalid or empty imported values before submission.
-            setFormData((previous) => ({
-                ...previous,
-                ...importedData
-            }));
-
-            setFieldErrors((previous) => ({
-                ...previous,
-                ...Object.fromEntries(
-                    REQUIRED_CSV_FIELDS.map((field) => [field, ""])
-                )
-            }));
-
-            const validationErrors = validateStudent(
-                { ...formData, ...importedData },
-                false
-            );
-
-            setFieldErrors((previous) => ({
-                ...previous,
-                ...validationErrors
-            }));
-
-            if (hasEmptyValues.length > 0) {
-                setCsvSuccess(
-                    "CSV imported. Please complete the highlighted required fields."
-                );
-            } else if (Object.keys(validationErrors).length > 0) {
-                setCsvSuccess(
-                    "CSV imported. Please correct the highlighted validation errors."
-                );
-            } else {
-                setCsvSuccess(
-                    "CSV imported successfully. Review the values before creating the student."
-                );
+        // Send ALL student records to the backend.
+        // The backend validates each row and saves valid records to MySQL.
+        const result = await apiRequest(
+            "/api/students/import-csv",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ students })
             }
-        } catch (error) {
-            console.error("CSV import error:", error);
-            setCsvError(
-                error.message || "Unable to read the selected CSV file."
+        );
+
+        const imported = Number(result.imported || 0);
+        const failed = Number(result.failed || 0);
+        const rowErrors = Array.isArray(result.errors)
+            ? result.errors
+            : [];
+
+        if (imported > 0) {
+            setCsvSuccess(
+                `${imported} student(s) imported successfully. ` +
+                `${failed} row(s) failed.`
             );
-        } finally {
-            setCsvLoading(false);
-            event.target.value = "";
+
+            // Refresh the Admin Dashboard student list.
+            await onSuccess();
+
+            // Clear the manually entered form fields.
+            setFormData({
+                registrationNo: "",
+                firstName: "",
+                lastName: "",
+                email: "",
+                phoneNumber: "",
+                password: ""
+            });
+
+            setFieldErrors({});
+            setProfileImage(null);
+            setImagePreview("");
+            setImageError("");
+        } else {
+            setCsvError(
+                result.message ||
+                "No students were imported. Please check the CSV data."
+            );
         }
-    };
+
+        if (rowErrors.length > 0) {
+            const errorDetails = rowErrors
+                .slice(0, 20)
+                .map((item) =>
+                    `Row ${item.row} (${item.registrationNo || "No registration number"}): ${item.message}`
+                )
+                .join("\n");
+
+            setCsvError(
+                `${failed} row(s) failed:\n${errorDetails}` +
+                (rowErrors.length > 20
+                    ? "\nOnly the first 20 errors are displayed."
+                    : "")
+            );
+        }
+    } catch (error) {
+        console.error("Bulk CSV import error:", error);
+
+        if (error.status === 401) {
+            onAuthError();
+            return;
+        }
+
+        if (error.status === 403) {
+            setCsvError(
+                "You do not have permission to import students."
+            );
+            return;
+        }
+
+        // Some API helpers throw on HTTP 400 even when the server
+        // provides useful row-by-row error details.
+        const responseData = error.data || {};
+        const rowErrors = Array.isArray(responseData.errors)
+            ? responseData.errors
+            : [];
+
+        if (rowErrors.length > 0) {
+            setCsvError(
+                `${responseData.message || "Import failed."}\n` +
+                rowErrors
+                    .slice(0, 20)
+                    .map((item) =>
+                        `Row ${item.row}: ${item.message}`
+                    )
+                    .join("\n")
+            );
+        } else {
+            setCsvError(
+                responseData.message ||
+                error.message ||
+                "Unable to import students from the CSV file."
+            );
+        }
+    } finally {
+        setCsvLoading(false);
+        event.target.value = "";
+    }
+};
+
 
     const clearCSVImport = () => {
         setCsvError("");
@@ -1311,11 +1558,10 @@ function StudentFormModal({
                             <h4>Import Student Details from CSV</h4>
 
                             <p>
-                                Select a CSV containing one student
-                                record. The imported details will
-                                populate the form for your review.
-                                No student is created until you click
-                                Create Student.
+                                Upload a CSV containing multiple student records.
+                                The Admin Dashboard will refresh after import.
+                                Valid records will be saved to the database automatically.
+                                Invalid or duplicate rows will be reported separately.
                             </p>
 
                             <label htmlFor="studentCsvFile">
@@ -1332,8 +1578,8 @@ function StudentFormModal({
                             />
 
                             <small>
-                                Maximum size: 1 MB. Required columns:
-                                registrationNo, firstName, lastName,
+                                Maximum size: 1 MB; maximum 500 students.
+                                Required columns: registrationNo, firstName, lastName,
                                 email, phoneNumber, password.
                             </small>
 

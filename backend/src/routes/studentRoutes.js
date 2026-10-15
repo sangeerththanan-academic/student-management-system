@@ -7,44 +7,25 @@
 //     getStudent,
 //     getMyProfile,
 //     editStudent,
-//     removeStudent
+//     removeStudent,
+//     changeMyPassword
 // } = require("../controllers/studentController");
 
 // const { authenticate } = require("../middleware/authMiddleware");
+// const uploadStudentImage = require("../middleware/studentUploadMiddleware");
 
-// const uploadStudentImage =
-//     require("../middleware/studentUploadMiddleware");
-
-// // GET /api/students/me
 // router.get("/me", authenticate, getMyProfile);
 
-// // GET /api/students
+// router.patch("/me/password", authenticate, changeMyPassword);
+
 // router.get("/", authenticate, getStudents);
+// router.post("/", authenticate, uploadStudentImage.single("profileImage"), addStudent);
 
-// // GET /api/students/:id
 // router.get("/:id", authenticate, getStudent);
-
-// // POST /api/students
-// router.post(
-//     "/",
-//     authenticate,
-//     uploadStudentImage.single("profileImage"),
-//     addStudent
-// );
-
-// // PUT /api/students/:id
-// router.put(
-//     "/:id",
-//     authenticate,
-//     uploadStudentImage.single("profileImage"),
-//     editStudent
-// );
-
-// // DELETE /api/students/:id
+// router.put("/:id", authenticate, uploadStudentImage.single("profileImage"), editStudent);
 // router.delete("/:id", authenticate, removeStudent);
 
 // module.exports = router;
-
 
 
 
@@ -58,21 +39,48 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    importStudents
 } = require("../controllers/studentController");
 
 const { authenticate } = require("../middleware/authMiddleware");
-const uploadStudentImage = require("../middleware/studentUploadMiddleware");
 
+const uploadStudentImage =
+    require("../middleware/studentUploadMiddleware");
+
+// Student profile
 router.get("/me", authenticate, getMyProfile);
 
+// Change student password
 router.patch("/me/password", authenticate, changeMyPassword);
 
+// Get all students for the dashboard
 router.get("/", authenticate, getStudents);
-router.post("/", authenticate, uploadStudentImage.single("profileImage"), addStudent);
 
+// Import multiple students from CSV
+// IMPORTANT: Keep this route before router.get("/:id").
+router.post("/import-csv", authenticate, importStudents);
+
+// Add one student manually
+router.post(
+    "/",
+    authenticate,
+    uploadStudentImage.single("profileImage"),
+    addStudent
+);
+
+// Get one student
 router.get("/:id", authenticate, getStudent);
-router.put("/:id", authenticate, uploadStudentImage.single("profileImage"), editStudent);
+
+// Edit a student
+router.put(
+    "/:id",
+    authenticate,
+    uploadStudentImage.single("profileImage"),
+    editStudent
+);
+
+// Delete a student
 router.delete("/:id", authenticate, removeStudent);
 
 module.exports = router;
