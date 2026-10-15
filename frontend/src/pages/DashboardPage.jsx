@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +20,54 @@ const normalizeSearchValue = (value) => {
 
 const API_BASE_URL =
     import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Escape CSV values, including commas, quotation marks and line breaks.
+const escapeCSVValue = (value) => {
+    const text = String(value ?? "");
+    return `"${text.replace(/"/g, '""')}"`;
+};
+
+// Generate and download the CSV file.
+function exportStudentsToCSV(students) {
+    const headers = [
+        "Student ID",
+        "Registration Number",
+        "First Name",
+        "Last Name",
+        "Email",
+        "Phone Number"
+    ];
+
+    const rows = students.map((student) => [
+        student.student_id,
+        student.registration_no,
+        student.first_name,
+        student.last_name,
+        student.email,
+        student.phone_number
+    ]);
+
+    const csvContent = [
+        headers.map(escapeCSVValue).join(","),
+        ...rows.map((row) => row.map(escapeCSVValue).join(","))
+    ].join("\r\n");
+
+    // BOM helps spreadsheet applications display UTF-8 correctly.
+    const blob = new Blob(["\uFEFF", csvContent], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "students.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+}
 
 function StudentAvatar({ student }) {
     const [imageFailed, setImageFailed] = useState(false);
@@ -57,7 +104,7 @@ function StudentAvatar({ student }) {
     );
 }
 
-// Format the last successful login timestamp
+// Format the last successful login timestamp.
 function formatLastLogin(lastLogin) {
     if (!lastLogin) {
         return "Never logged in";
@@ -87,6 +134,7 @@ function DashboardPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [exportMessage, setExportMessage] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
@@ -176,6 +224,33 @@ function DashboardPage() {
 
     const handleClearSearch = () => setSearchTerm("");
 
+    const handleExportCSV = () => {
+        setExportMessage("");
+
+        if (loading) {
+            setExportMessage("Please wait until student records finish loading.");
+            return;
+        }
+
+        if (error) {
+            setExportMessage("Students could not be loaded. Please try again.");
+            return;
+        }
+
+        try {
+            exportStudentsToCSV(students);
+
+            setExportMessage(
+                students.length === 0
+                    ? "An empty students.csv file has been downloaded."
+                    : `Successfully exported ${students.length} student record(s).`
+            );
+        } catch (exportError) {
+            console.error("CSV export failed:", exportError);
+            setExportMessage("Failed to export students. Please try again.");
+        }
+    };
+
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
@@ -259,16 +334,37 @@ function DashboardPage() {
                         <p>Manage student accounts and profiles.</p>
                     </div>
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+                        <button
+                            type="button"
+                            className="export-csv-button"
+                            onClick={handleExportCSV}
+                            disabled={loading}
+                        >
+                            Export CSV
+                        </button>
+
+                        <button
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
                     <div className="dashboard-error">{error}</div>
+                )}
+
+                {exportMessage && (
+                    <div
+                        className="students-result-count"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {exportMessage}
+                    </div>
                 )}
 
                 <StudentFormModal

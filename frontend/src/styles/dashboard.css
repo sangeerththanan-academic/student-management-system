@@ -846,3 +846,42 @@
         color 0.2s ease,
         border-color 0.2s ease;
 }
+
+/* CR-015: Student CSV export */
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.export-csv-button {
+    padding: 10px 16px;
+    border: 1px solid #198754;
+    border-radius: 6px;
+    background-color: #198754;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background-color: #146c43;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .students-heading-actions {
+        width: 100%;
+    }
+
+    .export-csv-button {
+        flex: 1;
+    }
+}
