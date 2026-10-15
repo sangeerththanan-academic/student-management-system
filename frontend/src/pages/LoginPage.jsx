@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { login } from "../services/authService";
+import {
+    login,
+    requestStudentPasswordReset,
+    resetStudentPassword,
+    verifyStudentPasswordResetOtp
+} from "../services/authService";
 import "../styles/login.css";
 
 import LoginInfo from "../components/LoginInfo";
@@ -12,6 +17,48 @@ function LoginPage() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [resetError, setResetError] = useState("");
+    const [resetLoading, setResetLoading] = useState(false);
+
+    const handleResetRequest = async (email) => {
+        setResetError("");
+        setResetLoading(true);
+        try {
+            return await requestStudentPasswordReset(email);
+        } catch (requestError) {
+            setResetError(requestError.message || "Unable to request a reset OTP");
+            return null;
+        } finally {
+            setResetLoading(false);
+        }
+    };
+
+    const handleResetOtpVerification = async (email, otp) => {
+        setResetError("");
+        setResetLoading(true);
+        try {
+            return await verifyStudentPasswordResetOtp(email, otp);
+        } catch (verificationError) {
+            setResetError(verificationError.message || "Unable to verify the OTP");
+            return null;
+        } finally {
+            setResetLoading(false);
+        }
+    };
+
+    const handlePasswordReset = async (resetToken, newPassword, confirmPassword) => {
+        setResetError("");
+        setResetLoading(true);
+        try {
+            await resetStudentPassword(resetToken, newPassword, confirmPassword);
+            return true;
+        } catch (resetRequestError) {
+            setResetError(resetRequestError.message || "Unable to reset the password");
+            return false;
+        } finally {
+            setResetLoading(false);
+        }
+    };
 
     const handleLogin = async (username, password) => {
         setError("");
@@ -58,6 +105,11 @@ function LoginPage() {
                     onSubmit={handleLogin}
                     loading={loading}
                     error={error}
+                    resetError={resetError}
+                    resetLoading={resetLoading}
+                    onResetRequest={handleResetRequest}
+                    onVerifyResetOtp={handleResetOtpVerification}
+                    onResetPassword={handlePasswordReset}
                 />
 
             </div>

@@ -300,6 +300,50 @@
     opacity: 0.65;
 }
 
+.login-form[hidden] {
+    display: none;
+}
+
+.forgot-password-link {
+    align-self: flex-end;
+    border: 0;
+    padding: 0;
+    color: var(--text-muted);
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
+
+.login-success {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid var(--success-border, #78a98a);
+    border-radius: 8px;
+    color: var(--success-text, #23613a);
+    background: var(--success-bg, #eaf6ed);
+    font-size: 14px;
+}
+
+.reset-otp-inputs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.reset-otp-inputs input {
+    min-width: 0;
+    aspect-ratio: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+}
+
 /* =========================================================
    Responsive
    ========================================================= */

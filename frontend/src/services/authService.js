@@ -1,5 +1,26 @@
 import apiRequest from "./api";
 
+export const requestStudentPasswordReset = async (email) => {
+    return await apiRequest("/api/auth/student/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+    });
+};
+
+export const verifyStudentPasswordResetOtp = async (email, otp) => {
+    return await apiRequest("/api/auth/student/verify-reset-otp", {
+        method: "POST",
+        body: JSON.stringify({ email, otp })
+    });
+};
+
+export const resetStudentPassword = async (resetToken, newPassword, confirmPassword) => {
+    return await apiRequest("/api/auth/student/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ resetToken, newPassword, confirmPassword })
+    });
+};
+
 // Login
 export const login = async (username, password) => {
     const data = await apiRequest("/api/auth/login", {

@@ -3,7 +3,10 @@ const express = require("express");
 const {
     login,
     getCurrentUser,
-    changePassword
+    changePassword,
+    requestStudentPasswordReset,
+    verifyStudentPasswordResetOtp,
+    resetStudentPassword
 } = require("../controllers/authController");
 
 const {
@@ -20,5 +23,10 @@ router.get("/me", authenticate, getCurrentUser);
 
 // POST /api/auth/change-password
 router.post("/change-password", authenticate, changePassword);
+
+// Student-only password reset
+router.post("/student/forgot-password", requestStudentPasswordReset);
+router.post("/student/verify-reset-otp", verifyStudentPasswordResetOtp);
+router.post("/student/reset-password", resetStudentPassword);
 
 module.exports = router;

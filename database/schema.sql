@@ -75,6 +75,20 @@ ADD COLUMN profile_img_url VARCHAR(500) DEFAULT NULL;
 ALTER TABLE users
 ADD COLUMN last_login_at TIMESTAMP NULL DEFAULT NULL;
 
+-- password otp store
+CREATE TABLE IF NOT EXISTS student_password_reset_otps (
+                email VARCHAR(150) PRIMARY KEY,
+                user_id INT NOT NULL,
+                otp_hash VARCHAR(255) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                verified_at DATETIME NULL,
+                requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_student_password_reset_user
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                    ON DELETE CASCADE
+            )
+
 
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
