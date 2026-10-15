@@ -4,16 +4,35 @@
 
 USE student_management;
 
--- Add a registered email address to each login account.
--- If the users table already has an email column, skip this ALTER statement.
-ALTER TABLE users
-    ADD COLUMN email VARCHAR(150) NULL UNIQUE AFTER username;
+-- Some installations already have users.email (including database/schema.sql).
+-- Add it only on older installations that do not have the column yet.
+SET @cr026_email_column_exists := (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'users'
+      AND COLUMN_NAME = 'email'
+);
+
+SET @cr026_add_email_sql := IF(
+    @cr026_email_column_exists = 0,
+    'ALTER TABLE users ADD COLUMN email VARCHAR(150) NULL UNIQUE AFTER username',
+    'SELECT 1'
+);
+
+PREPARE cr026_add_email_stmt FROM @cr026_add_email_sql;
+EXECUTE cr026_add_email_stmt;
+DEALLOCATE PREPARE cr026_add_email_stmt;
 
 -- Copy the existing student email addresses to their linked user accounts.
 UPDATE users AS u
 INNER JOIN students AS s ON s.user_id = u.user_id
+LEFT JOIN users AS existing_user
+    ON LOWER(TRIM(existing_user.email)) = LOWER(TRIM(s.email))
+   AND existing_user.user_id <> u.user_id
 SET u.email = LOWER(TRIM(s.email))
-WHERE u.email IS NULL;
+WHERE (u.email IS NULL OR TRIM(u.email) = '')
+  AND existing_user.user_id IS NULL;
 
 -- IMPORTANT:
 -- Set an email address for each ADMIN account manually before testing password reset.

@@ -155,9 +155,12 @@ const forgotPassword = async (req, res) => {
             try {
                 await sendPasswordResetOtpEmail(email, otp);
             } catch (mailError) {
-                // Do not log the email address or OTP.
-                console.error("Password reset email delivery failed.");
-                // Keep the response generic to avoid account enumeration.
+                // Never log the recipient email address or the OTP itself.
+                console.error("Password reset email delivery failed:", mailError.message);
+                return res.status(503).json({
+                    success: false,
+                    message: "We could not send the OTP email right now. Check the SMTP settings and try again."
+                });
             }
         }
 
@@ -168,10 +171,9 @@ const forgotPassword = async (req, res) => {
     } catch (error) {
         console.error("Forgot password error:", error.message);
 
-        // Avoid revealing whether an email belongs to an account.
-        return res.status(200).json({
-            success: true,
-            message: GENERIC_RESET_MESSAGE
+        return res.status(500).json({
+            success: false,
+            message: "Unable to process the password reset request right now. Please check the server/database configuration and try again."
         });
     }
 };
