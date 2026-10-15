@@ -231,7 +231,14 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = req.body;
+    } = {
+        registrationNo: normalizeStudentValue(payload.registrationNo),
+        firstName: normalizeStudentValue(payload.firstName),
+        lastName: normalizeStudentValue(payload.lastName),
+        email: normalizeStudentValue(payload.email),
+        phoneNumber: normalizeStudentValue(payload.phoneNumber),
+        password: payload.password
+    };
 
     let connection;
     let transactionStarted = false;

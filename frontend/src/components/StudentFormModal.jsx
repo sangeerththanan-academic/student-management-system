@@ -73,7 +73,7 @@ function StudentFormModal({
 
         setFormData((previous) => ({
             ...previous,
-            [name]: value
+            [name]: sanitizeInput(name, value)
         }));
 
         setFieldErrors((previous) => ({
