@@ -21,25 +21,22 @@ function LoginFormSection({
         setShowPassword((previousState) => !previousState);
     };
 
+    // Navigate to the Forgot Password page
+    const handleForgotPassword = () => {
+        navigate("/forgot-password");
+    };
+
     return (
         <section className="login-form-section">
-
             <div className="login-card">
-
                 <div className="login-heading">
+                    <span>SIGN IN</span>
 
-                    <span>
-                        SIGN IN
-                    </span>
-
-                    <h2>
-                        Welcome back
-                    </h2>
+                    <h2>Welcome back</h2>
 
                     <p>
                         Sign in to access your account.
                     </p>
-
                 </div>
 
                 {error && (
@@ -52,9 +49,7 @@ function LoginFormSection({
                     className="login-form"
                     onSubmit={handleSubmit}
                 >
-
                     <div className="form-group">
-
                         <label htmlFor="username">
                             Username
                         </label>
@@ -64,29 +59,28 @@ function LoginFormSection({
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(
-                                    event.target.value
-                                )
+                                setUsername(event.target.value)
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
                             disabled={loading}
                             required
                         />
-
                     </div>
 
                     <div className="form-group">
-
                         <label htmlFor="password">
                             Password
                         </label>
 
                         <div className="password-input-wrapper">
-
                             <input
                                 id="password"
-                                type={showPassword ? "text" : "password"}
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
                                 value={password}
                                 onChange={(event) =>
                                     setPassword(event.target.value)
@@ -110,7 +104,6 @@ function LoginFormSection({
                                 disabled={loading}
                             >
                                 {showPassword ? (
-                                    /* Eye Slash Icon */
                                     <svg
                                         viewBox="0 0 24 24"
                                         width="20"
@@ -128,7 +121,6 @@ function LoginFormSection({
                                         <path d="M6.61 6.61A9.77 9.77 0 0 0 1 12c1.73 4.89 6 8 11 8a9.77 9.77 0 0 0 5.39-1.61" />
                                     </svg>
                                 ) : (
-                                    /* Eye Icon */
                                     <svg
                                         viewBox="0 0 24 24"
                                         width="20"
@@ -149,9 +141,7 @@ function LoginFormSection({
                                     </svg>
                                 )}
                             </button>
-
                         </div>
-
                     </div>
 
                     <button
@@ -161,10 +151,8 @@ function LoginFormSection({
                     >
                         {loading
                             ? "Signing in..."
-                            : "Sign In"
-                        }
+                            : "Sign In"}
                     </button>
-
 
                     <button
                         type="button"
@@ -174,14 +162,10 @@ function LoginFormSection({
                     >
                         Forgot Password?
                     </button>
-
                 </form>
-
             </div>
-
         </section>
     );
 }
 
 export default LoginFormSection;
-

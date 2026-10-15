@@ -1,9 +1,137 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import apiRequest from "../services/api";
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+const MAX_CSV_SIZE = 1024 * 1024;
+
 const ALLOWED_TYPES = ["image/png", "image/jpeg"];
+
+const REQUIRED_FIELDS = [
+    "registrationNo",
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber"
+];
+
+// Normalize CSV headers to support different naming conventions.
+const normalizeHeader = (header) =>
+    header
+        .replace(/^\uFEFF/, "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+const HEADER_MAPPING = {
+    registrationno: "registrationNo",
+    registrationnumber: "registrationNo",
+    registration: "registrationNo",
+    regno: "registrationNo",
+
+    firstname: "firstName",
+    lastname: "lastName",
+
+    email: "email",
+    emailaddress: "email",
+
+    phonenumber: "phoneNumber",
+    phone: "phoneNumber",
+    mobilenumber: "phoneNumber",
+    mobile: "phoneNumber"
+};
+
+const EMPTY_FORM = {
+    registrationNo: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    password: ""
+};
+
+// Remove control characters from text input.
+const sanitizeInput = (name, value) =>
+    value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let value = "";
+    let insideQuotes = false;
+    let quoteClosed = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (insideQuotes) {
+            if (char === '"') {
+                if (text[i + 1] === '"') {
+                    value += '"';
+                    i++;
+                } else {
+                    insideQuotes = false;
+                    quoteClosed = true;
+                }
+            } else {
+                value += char;
+            }
+
+            continue;
+        }
+
+        if (char === '"') {
+            if (value.length !== 0 || quoteClosed) {
+                throw new Error(
+                    "Malformed CSV: unexpected quotation mark."
+                );
+            }
+
+            insideQuotes = true;
+        } else if (char === ",") {
+            row.push(value);
+            value = "";
+            quoteClosed = false;
+        } else if (char === "\n" || char === "\r") {
+            row.push(value);
+
+            if (row.some((cell) => cell.trim() !== "")) {
+                rows.push(row);
+            }
+
+            row = [];
+            value = "";
+            quoteClosed = false;
+
+            if (char === "\r" && text[i + 1] === "\n") {
+                i++;
+            }
+        } else {
+            if (quoteClosed) {
+                if (!/\s/.test(char)) {
+                    throw new Error(
+                        "Malformed CSV: unexpected text after a quoted value."
+                    );
+                }
+            } else {
+                value += char;
+            }
+        }
+    }
+
+    if (insideQuotes) {
+        throw new Error(
+            "Malformed CSV: a quoted value was not closed."
+        );
+    }
+
+    row.push(value);
+
+    if (row.some((cell) => cell.trim() !== "")) {
+        rows.push(row);
+    }
+
+    return rows;
+}
 
 function StudentFormModal({
     show,
@@ -12,20 +140,20 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-    const [formData, setFormData] = useState({
-        registrationNo: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNumber: "",
-        password: ""
-    });
+    const [formData, setFormData] = useState(EMPTY_FORM);
 
     const [profileImage, setProfileImage] = useState(null);
     const [imagePreview, setImagePreview] = useState("");
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+
+    const [csvError, setCsvError] = useState("");
+    const [csvSuccess, setCsvSuccess] = useState("");
+    const [csvFileName, setCsvFileName] = useState("");
+    const [previousFormData, setPreviousFormData] = useState(null);
+
+    const csvInputRef = useRef(null);
 
     useEffect(() => {
         if (!show) return;
@@ -46,23 +174,22 @@ function StudentFormModal({
                     : ""
             );
         } else {
-            setFormData({
-                registrationNo: "",
-                firstName: "",
-                lastName: "",
-                email: "",
-                phoneNumber: "",
-                password: ""
-            });
-
+            setFormData({ ...EMPTY_FORM });
             setImagePreview("");
         }
 
         setProfileImage(null);
         setFormError("");
         setFieldErrors({});
-    }, [editingStudent, show]);
+        setCsvError("");
+        setCsvSuccess("");
+        setCsvFileName("");
+        setPreviousFormData(null);
 
+        if (csvInputRef.current) {
+            csvInputRef.current.value = "";
+        }
+    }, [editingStudent, show]);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -86,25 +213,229 @@ function StudentFormModal({
         setProfileImage(null);
         setFormError("");
 
-        if (
-            !formData.registrationNo.trim() ||
-            !formData.firstName.trim() ||
-            !formData.lastName.trim() ||
-            !formData.email.trim() ||
-            !formData.phoneNumber.trim()
-        ) {
-            setFormError("All student fields are required.");
+        if (!file) return;
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            setFieldErrors((previous) => ({
+                ...previous,
+                profileImage: "Only PNG and JPEG images are allowed."
+            }));
+            event.target.value = "";
             return;
         }
 
-        // Password is required only when creating
-        if (!editingStudent && !formData.password) {
-            setFormError("Password is required for a new student.");
+        if (file.size > MAX_IMAGE_SIZE) {
+            setFieldErrors((previous) => ({
+                ...previous,
+                profileImage: "Profile image must not exceed 2 MB."
+            }));
+            event.target.value = "";
             return;
         }
+
+        setFieldErrors((previous) => ({
+            ...previous,
+            profileImage: ""
+        }));
 
         setProfileImage(file);
         setImagePreview(URL.createObjectURL(file));
+    };
+
+    const handleCSVChange = async (event) => {
+        const file = event.target.files?.[0];
+
+        setCsvError("");
+        setCsvSuccess("");
+        setFormError("");
+
+        if (!file) return;
+
+        const failImport = (message) => {
+            setCsvError(message);
+            setCsvSuccess("");
+            setCsvFileName("");
+            setPreviousFormData(null);
+
+            if (csvInputRef.current) {
+                csvInputRef.current.value = "";
+            }
+        };
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            failImport("Invalid file type. Please select a .csv file.");
+            return;
+        }
+
+        if (file.size === 0) {
+            failImport("The CSV file is empty.");
+            return;
+        }
+
+        if (file.size > MAX_CSV_SIZE) {
+            failImport("CSV file must not exceed 1 MB.");
+            return;
+        }
+
+        try {
+            const text = await file.text();
+
+            if (!text.trim()) {
+                failImport("The CSV file contains no data.");
+                return;
+            }
+
+            const rows = parseCSV(text);
+
+            if (rows.length < 2) {
+                failImport(
+                    "The CSV must contain a header row and one student data row."
+                );
+                return;
+            }
+
+            if (rows.length > 2) {
+                failImport(
+                    "Please upload a CSV containing only one student record. " +
+                    "Bulk student import is not supported."
+                );
+                return;
+            }
+
+            const headers = rows[0].map((header) =>
+                normalizeHeader(header)
+            );
+
+            if (headers.some((header) => !header)) {
+                failImport(
+                    "The CSV contains an empty column header."
+                );
+                return;
+            }
+
+            const seenHeaders = new Set();
+
+            for (const header of headers) {
+                if (seenHeaders.has(header)) {
+                    failImport(
+                        `Duplicate CSV column header: ${header}`
+                    );
+                    return;
+                }
+
+                seenHeaders.add(header);
+            }
+
+            const mappedFields = {};
+            const mappedIndexes = new Set();
+
+            for (let i = 0; i < headers.length; i++) {
+                const field = HEADER_MAPPING[headers[i]];
+
+                if (!field) continue;
+
+                if (mappedFields[field]) {
+                    failImport(
+                        `Multiple CSV columns map to ${field}. ` +
+                        "Please use only one column for each field."
+                    );
+                    return;
+                }
+
+                mappedFields[field] = headers[i];
+                mappedIndexes.add(i);
+            }
+
+            const missingColumns = REQUIRED_FIELDS.filter(
+                (field) => !mappedFields[field]
+            );
+
+            if (missingColumns.length > 0) {
+                failImport(
+                    "Missing required CSV columns: " +
+                    missingColumns.join(", ") +
+                    ". Please check the required column headers."
+                );
+                return;
+            }
+
+            const values = rows[1];
+
+            if (values.length !== headers.length) {
+                failImport(
+                    "The number of CSV values does not match the number of columns."
+                );
+                return;
+            }
+
+            const importedData = {};
+
+            for (const field of REQUIRED_FIELDS) {
+                const index = headers.findIndex(
+                    (header) => HEADER_MAPPING[header] === field
+                );
+
+                importedData[field] = sanitizeInput(
+                    field,
+                    values[index].trim()
+                );
+            }
+
+            const missingValues = REQUIRED_FIELDS.filter(
+                (field) => !importedData[field]
+            );
+
+            if (missingValues.length > 0) {
+                failImport(
+                    "Missing student information for: " +
+                    missingValues.join(", ")
+                );
+                return;
+            }
+
+            // CSV import only populates the form; it never submits it.
+            setPreviousFormData({ ...formData });
+
+            setFormData((previous) => ({
+                ...previous,
+                ...importedData
+            }));
+
+            setFieldErrors((previous) => {
+                const updated = { ...previous };
+
+                REQUIRED_FIELDS.forEach((field) => {
+                    updated[field] = "";
+                });
+
+                return updated;
+            });
+
+            setCsvFileName(file.name);
+            setCsvSuccess(
+                "CSV imported successfully. Review and edit the fields before creating the student."
+            );
+            setCsvError("");
+        } catch (error) {
+            failImport(
+                error.message || "Unable to read the CSV file."
+            );
+        }
+    };
+
+    const handleClearCSV = () => {
+        if (previousFormData) {
+            setFormData(previousFormData);
+        }
+
+        setPreviousFormData(null);
+        setCsvFileName("");
+        setCsvError("");
+        setCsvSuccess("");
+
+        if (csvInputRef.current) {
+            csvInputRef.current.value = "";
+        }
     };
 
     const validateForm = () => {
@@ -178,10 +509,7 @@ function StudentFormModal({
             }
         }
 
-        setFieldErrors((previous) => ({
-            ...previous,
-            ...errors
-        }));
+        setFieldErrors(errors);
 
         return Object.keys(errors).length === 0;
     };
@@ -195,6 +523,15 @@ function StudentFormModal({
         setImagePreview("");
         setFormError("");
         setFieldErrors({});
+        setCsvError("");
+        setCsvSuccess("");
+        setCsvFileName("");
+        setPreviousFormData(null);
+
+        if (csvInputRef.current) {
+            csvInputRef.current.value = "";
+        }
+
         onClose();
     };
 
@@ -208,7 +545,6 @@ function StudentFormModal({
             setFormLoading(true);
 
             if (editingStudent) {
-                // Existing Edit Student behavior is preserved.
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
@@ -302,7 +638,85 @@ function StudentFormModal({
                 </div>
 
                 {formError && (
-                    <div className="dashboard-error">{formError}</div>
+                    <div className="dashboard-error" role="alert">
+                        {formError}
+                    </div>
+                )}
+
+                {!editingStudent && (
+                    <div className="form-group csv-import-section">
+                        <label htmlFor="studentCSV">
+                            Import Student Details from CSV
+                        </label>
+
+                        <input
+                            ref={csvInputRef}
+                            id="studentCSV"
+                            type="file"
+                            accept=".csv,text/csv"
+                            onChange={handleCSVChange}
+                            disabled={formLoading}
+                        />
+
+                        <small className="form-help">
+                            CSV only, maximum 1 MB. Import one student record
+                            at a time. Uploading does not create a student.
+                        </small>
+
+                        {csvError && (
+                            <div className="dashboard-error" role="alert">
+                                {csvError}
+                            </div>
+                        )}
+
+                        {csvSuccess && (
+                            <div
+                                className="csv-import-success"
+                                role="status"
+                            >
+                                {csvSuccess}
+                            </div>
+                        )}
+
+                        {csvFileName && (
+                            <div className="csv-import-actions">
+                                <small>Selected: {csvFileName}</small>
+
+                                <button
+                                    type="button"
+                                    className="cancel-button"
+                                    onClick={handleClearCSV}
+                                    disabled={formLoading}
+                                >
+                                    Clear CSV Import
+                                </button>
+                            </div>
+                        )}
+
+                        <details>
+                            <summary>View required CSV format</summary>
+
+                            <p>
+                                Use these column headers in the first row.
+                                Column order does not matter.
+                            </p>
+
+                            <code>
+                                registrationNo,firstName,lastName,email,phoneNumber
+                            </code>
+
+                            <p>Example data row:</p>
+
+                            <code>
+                                REG100,John,Perera,john@example.com,0712345678
+                            </code>
+
+                            <p>
+                                Password is not imported. Enter it manually
+                                below when creating a new student.
+                            </p>
+                        </details>
+                    </div>
                 )}
 
                 <form
