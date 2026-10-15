@@ -1,27 +1,19 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
-function LoginFormSection({
-    onSubmit,
-    loading,
-    error
-}) {
+function LoginFormSection({ onSubmit, loading, error }) {
     const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-
-    // Password visibility state
     const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        onSubmit(
-            username.trim(),
-            password
-        );
+        onSubmit(username.trim(), password);
     };
 
     const handleForgotPassword = () => {
@@ -30,11 +22,8 @@ function LoginFormSection({
 
     return (
         <section className="login-form-section">
-
             <div className="login-card">
-
                 <div className="login-heading">
-
                     <span>SIGN IN</span>
 
                     <h2>Welcome back</h2>
@@ -42,11 +31,13 @@ function LoginFormSection({
                     <p>
                         Sign in to access your account.
                     </p>
-
                 </div>
 
                 {error && (
-                    <div className="login-error">
+                    <div
+                        className="login-error"
+                        role="alert"
+                    >
                         {error}
                     </div>
                 )}
@@ -55,9 +46,8 @@ function LoginFormSection({
                     className="login-form"
                     onSubmit={handleSubmit}
                 >
-
+                    {/* Username */}
                     <div className="form-group">
-
                         <label htmlFor="username">
                             Username
                         </label>
@@ -67,32 +57,29 @@ function LoginFormSection({
                             type="text"
                             value={username}
                             onChange={(event) =>
-                                setUsername(
-                                    event.target.value
-                                )
+                                setUsername(event.target.value)
                             }
                             placeholder="Enter your username"
                             autoComplete="username"
                             disabled={loading}
                             required
                         />
-
                     </div>
 
+                    {/* Password */}
                     <div className="form-group">
-
                         <label htmlFor="password">
                             Password
                         </label>
 
-<<<<<<< HEAD
-                        {/* Password input and visibility button */}
                         <div className="password-input-wrapper">
-
                             <input
                                 id="password"
-                                className="password-input"
-                                type={showPassword ? "text" : "password"}
+                                type={
+                                    showPassword
+                                        ? "text"
+                                        : "password"
+                                }
                                 value={password}
                                 onChange={(event) =>
                                     setPassword(event.target.value)
@@ -107,7 +94,9 @@ function LoginFormSection({
                                 type="button"
                                 className="password-toggle-button"
                                 onClick={() =>
-                                    setShowPassword((previous) => !previous)
+                                    setShowPassword(
+                                        (previous) => !previous
+                                    )
                                 }
                                 aria-label={
                                     showPassword
@@ -117,71 +106,16 @@ function LoginFormSection({
                                 aria-pressed={showPassword}
                                 disabled={loading}
                             >
-
                                 {showPassword ? (
-
-                                    // Eye-slash icon: password is visible
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="21"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden="true"
-                                    >
-                                        <path d="M3 3l18 18" />
-                                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-                                        <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c5 0 8.5 4.5 9.5 7a12 12 0 0 1-3 4.1" />
-                                        <path d="M6.6 6.6A13 13 0 0 0 2.5 12c1 2.5 4.5 7 9.5 7 1.3 0 2.5-.3 3.6-.8" />
-                                    </svg>
-
+                                    <EyeOff size={20} />
                                 ) : (
-
-                                    // Eye icon: password is hidden
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="21"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden="true"
-                                    >
-                                        <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
-                                        <circle cx="12" cy="12" r="3" />
-                                    </svg>
-
+                                    <Eye size={20} />
                                 )}
-
                             </button>
-
                         </div>
-=======
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                            disabled={loading}
-                            required
-                        />
->>>>>>> origin/JFICT26/CR026
-
                     </div>
 
+                    {/* Sign In Button */}
                     <button
                         type="submit"
                         className="login-submit-button"
@@ -189,11 +123,10 @@ function LoginFormSection({
                     >
                         {loading
                             ? "Signing in..."
-                            : "Sign In"
-                        }
+                            : "Sign In"}
                     </button>
 
-
+                    {/* Forgot Password */}
                     <button
                         type="button"
                         className="forgot-password-button"
@@ -202,17 +135,10 @@ function LoginFormSection({
                     >
                         Forgot Password?
                     </button>
-
                 </form>
-
             </div>
-
         </section>
     );
 }
 
 export default LoginFormSection;
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/JFICT26/CR026

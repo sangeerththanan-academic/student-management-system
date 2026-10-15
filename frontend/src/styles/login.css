@@ -307,7 +307,7 @@
     }
 }
 
-<<<<<<< HEAD
+
 /* =========================================================
    Password Show / Hide Toggle
    ========================================================= */
@@ -372,7 +372,7 @@
     color: #fecaca;
 }
 
-=======
+
 .forgot-password-button {
     width: 100%;
     margin-top: 12px;
@@ -438,4 +438,4 @@
 .development-reset-token button:hover {
     background-color: #1d4ed8;
 }
->>>>>>> origin/JFICT26/CR026
+
