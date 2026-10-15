@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import apiRequest from "../services/api";
+import { parseStudentCsv } from "../utils/studentCsv";
 
 function StudentFormModal({
     show,
@@ -22,6 +23,8 @@ function StudentFormModal({
     const [showPassword, setShowPassword] = useState(false);
     const [profileImage, setProfileImage] = useState(null);
     const [profileImageError, setProfileImageError] = useState("");
+    const [csvImportError, setCsvImportError] = useState("");
+    const [batchRows, setBatchRows] = useState([]);
 
     // Validation states
     const [fieldErrors, setFieldErrors] = useState({});
@@ -57,7 +60,104 @@ function StudentFormModal({
         setShowPassword(false);
         setProfileImage(null);
         setProfileImageError("");
+        setCsvImportError("");
+        setBatchRows([]);
     }, [editingStudent, show]);
+
+    const handleCsvFileChange = async (event) => {
+        const input = event.currentTarget;
+        const file = input.files?.[0];
+        setCsvImportError("");
+
+        if (!file) {
+            return;
+        }
+
+        const allowedMimeTypes = [
+            "",
+            "text/csv",
+            "application/csv",
+            "application/vnd.ms-excel",
+            "application/octet-stream",
+            "text/plain"
+        ];
+
+        if (
+            !file.name.toLowerCase().endsWith(".csv") ||
+            !allowedMimeTypes.includes(file.type.toLowerCase())
+        ) {
+            setCsvImportError("Select a valid .csv file.");
+            input.value = "";
+            return;
+        }
+
+        try {
+            const parsedRows = parseStudentCsv(await file.text()).map((data, index) => ({
+                id: index,
+                data,
+                profileImage: null,
+                imageError: "",
+                status: "pending",
+                error: ""
+            }));
+
+            setFormError("");
+            setBatchRows(parsedRows);
+        } catch (error) {
+            setCsvImportError(
+                error.message || "The CSV file could not be read. Check its format and try again."
+            );
+        } finally {
+            input.value = "";
+        }
+    };
+
+    const handleBatchFieldChange = (rowId, field, value) => {
+        setBatchRows((previous) => previous.map((row) => (
+            row.id === rowId
+                ? {
+                    ...row,
+                    data: { ...row.data, [field]: value },
+                    status: row.status === "created" ? "created" : "pending",
+                    error: ""
+                }
+                : row
+        )));
+    };
+
+    const handleBatchProfileImageChange = (rowId, event) => {
+        const input = event.currentTarget;
+        const file = input.files?.[0] || null;
+        let imageError = "";
+
+        if (file) {
+            const extension = file.name.split(".").pop()?.toLowerCase();
+            const allowedExtensions = ["png", "jpg", "jpeg"];
+            const allowedMimeTypes = ["image/png", "image/jpeg"];
+
+            if (
+                !allowedExtensions.includes(extension) ||
+                !allowedMimeTypes.includes(file.type.toLowerCase())
+            ) {
+                imageError = "Only PNG, JPG and JPEG images are allowed.";
+            } else if (file.size > 2 * 1024 * 1024) {
+                imageError = "Profile image must be 2 MB or smaller.";
+            }
+        }
+
+        setBatchRows((previous) => previous.map((row) => (
+            row.id === rowId
+                ? {
+                    ...row,
+                    profileImage: imageError ? null : file,
+                    imageError,
+                    status: row.status === "created" ? "created" : imageError ? "error" : "pending",
+                    error: imageError
+                }
+                : row
+        )));
+        input.value = "";
+    };
 
     // CR-010: Optional student profile image validation.
     const handleProfileImageChange = (event) => {
@@ -284,13 +384,13 @@ function StudentFormModal({
     // COMPLETE FORM VALIDATION
     // ============================================================
 
-    const validateStudentForm = () => {
-        const registrationNo = formData.registrationNo.trim();
-        const firstName = formData.firstName.trim();
-        const lastName = formData.lastName.trim();
-        const email = formData.email.trim();
-        const phoneNumber = formData.phoneNumber.trim();
-        const password = formData.password;
+    const validateStudentForm = (studentData = formData) => {
+        const registrationNo = studentData.registrationNo.trim();
+        const firstName = studentData.firstName.trim();
+        const lastName = studentData.lastName.trim();
+        const email = studentData.email.trim();
+        const phoneNumber = studentData.phoneNumber.trim();
+        const password = studentData.password;
 
         // Required fields
         if (
@@ -384,6 +484,124 @@ function StudentFormModal({
         event.preventDefault();
 
         setFormError("");
+
+        if (batchRows.length > 0 && !editingStudent) {
+            setFormLoading(true);
+            let createdCount = 0;
+            let failedCount = 0;
+            let permissionDenied = false;
+
+            try {
+                for (const row of batchRows) {
+                    if (row.status === "created") {
+                        continue;
+                    }
+
+                    if (row.imageError) {
+                        failedCount += 1;
+                        setBatchRows((previous) => previous.map((current) => (
+                            current.id === row.id
+                                ? { ...current, status: "error", error: row.imageError }
+                                : current
+                        )));
+                        continue;
+                    }
+
+                    const validationError = validateStudentForm(row.data);
+                    if (validationError) {
+                        failedCount += 1;
+                        setBatchRows((previous) => previous.map((current) => (
+                            current.id === row.id
+                                ? { ...current, status: "error", error: validationError }
+                                : current
+                        )));
+                        continue;
+                    }
+
+                    const studentFormData = new FormData();
+                    studentFormData.append("registrationNo", row.data.registrationNo.trim());
+                    studentFormData.append("firstName", row.data.firstName.trim());
+                    studentFormData.append("lastName", row.data.lastName.trim());
+                    studentFormData.append("email", row.data.email.trim());
+                    studentFormData.append("phoneNumber", row.data.phoneNumber.trim());
+                    studentFormData.append("password", row.data.password);
+                    if (row.profileImage) {
+                        studentFormData.append("profileImage", row.profileImage);
+                    }
+
+                    try {
+                        await apiRequest("/api/students/", {
+                            method: "POST",
+                            body: studentFormData
+                        });
+                        createdCount += 1;
+                        setBatchRows((previous) => previous.map((current) => (
+                            current.id === row.id
+                                ? { ...current, status: "created", error: "" }
+                                : current
+                        )));
+                    } catch (error) {
+                        console.error(`Student import failed for row ${row.id + 1}:`, error);
+                        failedCount += 1;
+                        setBatchRows((previous) => previous.map((current) => (
+                            current.id === row.id
+                                ? {
+                                    ...current,
+                                    status: "error",
+                                    error: error.message || "Failed to create this student."
+                                }
+                                : current
+                        )));
+
+                        if (error.status === 401) {
+                            if (createdCount > 0) {
+                                onSuccess();
+                            }
+                            onAuthError();
+                            return;
+                        }
+                        if (error.status === 403) {
+                            permissionDenied = true;
+                            setBatchRows((previous) => previous.map((current) => (
+                                current.id === row.id
+                                    ? {
+                                        ...current,
+                                        status: "error",
+                                        error: "You do not have permission to modify students."
+                                    }
+                                    : current
+                            )));
+                            setFormError("You do not have permission to modify students.");
+                            break;
+                        }
+                    }
+                }
+            } finally {
+                setFormLoading(false);
+            }
+
+            if (createdCount > 0) {
+                onSuccess();
+            }
+
+            if (permissionDenied) {
+                return;
+            }
+
+            if (failedCount > 0) {
+                setFormError(
+                    `${createdCount} student${createdCount === 1 ? "" : "s"} created; ` +
+                    `${failedCount} row${failedCount === 1 ? "" : "s"} need attention. ` +
+                    "Correct the failed rows and submit again."
+                );
+                return;
+            }
+
+            if (batchRows.every((row) => row.status === "created") || createdCount > 0) {
+                handleClose();
+            }
+            return;
+        }
 
         if (profileImageError) {
             setFormError(profileImageError);
@@ -554,6 +772,136 @@ function StudentFormModal({
                     onSubmit={handleSubmit}
                 >
 
+                    {!editingStudent && (
+                        <div className="form-group csv-import-control">
+                            <label htmlFor="sf-csvImport">
+                                Import multiple students from CSV (Optional)
+                            </label>
+                            <input
+                                id="sf-csvImport"
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={handleCsvFileChange}
+                                disabled={formLoading || batchRows.some((row) => row.status === "created")}
+                                aria-describedby="sf-csvImport-hint"
+                            />
+                            <span id="sf-csvImport-hint" className="field-hint">
+                                One student per row. Required columns: registrationNo, firstName,
+                                lastName, email, phoneNumber. Optional: password (enter each
+                                student&apos;s password below if omitted). Optional profile images
+                                can be selected per student after import.
+                            </span>
+                            {csvImportError && (
+                                <span className="field-error-msg" role="alert">
+                                    {csvImportError}
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {batchRows.length > 0 ? (
+                        <div className="student-csv-batch">
+                            <div className="student-csv-batch-summary" role="status">
+                                {batchRows.filter((row) => row.status === "created").length}
+                                {" of "}
+                                {batchRows.length}
+                                {" students created. Review and edit each row before submitting."}
+                            </div>
+                            <div className="student-csv-table-scroll">
+                                <table className="student-csv-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Registration No.</th>
+                                            <th scope="col">First Name</th>
+                                            <th scope="col">Last Name</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone Number</th>
+                                            <th scope="col">Password</th>
+                                            <th scope="col">Profile Image</th>
+                                            <th scope="col">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {batchRows.map((row) => (
+                                            <Fragment key={row.id}>
+                                                <tr>
+                                                    {[
+                                                        ["registrationNo", "text"],
+                                                        ["firstName", "text"],
+                                                        ["lastName", "text"],
+                                                        ["email", "text"],
+                                                        ["phoneNumber", "text"],
+                                                        ["password", "password"]
+                                                    ].map(([field, type]) => (
+                                                        <td key={field}>
+                                                            <label
+                                                                className="visually-hidden"
+                                                                htmlFor={`sf-batch-${row.id}-${field}`}
+                                                            >
+                                                                Student {row.id + 1} {CSV_FIELD_LABELS[field]}
+                                                            </label>
+                                                            <input
+                                                                id={`sf-batch-${row.id}-${field}`}
+                                                                type={type}
+                                                                value={row.data[field]}
+                                                                onChange={(event) => handleBatchFieldChange(
+                                                                    row.id,
+                                                                    field,
+                                                                    event.target.value
+                                                                )}
+                                                                disabled={formLoading || row.status === "created"}
+                                                                autoComplete="off"
+                                                            />
+                                                        </td>
+                                                    ))}
+                                                    <td>
+                                                        <label
+                                                            className="visually-hidden"
+                                                            htmlFor={`sf-batch-${row.id}-profileImage`}
+                                                        >
+                                                            Student {row.id + 1} Profile Image
+                                                        </label>
+                                                        <input
+                                                            id={`sf-batch-${row.id}-profileImage`}
+                                                            type="file"
+                                                            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                                                            onChange={(event) => handleBatchProfileImageChange(
+                                                                row.id,
+                                                                event
+                                                            )}
+                                                            disabled={formLoading || row.status === "created"}
+                                                        />
+                                                        {row.profileImage && (
+                                                            <span className="field-hint">
+                                                                {row.profileImage.name}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        <span className={`student-csv-row-status is-${row.status}`}>
+                                                            {row.status === "created"
+                                                                ? "Created"
+                                                                : row.status === "error"
+                                                                    ? "Needs attention"
+                                                                    : "Ready"}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                {row.error && (
+                                                    <tr className="student-csv-row-error">
+                                                        <td colSpan="8" role="alert">
+                                                            Row {row.id + 1}: {row.error}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </Fragment>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
                     {/* Registration Number */}
                     <div className="form-group">
 
@@ -856,6 +1204,8 @@ function StudentFormModal({
 
                         </div>
                     )}
+                        </>
+                    )}
 
                     {/* Form Actions */}
                     <div className="form-actions">
@@ -872,13 +1222,20 @@ function StudentFormModal({
                         <button
                             type="submit"
                             className="save-button"
-                            disabled={formLoading}
+                            disabled={formLoading || (
+                                batchRows.length > 0 &&
+                                batchRows.every((row) => row.status === "created")
+                            )}
                         >
                             {formLoading
-                                ? "Saving..."
+                                ? batchRows.length > 0
+                                    ? "Creating students..."
+                                    : "Saving..."
                                 : editingStudent
                                     ? "Update Student"
-                                    : "Create Student"}
+                                    : batchRows.length > 0
+                                        ? `Create ${batchRows.filter((row) => row.status !== "created").length} Student${batchRows.filter((row) => row.status !== "created").length === 1 ? "" : "s"}`
+                                        : "Create Student"}
                         </button>
 
                     </div>
