@@ -138,7 +138,69 @@ function StudentFormModal({
     }, [editingStudent, show]);
 
 
+<<<<<<< HEAD
     // Handle field changes
+=======
+    const sanitizeInput = (name, value) => {
+        switch (name) {
+            case "registrationNo":
+                return value.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 30);
+            case "firstName":
+            case "lastName":
+                return value.replace(/[^A-Za-z]/g, "").slice(0, 30);
+            case "phoneNumber":
+                return value.replace(/\D/g, "").slice(0, 10);
+            default:
+                return value;
+        }
+    };
+
+    const validateStudentForm = (data, isEditing) => {
+        const registrationNo = data.registrationNo.trim();
+        const firstName = data.firstName.trim();
+        const lastName = data.lastName.trim();
+        const email = data.email.trim();
+        const phoneNumber = data.phoneNumber.trim();
+        const password = data.password;
+
+        if (!registrationNo) {
+            return "Registration number is required.";
+        }
+
+        if (!/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(registrationNo)) {
+            return "Registration number must contain only letters, numbers, hyphen, or underscore.";
+        }
+
+        if (firstName.length < 3 || !/^[A-Za-z]+$/.test(firstName)) {
+            return "First name must be at least 3 letters and contain only alphabetic characters.";
+        }
+
+        if (lastName.length < 3 || !/^[A-Za-z]+$/.test(lastName)) {
+            return "Last name must be at least 3 letters and contain only alphabetic characters.";
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return "Please enter a valid email address.";
+        }
+
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            return "Phone number must contain exactly 10 digits.";
+        }
+
+        if (!isEditing) {
+            if (!password) {
+                return "Password is required for a new student.";
+            }
+
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+                return "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.";
+            }
+        }
+
+        return "";
+    };
+
+>>>>>>> origin/JFICT22/CR022
     const handleInputChange = (event) => {
         const { name, value } = event.target;
 
@@ -151,7 +213,11 @@ function StudentFormModal({
 
         setFormData((previous) => ({
             ...previous,
+<<<<<<< HEAD
             [name]: newValue
+=======
+            [name]: sanitizeInput(name, value)
+>>>>>>> origin/JFICT22/CR022
         }));
 
         // Remove the error belonging to the edited field
@@ -192,6 +258,7 @@ function StudentFormModal({
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+<<<<<<< HEAD
         // Prevent duplicate submissions
         if (formLoading) {
             return;
@@ -210,6 +277,14 @@ function StudentFormModal({
             setFormError(
                 "Please fix the highlighted errors before saving."
             );
+=======
+        setFormError("");
+
+        const validationError = validateStudentForm(formData, Boolean(editingStudent));
+
+        if (validationError) {
+            setFormError(validationError);
+>>>>>>> origin/JFICT22/CR022
             return;
         }
 
