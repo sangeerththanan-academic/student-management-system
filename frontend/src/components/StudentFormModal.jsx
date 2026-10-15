@@ -2,10 +2,13 @@
 import { useEffect, useState } from "react";
 import apiRequest, { API_BASE_URL } from "../services/api";
 
-const registrationNumberRegex = /^[A-Za-z0-9]+(?:[-/][A-Za-z0-9]+)*$/;
+const registrationNumberRegex =
+    /^[A-Za-z0-9]+(?:[-/_][A-Za-z0-9]+)*$/;
+
 const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\d{10}$/;
+
 const uppercaseRegex = /[A-Z]/;
 const lowercaseRegex = /[a-z]/;
 const numberRegex = /[0-9]/;
@@ -14,7 +17,17 @@ const specialCharacterRegex = /[^A-Za-z0-9]/;
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
 
-const validateStudentForm = (formData, editingStudent) => {
+const emptyForm = {
+    registrationNo: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    password: ""
+};
+
+// Validate student form
+const validateStudentForm = (formData, isEditing) => {
     const errors = {};
 
     const registrationNo = formData.registrationNo.trim();
@@ -63,14 +76,17 @@ const validateStudentForm = (formData, editingStudent) => {
         errors.phoneNumber =
             "Phone number must contain numeric characters only.";
     } else if (!phoneRegex.test(phoneNumber)) {
-        errors.phoneNumber = "Phone number must contain exactly 10 digits.";
+        errors.phoneNumber =
+            "Phone number must contain exactly 10 digits.";
     }
 
-    if (!editingStudent) {
+    if (!isEditing) {
         if (!password) {
-            errors.password = "Password is required for a new student.";
+            errors.password =
+                "Password is required for a new student.";
         } else if (password.length < 8) {
-            errors.password = "Password must contain at least 8 characters.";
+            errors.password =
+                "Password must contain at least 8 characters.";
         } else if (!uppercaseRegex.test(password)) {
             errors.password =
                 "Password must contain at least one uppercase letter.";
@@ -78,7 +94,8 @@ const validateStudentForm = (formData, editingStudent) => {
             errors.password =
                 "Password must contain at least one lowercase letter.";
         } else if (!numberRegex.test(password)) {
-            errors.password = "Password must contain at least one number.";
+            errors.password =
+                "Password must contain at least one number.";
         } else if (!specialCharacterRegex.test(password)) {
             errors.password =
                 "Password must contain at least one special character.";
@@ -95,15 +112,6 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-    const emptyForm = {
-        registrationNo: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNumber: "",
-        password: ""
-    };
-
     const [formData, setFormData] = useState(emptyForm);
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState("");
@@ -125,11 +133,13 @@ function StudentFormModal({
                 password: ""
             });
 
-            setImagePreview(editingStudent.profile_photo
-                ? `${API_BASE_URL}${editingStudent.profile_photo}`
-                : "");
+            setImagePreview(
+                editingStudent.profile_photo
+                    ? `${API_BASE_URL}${editingStudent.profile_photo}`
+                    : ""
+            );
         } else {
-            setFormData(emptyForm);
+            setFormData({ ...emptyForm });
             setImagePreview("");
         }
 
@@ -139,12 +149,35 @@ function StudentFormModal({
         setFieldErrors({});
     }, [editingStudent, show]);
 
+    // Sanitize input values
+    const sanitizeInput = (name, value) => {
+        switch (name) {
+            case "registrationNo":
+                return value
+                    .replace(/[^A-Za-z0-9/_-]/g, "")
+                    .slice(0, 30);
+
+            case "firstName":
+            case "lastName":
+                return value
+                    .replace(/[^A-Za-z '-]/g, "")
+                    .slice(0, 30);
+
+            case "phoneNumber":
+                return value.replace(/\D/g, "").slice(0, 10);
+
+            default:
+                return value;
+        }
+    };
+
+    // Handle text input changes
     const handleInputChange = (event) => {
         const { name, value } = event.target;
 
         setFormData((previous) => ({
             ...previous,
-            [name]: value
+            [name]: sanitizeInput(name, value)
         }));
 
         setFieldErrors((previous) => ({
@@ -155,6 +188,7 @@ function StudentFormModal({
         setFormError("");
     };
 
+    // Handle profile image upload
     const handleImageChange = (event) => {
         const file = event.target.files?.[0];
 
@@ -171,13 +205,17 @@ function StudentFormModal({
         }
 
         if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-            setImageError("Only PNG, JPG, and JPEG images are allowed.");
+            setImageError(
+                "Only PNG, JPG, and JPEG images are allowed."
+            );
             event.target.value = "";
             return;
         }
 
         if (file.size > MAX_IMAGE_SIZE) {
-            setImageError("Profile image must be 2 MB or smaller.");
+            setImageError(
+                "Profile image must be 2 MB or smaller."
+            );
             event.target.value = "";
             return;
         }
@@ -186,6 +224,7 @@ function StudentFormModal({
         setImagePreview(URL.createObjectURL(file));
     };
 
+    // Close modal
     const handleClose = () => {
         if (formLoading) return;
 
@@ -196,13 +235,17 @@ function StudentFormModal({
         onClose();
     };
 
+    // Submit student form
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setFormError("");
         setFieldErrors({});
 
-        const errors = validateStudentForm(formData, editingStudent);
+        const errors = validateStudentForm(
+            formData,
+            Boolean(editingStudent)
+        );
 
         if (Object.keys(errors).length > 0) {
             setFieldErrors(errors);
@@ -217,7 +260,10 @@ function StudentFormModal({
 
             const payload = new FormData();
 
-            payload.append("registrationNo", formData.registrationNo.trim());
+            payload.append(
+                "registrationNo",
+                formData.registrationNo.trim()
+            );
             payload.append("firstName", formData.firstName.trim());
             payload.append("lastName", formData.lastName.trim());
             payload.append("email", formData.email.trim());
@@ -267,7 +313,9 @@ function StudentFormModal({
                 setFieldErrors(error.data.errors);
             }
 
-            setFormError(error.message || "Failed to save student.");
+            setFormError(
+                error.message || "Failed to save student."
+            );
         } finally {
             setFormLoading(false);
         }
@@ -276,14 +324,22 @@ function StudentFormModal({
     if (!show) return null;
 
     return (
-        <div className="modal-overlay" onClick={handleClose}>
+        <div
+            className="modal-overlay"
+            onClick={handleClose}
+        >
             <div
                 className="modal-content student-form-card"
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="form-card-header">
                     <div>
-                        <h3>{editingStudent ? "Edit Student" : "Add New Student"}</h3>
+                        <h3>
+                            {editingStudent
+                                ? "Edit Student"
+                                : "Add New Student"}
+                        </h3>
+
                         <p>
                             {editingStudent
                                 ? "Update student information and profile image."
@@ -303,14 +359,23 @@ function StudentFormModal({
                 </div>
 
                 {formError && (
-                    <div className="dashboard-error" role="alert">
+                    <div
+                        className="dashboard-error"
+                        role="alert"
+                    >
                         {formError}
                     </div>
                 )}
 
-                <form className="student-form" onSubmit={handleSubmit}>
+                <form
+                    className="student-form"
+                    onSubmit={handleSubmit}
+                >
+                    {/* Profile image */}
                     <div className="form-group profile-image-group">
-                        <label htmlFor="profileImage">Profile Image</label>
+                        <label htmlFor="profileImage">
+                            Profile Image
+                        </label>
 
                         {imagePreview ? (
                             <img
@@ -342,14 +407,21 @@ function StudentFormModal({
                         </small>
 
                         {imageError && (
-                            <small className="field-error" role="alert">
+                            <small
+                                className="field-error"
+                                role="alert"
+                            >
                                 {imageError}
                             </small>
                         )}
                     </div>
 
+                    {/* Registration number */}
                     <div className="form-group">
-                        <label htmlFor="registrationNo">Registration Number</label>
+                        <label htmlFor="registrationNo">
+                            Registration Number
+                        </label>
+
                         <input
                             id="registrationNo"
                             name="registrationNo"
@@ -358,6 +430,7 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
+
                         {fieldErrors.registrationNo && (
                             <small className="field-error">
                                 {fieldErrors.registrationNo}
@@ -365,8 +438,12 @@ function StudentFormModal({
                         )}
                     </div>
 
+                    {/* First name */}
                     <div className="form-group">
-                        <label htmlFor="firstName">First Name</label>
+                        <label htmlFor="firstName">
+                            First Name
+                        </label>
+
                         <input
                             id="firstName"
                             name="firstName"
@@ -375,6 +452,7 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
+
                         {fieldErrors.firstName && (
                             <small className="field-error">
                                 {fieldErrors.firstName}
@@ -382,8 +460,12 @@ function StudentFormModal({
                         )}
                     </div>
 
+                    {/* Last name */}
                     <div className="form-group">
-                        <label htmlFor="lastName">Last Name</label>
+                        <label htmlFor="lastName">
+                            Last Name
+                        </label>
+
                         <input
                             id="lastName"
                             name="lastName"
@@ -392,6 +474,7 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
+
                         {fieldErrors.lastName && (
                             <small className="field-error">
                                 {fieldErrors.lastName}
@@ -399,8 +482,12 @@ function StudentFormModal({
                         )}
                     </div>
 
+                    {/* Email */}
                     <div className="form-group">
-                        <label htmlFor="email">Email</label>
+                        <label htmlFor="email">
+                            Email
+                        </label>
+
                         <input
                             id="email"
                             name="email"
@@ -410,6 +497,7 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
+
                         {fieldErrors.email && (
                             <small className="field-error">
                                 {fieldErrors.email}
@@ -417,8 +505,12 @@ function StudentFormModal({
                         )}
                     </div>
 
+                    {/* Phone number */}
                     <div className="form-group">
-                        <label htmlFor="phoneNumber">Phone Number</label>
+                        <label htmlFor="phoneNumber">
+                            Phone Number
+                        </label>
+
                         <input
                             id="phoneNumber"
                             name="phoneNumber"
@@ -431,6 +523,7 @@ function StudentFormModal({
                             inputMode="numeric"
                             placeholder="0712345678"
                         />
+
                         {fieldErrors.phoneNumber && (
                             <small className="field-error">
                                 {fieldErrors.phoneNumber}
@@ -438,9 +531,13 @@ function StudentFormModal({
                         )}
                     </div>
 
+                    {/* Password - only for new students */}
                     {!editingStudent && (
                         <div className="form-group">
-                            <label htmlFor="password">Password</label>
+                            <label htmlFor="password">
+                                Password
+                            </label>
+
                             <input
                                 id="password"
                                 name="password"
@@ -452,18 +549,21 @@ function StudentFormModal({
                                 minLength={8}
                                 autoComplete="new-password"
                             />
+
                             {fieldErrors.password && (
                                 <small className="field-error">
                                     {fieldErrors.password}
                                 </small>
                             )}
+
                             <small className="password-hint">
-                                Minimum 8 characters with uppercase, lowercase,
-                                number, and special character.
+                                Minimum 8 characters with uppercase,
+                                lowercase, number, and special character.
                             </small>
                         </div>
                     )}
 
+                    {/* Form buttons */}
                     <div className="form-actions">
                         <button
                             type="button"
@@ -477,7 +577,9 @@ function StudentFormModal({
                         <button
                             type="submit"
                             className="save-button"
-                            disabled={formLoading || Boolean(imageError)}
+                            disabled={
+                                formLoading || Boolean(imageError)
+                            }
                         >
                             {formLoading
                                 ? "Saving..."
