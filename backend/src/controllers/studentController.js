@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
@@ -20,6 +21,19 @@ const { validateStudentData } = require("../utils/validation");
 // =====================================================
 // VALIDATION HELPERS
 // =====================================================
+
+const normalizeStudentValue = (value) => {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.trim();
+};
+
+const isValidRegistrationNumber = (value) => {
+    const normalized = normalizeStudentValue(value);
+    return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(normalized);
+};
 
 const validateName = (name, fieldName) => {
     if (typeof name !== "string" || !name.trim()) {
@@ -97,6 +111,15 @@ const validatePassword = (password) => {
 // =====================================================
 
 const addStudent = async (req, res) => {
+    const payload = {
+        registrationNo: req.body.registrationNo,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
+    };
+
     const {
         registrationNo,
         firstName,
@@ -116,7 +139,14 @@ const addStudent = async (req, res) => {
     let connection;
 
     try {
-        const validation = validateStudentData(req.body, false);
+        const validation = validateStudentData({
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            password
+        }, false);
 
         if (!validation.isValid) {
             return res.status(400).json({
@@ -126,13 +156,10 @@ const addStudent = async (req, res) => {
             });
         }
 
-        if (
-            typeof registrationNo !== "string" ||
-            !registrationNo.trim()
-        ) {
+        if (!isValidRegistrationNumber(registrationNo)) {
             return res.status(400).json({
                 success: false,
-                message: "Registration number is required"
+                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
             });
         }
 
@@ -189,7 +216,7 @@ const addStudent = async (req, res) => {
              FROM users
              WHERE username = ?
              LIMIT 1`,
-            [registrationNo.trim()]
+            [registrationNo]
         );
 
         if (existingUser.length > 0) {
@@ -206,7 +233,7 @@ const addStudent = async (req, res) => {
              FROM students
              WHERE email = ?
              LIMIT 1`,
-            [email.trim()]
+            [email]
         );
 
         if (existingStudent.length > 0) {
@@ -223,7 +250,7 @@ const addStudent = async (req, res) => {
         const [userResult] = await connection.execute(
             `INSERT INTO users (username, password_hash, role)
              VALUES (?, ?, 'STUDENT')`,
-            [registrationNo.trim(), passwordHash]
+            [registrationNo, passwordHash]
         );
 
         const userId = userResult.insertId;
@@ -231,11 +258,11 @@ const addStudent = async (req, res) => {
         const studentId = await createStudent(
             connection,
             userId,
-            registrationNo.trim(),
-            firstName.trim(),
-            lastName.trim(),
-            email.trim(),
-            String(phoneNumber).trim()
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
         );
 
         await connection.commit();
@@ -246,11 +273,11 @@ const addStudent = async (req, res) => {
             student: {
                 studentId,
                 userId,
-                registrationNo: registrationNo.trim(),
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
-                email: email.trim(),
-                phoneNumber: String(phoneNumber).trim(),
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
                 role: "STUDENT"
             }
         });
@@ -347,31 +374,14 @@ const editStudent = async (req, res) => {
         const studentId = req.params.id;
 
         const payload = {
-            registrationNo: req.body.registrationNo,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            phoneNumber: req.body.phoneNumber
+            registrationNo: normalizeStudentValue(req.body.registrationNo),
+            firstName: normalizeStudentValue(req.body.firstName),
+            lastName: normalizeStudentValue(req.body.lastName),
+            email: normalizeStudentValue(req.body.email),
+            phoneNumber: normalizeStudentValue(req.body.phoneNumber)
         };
 
-        const validationMessage = validateStudentPayload(payload, false);
-
-        if (validationMessage) {
-            return res.status(400).json({
-                success: false,
-                message: validationMessage
-            });
-        }
-
-        const {
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
-        } = req.body;
-
-        const validation = validateStudentData(req.body, true);
+        const validation = validateStudentData(payload, true);
 
         if (!validation.isValid) {
             return res.status(400).json({
@@ -381,13 +391,18 @@ const editStudent = async (req, res) => {
             });
         }
 
-        if (
-            typeof registrationNo !== "string" ||
-            !registrationNo.trim()
-        ) {
+        const {
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
+        } = payload;
+
+        if (!isValidRegistrationNumber(registrationNo)) {
             return res.status(400).json({
                 success: false,
-                message: "Registration number is required"
+                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
             });
         }
 
@@ -438,11 +453,11 @@ const editStudent = async (req, res) => {
 
         const result = await updateStudent(
             studentId,
-            registrationNo.trim(),
-            firstName.trim(),
-            lastName.trim(),
-            email.trim(),
-            String(phoneNumber).trim()
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
         );
 
         return res.status(200).json({
