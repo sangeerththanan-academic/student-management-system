@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -58,6 +59,7 @@ function DashboardPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [exportMessage, setExportMessage] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
@@ -101,7 +103,11 @@ function DashboardPage() {
                 { method: "GET" }
             );
 
-            setStudents(data.students || []);
+            setStudents(
+                Array.isArray(data.students)
+                    ? data.students
+                    : []
+            );
         } catch (error) {
             console.error(
                 "Failed to load students:",
@@ -182,6 +188,98 @@ function DashboardPage() {
 
     const handleClearSearch = () => {
         setSearchTerm("");
+    };
+
+    // CR-015: Export student records to CSV.
+    const handleExportCSV = () => {
+        setExportMessage("");
+
+        // Prevent exporting before student loading finishes.
+        if (loading) {
+            setExportMessage(
+                "Please wait until the student records finish loading."
+            );
+            return;
+        }
+
+        // Do not export if student retrieval failed.
+        if (error) {
+            setExportMessage(
+                "Student records could not be verified. Please reload the list and try again."
+            );
+            return;
+        }
+
+        const records = Array.isArray(students)
+            ? students
+            : [];
+
+        const headers = [
+            "Student ID",
+            "Registration Number",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone Number"
+        ];
+
+        // Escape values for valid CSV syntax and guard
+        // against common spreadsheet formula injection.
+        const escapeCSV = (value) => {
+            let text = String(value ?? "");
+
+            if (/^[\t\r ]*[=+\-@]/.test(text)) {
+                text = "'" + text;
+            }
+
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+
+        const csvRows = [
+            headers.map(escapeCSV).join(","),
+            ...records.map((student) =>
+                [
+                    student.student_id,
+                    student.registration_no,
+                    student.first_name,
+                    student.last_name,
+                    student.email,
+                    student.phone_number
+                ]
+                    .map(escapeCSV)
+                    .join(",")
+            )
+        ];
+
+        // UTF-8 BOM helps spreadsheet applications.
+        const csvContent =
+            "\uFEFF" + csvRows.join("\r\n");
+
+        const blob = new Blob(
+            [csvContent],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "students.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        // Release the temporary URL after download starts.
+        window.setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 1000);
+
+        setExportMessage(
+            records.length > 0
+                ? `CSV export prepared successfully: ${records.length} student record(s).`
+                : "CSV file prepared successfully. No student records were available."
+        );
     };
 
     // Add and edit student form.
@@ -266,6 +364,7 @@ function DashboardPage() {
                     </div>
 
                     <button
+                        type="button"
                         onClick={handleLogout}
                         className="logout-button"
                     >
@@ -284,17 +383,45 @@ function DashboardPage() {
                         </p>
                     </div>
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+
+                        <button
+                            type="button"
+                            className="export-csv-button"
+                            onClick={handleExportCSV}
+                            disabled={loading || Boolean(error)}
+                            title="Export all loaded student records to CSV"
+                        >
+                            Export CSV
+                        </button>
+
+                        <button
+                            type="button"
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+
+                    </div>
                 </div>
 
                 {error && (
-                    <div className="dashboard-error">
+                    <div
+                        className="dashboard-error"
+                        role="alert"
+                    >
                         {error}
+                    </div>
+                )}
+
+                {exportMessage && (
+                    <div
+                        className="export-csv-message"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {exportMessage}
                     </div>
                 )}
 
@@ -351,6 +478,21 @@ function DashboardPage() {
                         <div className="students-loading">
                             Loading students...
                         </div>
+                    ) : error && students.length === 0 ? (
+                        <div className="students-empty">
+                            <h3>Unable to load students</h3>
+                            <p>
+                                Please resolve the error and reload the page.
+                            </p>
+
+                            <button
+                                type="button"
+                                className="students-search-clear"
+                                onClick={loadStudents}
+                            >
+                                Retry
+                            </button>
+                        </div>
                     ) : students.length === 0 ? (
                         <div className="students-empty">
                             <h3>No students found</h3>
@@ -380,7 +522,6 @@ function DashboardPage() {
 
                             <table className="students-table">
 
-                                {/* One table header only */}
                                 <thead>
                                     <tr>
                                         <th>Registration No.</th>
@@ -411,18 +552,17 @@ function DashboardPage() {
 
                                             <td>{student.phone_number}</td>
 
-                                            {/* CR033: Last Login */}
                                             <td>
                                                 {formatLastLogin(
                                                     student.last_login
                                                 )}
                                             </td>
 
-                                            {/* Existing CRUD actions */}
                                             <td>
                                                 <div className="student-actions">
 
                                                     <button
+                                                        type="button"
                                                         className="edit-button"
                                                         onClick={() =>
                                                             openEditForm(student)
@@ -432,6 +572,7 @@ function DashboardPage() {
                                                     </button>
 
                                                     <button
+                                                        type="button"
                                                         className="delete-button"
                                                         onClick={() =>
                                                             handleDelete(
