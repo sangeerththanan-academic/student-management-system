@@ -257,6 +257,72 @@ function DashboardPage() {
     };
 
     // ========================================================
+    // CR-015: Export student records to CSV
+    // Exports the complete student list, not only search results.
+    // ========================================================
+
+    const handleExportCsv = () => {
+        if (!students.length) {
+            setError("There are no student records to export.");
+            return;
+        }
+
+        const csvColumns = [
+            { heading: "Registration No.", value: (student) => student.registration_no },
+            { heading: "First Name", value: (student) => student.first_name },
+            { heading: "Last Name", value: (student) => student.last_name },
+            { heading: "Email", value: (student) => student.email },
+            { heading: "Phone", value: (student) => student.phone_number },
+            {
+                heading: "Last Login",
+                value: (student) => {
+                    if (!student.last_login) return "Never logged in";
+                    return student.last_login;
+                }
+            },
+            { heading: "Created At", value: (student) => student.created_at },
+            { heading: "Updated At", value: (student) => student.updated_at }
+        ];
+
+        // Escape quotes and wrap every field in quotes so commas,
+        // quotes, and line breaks in values do not break the CSV format.
+        const escapeCsvValue = (value) => {
+            const safeValue = value === null || value === undefined
+                ? ""
+                : String(value);
+
+            return `"${safeValue.replace(/"/g, '""')}"`;
+        };
+
+        const csvRows = [
+            csvColumns.map((column) => escapeCsvValue(column.heading)).join(","),
+            ...students.map((student) =>
+                csvColumns
+                    .map((column) => escapeCsvValue(column.value(student)))
+                    .join(",")
+            )
+        ];
+
+        // UTF-8 BOM improves compatibility with Excel for Unicode text.
+        const csvContent = "\uFEFF" + csvRows.join("\r\n");
+        const csvBlob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;"
+        });
+
+        const downloadUrl = URL.createObjectURL(csvBlob);
+        const downloadLink = document.createElement("a");
+        const dateStamp = new Date().toISOString().slice(0, 10);
+
+        downloadLink.href = downloadUrl;
+        downloadLink.download = `student_records_${dateStamp}.csv`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        URL.revokeObjectURL(downloadUrl);
+        setError("");
+    };
+
+    // ========================================================
     // Student form handling
     // ========================================================
 
@@ -396,13 +462,24 @@ function DashboardPage() {
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+                        <button
+                            type="button"
+                            className="export-csv-button"
+                            onClick={handleExportCsv}
+                            disabled={loading || students.length === 0}
+                        >
+                            Export CSV
+                        </button>
+
+                        <button
+                            type="button"
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
                 </div>
 
                 {/* Error message */}
