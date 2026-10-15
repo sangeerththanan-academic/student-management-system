@@ -30,10 +30,110 @@ const getProfileImageUrl = (filename) => {
     return filename ? `/uploads/students/${filename}` : null;
 };
 
+const normalizeStudentValue = (value) => {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.trim();
+};
+
+const isValidRegistrationNumber = (value) => {
+    const normalized = normalizeStudentValue(value);
+    return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(normalized);
+};
+
+const isValidName = (value) => {
+    const normalized = normalizeStudentValue(value);
+    return normalized.length >= 3 && /^[A-Za-z]+$/.test(normalized);
+};
+
+const isValidEmail = (value) => {
+    const normalized = normalizeStudentValue(value);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+};
+
+const isValidPhoneNumber = (value) => {
+    const normalized = normalizeStudentValue(value);
+    return /^\d{10}$/.test(normalized);
+};
+
+const isStrongPassword = (value) => {
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value);
+};
+
+const validateStudentPayload = (payload, requirePassword = false) => {
+    const registrationNo = normalizeStudentValue(payload.registrationNo);
+    const firstName = normalizeStudentValue(payload.firstName);
+    const lastName = normalizeStudentValue(payload.lastName);
+    const email = normalizeStudentValue(payload.email);
+    const phoneNumber = normalizeStudentValue(payload.phoneNumber);
+    const password = payload.password;
+
+    if (!registrationNo) {
+        return "Registration number is required.";
+    }
+
+    if (!isValidRegistrationNumber(registrationNo)) {
+        return "Registration number must contain only letters, numbers, hyphen, or underscore.";
+    }
+
+    if (!isValidName(firstName)) {
+        return "First name must be at least 3 letters and contain only alphabetic characters.";
+    }
+
+    if (!isValidName(lastName)) {
+        return "Last name must be at least 3 letters and contain only alphabetic characters.";
+    }
+
+    if (!isValidEmail(email)) {
+        return "Please enter a valid email address.";
+    }
+
+    if (!isValidPhoneNumber(phoneNumber)) {
+        return "Phone number must contain exactly 10 digits.";
+    }
+
+    if (requirePassword) {
+        if (!password) {
+            return "Password is required for a new student.";
+        }
+
+        if (!isStrongPassword(password)) {
+            return "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.";
+        }
+    }
+
+    return "";
+};
+
 
 // CREATE STUDENT
 // POST /api/students/
 const addStudent = async (req, res) => {
+
+    const payload = {
+        registrationNo: req.body.registrationNo,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
+    };
+
+    const validationMessage = validateStudentPayload(payload, true);
+
+    if (validationMessage) {
+        return res.status(400).json({
+            success: false,
+            message: validationMessage
+        });
+    }
+
     const {
         registrationNo,
         firstName,
@@ -41,28 +141,38 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = req.body;
+    } = {
+        registrationNo: normalizeStudentValue(payload.registrationNo),
+        firstName: normalizeStudentValue(payload.firstName),
+        lastName: normalizeStudentValue(payload.lastName),
+        email: normalizeStudentValue(payload.email),
+        phoneNumber: normalizeStudentValue(payload.phoneNumber),
+        password: payload.password
+    };
 
     let connection;
     let transactionStarted = false;
 
     try {
+
+        // Validate required fields
         if (
-            !registrationNo?.trim() ||
-            !firstName?.trim() ||
-            !lastName?.trim() ||
-            !email?.trim() ||
-            !phoneNumber?.trim() ||
+            !registrationNo ||
+            !firstName ||
+            !lastName ||
+            !email ||
+            !phoneNumber ||
             !password
         ) {
-            if (req.file) removeUploadedFile(req.file);
 
             return res.status(400).json({
                 success: false,
-                message: "All student fields and password are required."
+                message: "All student fields and password are required"
             });
         }
 
+
+        // Get database connection
         connection = await pool.getConnection();
 
         await connection.beginTransaction();
@@ -242,6 +352,23 @@ const getStudent = async (req, res) => {
 const editStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
+
+        const payload = {
+            registrationNo: req.body.registrationNo,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            phoneNumber: req.body.phoneNumber
+        };
+
+        const validationMessage = validateStudentPayload(payload, false);
+
+        if (validationMessage) {
+            return res.status(400).json({
+                success: false,
+                message: validationMessage
+            });
+        }
 
         const {
             registrationNo,
