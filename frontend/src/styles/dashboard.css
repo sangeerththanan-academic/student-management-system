@@ -782,3 +782,57 @@
     background: #1e293b;
     color: #e2e8f0;
 }
+
+
+
+
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.export-csv-button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    background: lightblue;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background: royalblue;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.export-csv-button:focus-visible {
+    outline: 2px solid #15803d;
+    outline-offset: 3px;
+}
+
+@media (max-width: 800px) {
+    .students-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 500px) {
+    .students-heading-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .students-heading-actions button {
+        width: 100%;
+    }
+}

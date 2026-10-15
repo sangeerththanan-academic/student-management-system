@@ -184,6 +184,71 @@ function DashboardPage() {
     };
 
 
+
+    
+    // CR-015: Export student records to CSV
+    const handleExportCSV = () => {
+        const headers = [
+            "Student ID",
+            "Registration Number",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone Number"
+        ];
+
+        const escapeCSV = (value) => {
+            let text = String(value ?? "");
+
+            // Reduce spreadsheet formula-injection risk.
+            if (/^[\t\r ]*[=+\-@]/.test(text)) {
+                text = "'" + text;
+            }
+
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+
+        const rows = students.map((student) => [
+            student.student_id,
+            student.registration_no,
+            student.first_name,
+            student.last_name,
+            student.email,
+            student.phone_number
+        ]);
+
+        const csvContent = [
+            headers.map(escapeCSV).join(","),
+            ...rows.map((row) =>
+                row.map(escapeCSV).join(",")
+            )
+        ].join("\r\n");
+
+        const blob = new Blob(
+            ["\uFEFF", csvContent],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "students.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        // Release the temporary URL after the download is initiated.
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+
+
+
+
+
+
     // Form handling
     const openAddForm = () => {
         setEditingStudent(null);
@@ -314,27 +379,34 @@ function DashboardPage() {
 
                 {/* Page heading */}
 
-                <div className="students-heading">
+                
+{/* Page heading */}
 
-                    <div>
-                        <h2>
-                            Students
-                        </h2>
+<div className="students-heading">
+    <div>
+        <h2>Students</h2>
+        <p>Manage student accounts and profiles.</p>
+    </div>
 
-                        <p>
-                            Manage student accounts and profiles.
-                        </p>
-                    </div>
+    <div className="students-heading-actions">
+        <button
+            type="button"
+            className="export-csv-button"
+            onClick={handleExportCSV}
+            disabled={loading || !!error}
+        >
+            Export CSV
+        </button>
 
-
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
-
-                </div>
+        <button
+            type="button"
+            className="add-student-button"
+            onClick={openAddForm}
+        >
+            + Add Student
+        </button>
+    </div>
+</div>
 
 
                 {/* Error */}
