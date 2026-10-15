@@ -63,12 +63,13 @@ function StudentFormModal({
         setFieldErrors({});
     }, [editingStudent, show]);
 
+
     const handleInputChange = (event) => {
         const { name, value } = event.target;
 
         setFormData((previous) => ({
             ...previous,
-            [name]: value
+            [name]: sanitizeInput(name, value)
         }));
 
         setFieldErrors((previous) => ({
@@ -84,42 +85,21 @@ function StudentFormModal({
 
         setProfileImage(null);
         setFormError("");
-        setFieldErrors((previous) => ({
-            ...previous,
-            profileImage: ""
-        }));
-
-        if (!file) {
-            setImagePreview(
-                editingStudent?.profile_photo
-                    ? `http://localhost:5000${editingStudent.profile_photo}`
-                    : ""
-            );
-            return;
-        }
-
-        const extension = file.name
-            .substring(file.name.lastIndexOf("."))
-            .toLowerCase();
 
         if (
-            ![".png", ".jpg", ".jpeg"].includes(extension) ||
-            !ALLOWED_TYPES.includes(file.type)
+            !formData.registrationNo.trim() ||
+            !formData.firstName.trim() ||
+            !formData.lastName.trim() ||
+            !formData.email.trim() ||
+            !formData.phoneNumber.trim()
         ) {
-            setFieldErrors((previous) => ({
-                ...previous,
-                profileImage: "Only PNG, JPG, and JPEG images are allowed."
-            }));
-            event.target.value = "";
+            setFormError("All student fields are required.");
             return;
         }
 
-        if (file.size > MAX_IMAGE_SIZE) {
-            setFieldErrors((previous) => ({
-                ...previous,
-                profileImage: "Image size must not exceed 2 MB."
-            }));
-            event.target.value = "";
+        // Password is required only when creating
+        if (!editingStudent && !formData.password) {
+            setFormError("Password is required for a new student.");
             return;
         }
 
