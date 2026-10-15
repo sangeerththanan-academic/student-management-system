@@ -836,3 +836,56 @@ color: var(--text-primary);
 :root .dashboard-page .field-hint {
 color: var(--text-secondary);
 }
+
+
+
+/* CR-015: Student CSV export button */
+
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.export-csv-button {
+    padding: 10px 18px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.export-csv-button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .students-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .export-csv-button,
+    .add-student-button {
+        max-width: 100%;
+    }
+}

@@ -27,9 +27,10 @@ const formatLastLogin = (value) => {
         return "Never logged in";
     }
 
-    const date = value instanceof Date
-        ? value
-        : new Date(String(value).replace(" ", "T"));
+    const date =
+        value instanceof Date
+            ? value
+            : new Date(String(value).replace(" ", "T"));
 
     if (Number.isNaN(date.getTime())) {
         return String(value);
@@ -51,7 +52,7 @@ function DashboardPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // Load current user
+    // Load current user.
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -80,7 +81,7 @@ function DashboardPage() {
         loadUser();
     }, [navigate]);
 
-    // Load students
+    // Load students.
     const loadStudents = async () => {
         try {
             setLoading(true);
@@ -94,7 +95,6 @@ function DashboardPage() {
             );
 
             setStudents(data.students || []);
-
         } catch (error) {
             console.error(
                 "Failed to load students:",
@@ -117,7 +117,6 @@ function DashboardPage() {
             setError(
                 error.message || "Failed to retrieve students."
             );
-
         } finally {
             setLoading(false);
         }
@@ -127,7 +126,82 @@ function DashboardPage() {
         loadStudents();
     }, []);
 
-    // Client-side search (CR-001)
+    // CR-015: Export student records to CSV.
+    const handleExportCSV = () => {
+        if (loading || error) {
+            return;
+        }
+
+        if (students.length === 0) {
+            window.alert(
+                "No student records available to export."
+            );
+            return;
+        }
+
+        // Required CSV columns.
+        const headers = [
+            "Student ID",
+            "Registration Number",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone Number"
+        ];
+
+        // Escape CSV values and reduce spreadsheet formula injection risk.
+        const escapeCSV = (value) => {
+            let text = String(value ?? "");
+
+            if (/^[\t\r ]*[=+\-@]/.test(text)) {
+                text = "'" + text;
+            }
+
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+
+        // Use all loaded student records, not only search results.
+        const rows = students.map((student) => [
+            student.student_id,
+            student.registration_no,
+            student.first_name,
+            student.last_name,
+            student.email,
+            student.phone_number
+        ]);
+
+        const csvContent = [
+            headers.map(escapeCSV).join(","),
+            ...rows.map((row) =>
+                row.map(escapeCSV).join(",")
+            )
+        ].join("\r\n");
+
+        // UTF-8 BOM supports non-English characters in spreadsheets.
+        const blob = new Blob(
+            ["\uFEFF", csvContent],
+            {
+                type: "text/csv;charset=utf-8;"
+            }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "students.csv";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        // Release the temporary URL after the download is initiated.
+        window.setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 1000);
+    };
+
+    // Client-side search (CR-001).
     const normalizedSearchTerm =
         normalizeSearchValue(searchTerm);
 
@@ -173,7 +247,7 @@ function DashboardPage() {
         setSearchTerm("");
     };
 
-    // Form handling
+    // Form handling.
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
@@ -194,7 +268,7 @@ function DashboardPage() {
         navigate("/login", { replace: true });
     };
 
-    // Delete student
+    // Delete student.
     const handleDelete = async (studentId) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this student?"
@@ -215,7 +289,6 @@ function DashboardPage() {
             );
 
             await loadStudents();
-
         } catch (error) {
             console.error("Delete student error:", error);
 
@@ -231,7 +304,7 @@ function DashboardPage() {
         }
     };
 
-    // Logout
+    // Logout.
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
@@ -253,6 +326,7 @@ function DashboardPage() {
                     </div>
 
                     <button
+                        type="button"
                         onClick={handleLogout}
                         className="logout-button"
                     >
@@ -271,12 +345,27 @@ function DashboardPage() {
                         </p>
                     </div>
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+
+                        {/* CR-015: Export CSV */}
+                        <button
+                            type="button"
+                            className="export-csv-button"
+                            onClick={handleExportCSV}
+                            disabled={loading || !!error}
+                        >
+                            Export CSV
+                        </button>
+
+                        <button
+                            type="button"
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+
+                    </div>
                 </div>
 
                 {error && (
@@ -319,8 +408,16 @@ function DashboardPage() {
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
-                            ? `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"} found`
-                            : `${students.length} ${students.length === 1 ? "student" : "students"}`}
+                            ? `${filteredStudents.length} ${
+                                filteredStudents.length === 1
+                                    ? "student"
+                                    : "students"
+                            } found`
+                            : `${students.length} ${
+                                students.length === 1
+                                    ? "student"
+                                    : "students"
+                            }`}
                     </p>
                 )}
 
@@ -342,8 +439,10 @@ function DashboardPage() {
                     ) : filteredStudents.length === 0 ? (
                         <div className="students-empty">
                             <h3>No matching students found</h3>
+
                             <p>
-                                No students match &quot;{searchTerm.trim()}&quot;.
+                                No students match &quot;
+                                {searchTerm.trim()}&quot;.
                             </p>
 
                             <button
@@ -367,7 +466,7 @@ function DashboardPage() {
                                         <th>Email</th>
                                         <th>Phone</th>
 
-                                        {/* CR033: New column */}
+                                        {/* CR033: Last Login */}
                                         <th>Last Login</th>
 
                                         <th>Actions</th>
@@ -393,7 +492,7 @@ function DashboardPage() {
 
                                             <td>{student.phone_number}</td>
 
-                                            {/* CR033: Display login timestamp */}
+                                            {/* CR033: Login timestamp */}
                                             <td>
                                                 {formatLastLogin(
                                                     student.last_login
@@ -404,6 +503,7 @@ function DashboardPage() {
                                                 <div className="student-actions">
 
                                                     <button
+                                                        type="button"
                                                         className="edit-button"
                                                         onClick={() =>
                                                             openEditForm(student)
@@ -413,6 +513,7 @@ function DashboardPage() {
                                                     </button>
 
                                                     <button
+                                                        type="button"
                                                         className="delete-button"
                                                         onClick={() =>
                                                             handleDelete(
