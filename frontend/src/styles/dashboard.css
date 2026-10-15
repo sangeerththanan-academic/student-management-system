@@ -781,3 +781,63 @@
     font-size: 13px;
     margin-top: 6px;
 }
+
+/* =====================================================
+   CR-015: STUDENT RECORDS CSV EXPORT
+   ===================================================== */
+
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.export-csv-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    min-height: 42px;
+    border: none;
+    border-radius: 7px;
+    background: #16794b;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background: #105e39;
+    transform: translateY(-1px);
+}
+
+.export-csv-button:focus-visible {
+    outline: 3px solid #91d5b5;
+    outline-offset: 3px;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+}
+
+@media (max-width: 600px) {
+    .students-heading-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .students-heading-actions .export-csv-button,
+    .students-heading-actions .add-student-button {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+}
