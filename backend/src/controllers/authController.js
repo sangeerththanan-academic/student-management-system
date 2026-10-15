@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -6,9 +5,12 @@ const crypto = require("crypto");
 const {
     findUserByUsername,
     findUserById,
-    updateLastLogin
+    updateLastLogin,
+    findUserByEmail,
+    deleteUnusedResetTokens,
+    createPasswordResetToken,
+    resetPasswordWithToken
 } = require("../models/userModel");
-
 
 // ==========================================
 // LOGIN
@@ -34,7 +36,6 @@ const login = async (req, res) => {
             });
         }
 
-        // Verify password
         const passwordMatch = await bcrypt.compare(
             password,
             user.password_hash
@@ -47,10 +48,8 @@ const login = async (req, res) => {
             });
         }
 
-        // Update last login only after successful password verification
         await updateLastLogin(user.user_id);
 
-        // Create JWT
         const token = jwt.sign(
             {
                 userId: user.user_id,
@@ -73,7 +72,6 @@ const login = async (req, res) => {
                 role: user.role
             }
         });
-
     } catch (error) {
         console.error("Login error:", error);
 
@@ -83,7 +81,6 @@ const login = async (req, res) => {
         });
     }
 };
-
 
 // ==========================================
 // GET CURRENT USER
@@ -104,7 +101,6 @@ const getCurrentUser = async (req, res) => {
             success: true,
             user
         });
-
     } catch (error) {
         console.error("Get current user error:", error);
 
@@ -114,7 +110,6 @@ const getCurrentUser = async (req, res) => {
         });
     }
 };
-
 
 // ==========================================
 // FORGOT PASSWORD
@@ -133,39 +128,26 @@ const forgotPassword = async (req, res) => {
 
         const user = await findUserByEmail(email);
 
-        /*
-         * Generic response prevents unnecessary
-         * account enumeration.
-         */
+        // Use the same response whether the account exists or not.
+        const genericMessage =
+            "If an account exists for this email address, password reset instructions have been sent.";
+
         if (!user) {
             return res.status(200).json({
                 success: true,
-                message:
-                    "If an account exists for this email address, password reset instructions have been sent."
+                message: genericMessage
             });
         }
 
-        /*
-         * Remove previous unused reset tokens.
-         */
         await deleteUnusedResetTokens(user.user_id);
 
-        /*
-         * Generate a cryptographically secure token.
-         */
         const resetToken = crypto.randomBytes(32).toString("hex");
 
-        /*
-         * Store only the hash of the token.
-         */
         const tokenHash = crypto
             .createHash("sha256")
             .update(resetToken)
             .digest("hex");
 
-        /*
-         * Token valid for 15 minutes.
-         */
         const expiresAt = new Date(
             Date.now() + 15 * 60 * 1000
         );
@@ -177,28 +159,19 @@ const forgotPassword = async (req, res) => {
         );
 
         /*
-         * Development implementation.
+         * DEVELOPMENT ONLY:
+         * Token is returned so the feature can be tested
+         * without an email provider.
          *
-         * In production, this token should be sent
-         * through an email service instead of returning
-         * it in the API response.
+         * Do not deploy this response to production.
          */
-        console.log(
-            `Password reset token for ${email}: ${resetToken}`
-        );
+        console.log("Development password reset token:", resetToken);
 
         return res.status(200).json({
             success: true,
-            message:
-                "If an account exists for this email address, password reset instructions have been sent.",
-
-            /*
-             * DEVELOPMENT ONLY
-             * Remove this before production.
-             */
+            message: genericMessage,
             resetToken
         });
-
     } catch (error) {
         console.error("Forgot password error:", error);
 
@@ -208,7 +181,6 @@ const forgotPassword = async (req, res) => {
         });
     }
 };
-
 
 // ==========================================
 // RESET PASSWORD
@@ -237,12 +209,6 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        /*
-         * Password policy.
-         *
-         * Adjust this if your existing project
-         * already has a specific password policy.
-         */
         if (password.length < 8) {
             return res.status(400).json({
                 success: false,
@@ -256,61 +222,30 @@ const resetPassword = async (req, res) => {
             .update(token)
             .digest("hex");
 
-        const resetToken = await findPasswordResetToken(
-            tokenHash
+        const passwordHash = await bcrypt.hash(password, 12);
+
+        /*
+         * Validate the token and update the password
+         * inside one database transaction. This also
+         * marks the token as used.
+         */
+        const resetSuccessful = await resetPasswordWithToken(
+            tokenHash,
+            passwordHash
         );
 
-        if (!resetToken) {
+        if (!resetSuccessful) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid or expired password reset token"
             });
         }
 
-        if (resetToken.used_at) {
-            return res.status(400).json({
-                success: false,
-                message: "This password reset token has already been used"
-            });
-        }
-
-        const currentTime = new Date();
-
-        if (
-            new Date(resetToken.expires_at) <= currentTime
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "This password reset token has expired"
-            });
-        }
-
-        /*
-         * Hash the new password.
-         */
-        const passwordHash = await bcrypt.hash(
-            password,
-            12
-        );
-
-        await updatePassword(
-            resetToken.user_id,
-            passwordHash
-        );
-
-        /*
-         * Invalidate the token.
-         */
-        await markPasswordResetTokenUsed(
-            resetToken.id
-        );
-
         return res.status(200).json({
             success: true,
             message:
                 "Password reset successful. You can now log in with your new password."
         });
-
     } catch (error) {
         console.error("Reset password error:", error);
 
@@ -320,7 +255,6 @@ const resetPassword = async (req, res) => {
         });
     }
 };
-
 
 module.exports = {
     login,
