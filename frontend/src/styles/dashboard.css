@@ -154,6 +154,32 @@
     background: #1d4ed8;
 }
 
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.export-students-button {
+    border: 1px solid #2563eb;
+    background: #ffffff;
+    color: #1d4ed8;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.export-students-button:hover:not(:disabled) {
+    background: #eff6ff;
+}
+
+.export-students-button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
 
 /* =========================================================
    Error
@@ -649,6 +675,14 @@
         align-items: flex-start;
 
         flex-direction: column;
+    }
+
+    .students-heading-actions {
+        width: 100%;
+    }
+
+    .students-heading-actions button {
+        flex: 1;
     }
 
     .students-search {
