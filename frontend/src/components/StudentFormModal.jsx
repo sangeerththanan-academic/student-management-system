@@ -143,7 +143,7 @@ function StudentFormModal({
 
         setFormData((previous) => ({
             ...previous,
-            [name]: value
+            [name]: sanitizeInput(name, value)
         }));
 
         // Live-clear the error for the field being edited
