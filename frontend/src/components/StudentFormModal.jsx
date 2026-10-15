@@ -132,7 +132,7 @@ function StudentFormModal({
 
         setFormData((previous) => ({
             ...previous,
-            [name]: value
+            [name]: sanitizeInput(name, value)
         }));
 
         // Clear the field-specific error when user edits the field

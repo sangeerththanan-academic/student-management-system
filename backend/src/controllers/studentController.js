@@ -210,6 +210,24 @@ const validateStudentInput = ({
 
 const addStudent = async (req, res) => {
 
+    const payload = {
+        registrationNo: req.body.registrationNo,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
+    };
+
+    const validationMessage = validateStudentPayload(payload, true);
+
+    if (validationMessage) {
+        return res.status(400).json({
+            success: false,
+            message: validationMessage
+        });
+    }
+
     const {
         registrationNo,
         firstName,
@@ -217,7 +235,14 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = req.body;
+    } = {
+        registrationNo: normalizeStudentValue(payload.registrationNo),
+        firstName: normalizeStudentValue(payload.firstName),
+        lastName: normalizeStudentValue(payload.lastName),
+        email: normalizeStudentValue(payload.email),
+        phoneNumber: normalizeStudentValue(payload.phoneNumber),
+        password: payload.password
+    };
 
     let connection;
 
