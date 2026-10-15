@@ -1176,3 +1176,56 @@ html[data-theme="dark"] .password-cancel-button:hover {
         grid-column: 1 / -1;
     }
 }
+
+
+
+/* CR-015: CSV export button */
+
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.export-csv-button {
+    padding: 12px 18px;
+    border: 1px solid #16a34a;
+    border-radius: 8px;
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background: #15803d;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.export-csv-message {
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .students-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .students-heading-actions button {
+        max-width: 100%;
+    }
+}
