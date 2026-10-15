@@ -1065,3 +1065,68 @@
     outline-offset: 2px;
     border-radius: 4px;
 }
+
+
+/* CR-015: Student CSV Export */
+
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.export-csv-button {
+    border: none;
+    background: #15803d;
+    color: #ffffff;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background: #166534;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.export-message {
+    margin-bottom: 18px;
+    padding: 12px 15px;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 800px) {
+    .students-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .students-heading-actions button {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .students-heading-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .students-heading-actions button {
+        width: 100%;
+    }
+}

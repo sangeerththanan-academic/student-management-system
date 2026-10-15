@@ -43,6 +43,7 @@ function DashboardPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [exportMessage, setExportMessage] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
@@ -158,6 +159,78 @@ function DashboardPage() {
         setSearchTerm("");
     };
 
+    
+const escapeCsvValue = (value) => {
+    let text = String(value ?? "");
+
+    // Reduce spreadsheet formula-injection risk.
+    if (/^[=+\-@\t\r]/.test(text)) {
+        text = `'${text}`;
+    }
+
+    // Escape double quotes and wrap the value in quotes.
+    return `"${text.replace(/"/g, '""')}"`;
+};
+
+const handleExportCsv = () => {
+    setExportMessage("");
+
+    const headers = [
+        "Student ID",
+        "Registration Number",
+        "First Name",
+        "Last Name",
+        "Email",
+        "Phone Number"
+    ];
+
+    // Export all loaded records, not just search results.
+    const csvRows = students.map((student) => [
+        student.student_id,
+        student.registration_no,
+        student.first_name,
+        student.last_name,
+        student.email,
+        student.phone_number
+    ]);
+
+    const csvContent = [
+        headers.map(escapeCsvValue).join(","),
+        ...csvRows.map((row) =>
+            row.map(escapeCsvValue).join(",")
+        )
+    ].join("\r\n");
+
+    // BOM improves compatibility with spreadsheet applications.
+    const blob = new Blob(
+        ["\uFEFF", csvContent],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = "students.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(downloadUrl);
+
+    if (students.length === 0) {
+        setExportMessage(
+            "No student records are available. A CSV file with headers only was downloaded."
+        );
+    } else {
+        setExportMessage(
+            `${students.length} student record(s) exported successfully.`
+        );
+    }
+};
+
+
     // Form handling.
     const openAddForm = () => {
         setEditingStudent(null);
@@ -267,21 +340,45 @@ function DashboardPage() {
 
             <main className="dashboard-content">
                 {/* Page heading */}
-                <div className="students-heading">
-                    <div>
-                        <h2>Students</h2>
-                        <p>
-                            Manage student accounts and profiles.
-                        </p>
-                    </div>
+              
+<div className="students-heading">
+    <div>
+        <h2>Students</h2>
+        <p>
+            Manage student accounts and profiles.
+        </p>
+    </div>
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
-                </div>
+    <div className="students-heading-actions">
+        <button
+            type="button"
+            className="export-csv-button"
+            onClick={handleExportCsv}
+            disabled={loading || Boolean(error)}
+        >
+            Export CSV
+        </button>
+
+        <button
+            type="button"
+            className="add-student-button"
+            onClick={openAddForm}
+        >
+            + Add Student
+        </button>
+    </div>
+</div>
+
+{exportMessage && (
+    <div
+        className="export-message"
+        role="status"
+        aria-live="polite"
+    >
+        {exportMessage}
+    </div>
+)}
+
 
                 {/* Error */}
                 {error && (
