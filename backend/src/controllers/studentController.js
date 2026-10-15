@@ -1,7 +1,5 @@
 
 const bcrypt = require("bcryptjs");
-const path = require("path");
-
 const pool = require("../config/db");
 
 const {
@@ -10,154 +8,118 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent,
-    getPasswordHashByUserId,
-    updatePasswordHash
+    deleteStudent
 } = require("../models/studentModel");
 
-const { removeFile } = require("../middleware/uploadMiddleware");
+const {
+    getPasswordHashByUserId,
+    updatePasswordHash
+} = require("../models/userModel");
 
-const registrationNumberRegex =
-    /^[A-Za-z0-9]+(?:[-/][A-Za-z0-9]+)*$/;
+const { validateStudentData } = require("../utils/validation");
 
-const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\d{10}$/;
-const uppercaseRegex = /[A-Z]/;
-const lowercaseRegex = /[a-z]/;
-const numberRegex = /[0-9]/;
-const specialCharacterRegex = /[^A-Za-z0-9]/;
+// =====================================================
+// VALIDATION HELPERS
+// =====================================================
 
-// ============================================================
-// VALIDATE STUDENT INPUT
-// ============================================================
-
-const validateStudentInput = ({
-    registrationNo,
-    firstName,
-    lastName,
-    email,
-    phoneNumber,
-    password,
-    requirePassword = false
-}) => {
-    const errors = {};
-
-    const registration = String(registrationNo || "").trim();
-    const first = String(firstName || "").trim();
-    const last = String(lastName || "").trim();
-    const cleanEmail = String(email || "").trim();
-    const phone = String(phoneNumber || "").trim();
-
-    if (!registration) {
-        errors.registrationNo =
-            "Registration number is required.";
-    } else if (!registrationNumberRegex.test(registration)) {
-        errors.registrationNo =
-            "Registration number contains invalid characters.";
+const normalizeStudentValue = (value) => {
+    if (typeof value !== "string") {
+        return "";
     }
 
-    if (!first) {
-        errors.firstName = "First name is required.";
-    } else if (first.length < 3) {
-        errors.firstName =
-            "First name must contain at least 3 characters.";
-    } else if (!nameRegex.test(first)) {
-        errors.firstName =
-            "First name can contain only valid alphabetic characters.";
+    return value.trim();
+};
+
+const isValidRegistrationNumber = (value) => {
+    const normalized = normalizeStudentValue(value);
+    return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(normalized);
+};
+
+const validateName = (name, fieldName) => {
+    if (typeof name !== "string" || !name.trim()) {
+        return `${fieldName} is required`;
     }
 
-    if (!last) {
-        errors.lastName = "Last name is required.";
-    } else if (last.length < 3) {
-        errors.lastName =
-            "Last name must contain at least 3 characters.";
-    } else if (!nameRegex.test(last)) {
-        errors.lastName =
-            "Last name can contain only valid alphabetic characters.";
+    if (name.trim().length < 3) {
+        return `${fieldName} must contain at least 3 characters`;
     }
 
-    if (!cleanEmail) {
-        errors.email = "Email address is required.";
-    } else if (!emailRegex.test(cleanEmail)) {
-        errors.email = "Please enter a valid email address.";
+    if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(name.trim())) {
+        return `${fieldName} must contain only letters and spaces`;
     }
+
+    return null;
+};
+
+const validateEmail = (email) => {
+    if (typeof email !== "string" || !email.trim()) {
+        return "Email address is required";
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        return "Please enter a valid email address";
+    }
+
+    return null;
+};
+
+const validatePhoneNumber = (phoneNumber) => {
+    const phone = String(phoneNumber ?? "").trim();
 
     if (!phone) {
-        errors.phoneNumber = "Phone number is required.";
-    } else if (!/^\d+$/.test(phone)) {
-        errors.phoneNumber =
-            "Phone number must contain numeric characters only.";
-    } else if (!phoneRegex.test(phone)) {
-        errors.phoneNumber =
-            "Phone number must contain exactly 10 digits.";
+        return "Phone number is required";
     }
 
-    if (requirePassword) {
-        if (!password) {
-            errors.password =
-                "Password is required for a new student.";
-        } else if (password.length < 8) {
-            errors.password =
-                "Password must contain at least 8 characters.";
-        } else if (!uppercaseRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one uppercase letter.";
-        } else if (!lowercaseRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one lowercase letter.";
-        } else if (!numberRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one number.";
-        } else if (!specialCharacterRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one special character.";
-        }
+    if (!/^\d{10}$/.test(phone)) {
+        return "Phone number must contain exactly 10 digits";
     }
 
-    return errors;
+    return null;
 };
 
-// ============================================================
-// PROFILE PHOTO HELPERS
-// ============================================================
-
-const getUploadedPhotoPath = (file) => {
-    if (!file) return null;
-
-    return `/uploads/students/${path.basename(file.filename)}`;
-};
-
-const getDiskPathFromPhotoUrl = (photoUrl) => {
-    if (
-        !photoUrl ||
-        !photoUrl.startsWith("/uploads/students/")
-    ) {
-        return null;
+const validatePassword = (password) => {
+    if (typeof password !== "string" || !password) {
+        return "Password is required";
     }
 
-    const filename = path.basename(photoUrl);
+    if (password.length < 8) {
+        return "Password must be at least 8 characters";
+    }
 
-    return path.join(
-        __dirname,
-        "..",
-        "uploads",
-        "students",
-        filename
-    );
+    if (!/[A-Z]/.test(password)) {
+        return "Password must contain at least one uppercase letter";
+    }
+
+    if (!/[a-z]/.test(password)) {
+        return "Password must contain at least one lowercase letter";
+    }
+
+    if (!/\d/.test(password)) {
+        return "Password must contain at least one number";
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        return "Password must contain at least one special character";
+    }
+
+    return null;
 };
 
-const removeOldPhotoIfDifferent = async (oldPhoto, newPhoto) => {
-    if (!oldPhoto || oldPhoto === newPhoto) return;
-
-    await removeFile(getDiskPathFromPhotoUrl(oldPhoto));
-};
-
-// ============================================================
+// =====================================================
 // CREATE STUDENT
-// ============================================================
+// POST /api/students
+// =====================================================
 
 const addStudent = async (req, res) => {
+    const payload = {
+        registrationNo: req.body.registrationNo,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
+    };
+
     const {
         registrationNo,
         firstName,
@@ -165,39 +127,86 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = req.body;
+    } = {
+        registrationNo: normalizeStudentValue(payload.registrationNo),
+        firstName: normalizeStudentValue(payload.firstName),
+        lastName: normalizeStudentValue(payload.lastName),
+        email: normalizeStudentValue(payload.email),
+        phoneNumber: normalizeStudentValue(payload.phoneNumber),
+        password: payload.password
+    };
 
     let connection;
 
     try {
-        const validationErrors = validateStudentInput({
+        const validation = validateStudentData({
             registrationNo,
             firstName,
             lastName,
             email,
             phoneNumber,
-            password,
-            requirePassword: true
-        });
+            password
+        }, false);
 
-        if (Object.keys(validationErrors).length > 0) {
-            await removeFile(req.file?.path);
-
+        if (!validation.isValid) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Please correct the invalid student information.",
-                errors: validationErrors
+                message: validation.firstError,
+                errors: validation.errors
             });
         }
 
-        const cleanRegistrationNo = registrationNo.trim();
-        const cleanFirstName = firstName.trim();
-        const cleanLastName = lastName.trim();
-        const cleanEmail = email.trim();
-        const cleanPhoneNumber = phoneNumber.trim();
+        if (!isValidRegistrationNumber(registrationNo)) {
+            return res.status(400).json({
+                success: false,
+                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
+            });
+        }
 
-        const profilePhoto = getUploadedPhotoPath(req.file);
+        const firstNameError = validateName(firstName, "First name");
+
+        if (firstNameError) {
+            return res.status(400).json({
+                success: false,
+                message: firstNameError
+            });
+        }
+
+        const lastNameError = validateName(lastName, "Last name");
+
+        if (lastNameError) {
+            return res.status(400).json({
+                success: false,
+                message: lastNameError
+            });
+        }
+
+        const emailError = validateEmail(email);
+
+        if (emailError) {
+            return res.status(400).json({
+                success: false,
+                message: emailError
+            });
+        }
+
+        const phoneError = validatePhoneNumber(phoneNumber);
+
+        if (phoneError) {
+            return res.status(400).json({
+                success: false,
+                message: phoneError
+            });
+        }
+
+        const passwordError = validatePassword(password);
+
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
 
         connection = await pool.getConnection();
         await connection.beginTransaction();
@@ -207,17 +216,15 @@ const addStudent = async (req, res) => {
              FROM users
              WHERE username = ?
              LIMIT 1`,
-            [cleanRegistrationNo]
+            [registrationNo]
         );
 
         if (existingUser.length > 0) {
             await connection.rollback();
-            await removeFile(req.file?.path);
 
             return res.status(409).json({
                 success: false,
-                message:
-                    "Registration number is already registered."
+                message: "Registration number is already registered"
             });
         }
 
@@ -226,16 +233,15 @@ const addStudent = async (req, res) => {
              FROM students
              WHERE email = ?
              LIMIT 1`,
-            [cleanEmail]
+            [email]
         );
 
         if (existingStudent.length > 0) {
             await connection.rollback();
-            await removeFile(req.file?.path);
 
             return res.status(409).json({
                 success: false,
-                message: "Email address is already registered."
+                message: "Email address is already registered"
             });
         }
 
@@ -244,7 +250,7 @@ const addStudent = async (req, res) => {
         const [userResult] = await connection.execute(
             `INSERT INTO users (username, password_hash, role)
              VALUES (?, ?, 'STUDENT')`,
-            [cleanRegistrationNo, passwordHash]
+            [registrationNo, passwordHash]
         );
 
         const userId = userResult.insertId;
@@ -252,29 +258,26 @@ const addStudent = async (req, res) => {
         const studentId = await createStudent(
             connection,
             userId,
-            cleanRegistrationNo,
-            cleanFirstName,
-            cleanLastName,
-            cleanEmail,
-            cleanPhoneNumber,
-            profilePhoto
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
         );
 
         await connection.commit();
 
         return res.status(201).json({
             success: true,
-            message:
-                "Student account and profile created successfully.",
+            message: "Student account and profile created successfully",
             student: {
-                student_id: studentId,
-                user_id: userId,
-                registration_no: cleanRegistrationNo,
-                first_name: cleanFirstName,
-                last_name: cleanLastName,
-                email: cleanEmail,
-                phone_number: cleanPhoneNumber,
-                profile_photo: profilePhoto,
+                studentId,
+                userId,
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
                 role: "STUDENT"
             }
         });
@@ -283,28 +286,36 @@ const addStudent = async (req, res) => {
             try {
                 await connection.rollback();
             } catch (rollbackError) {
-                console.error("Rollback error:", rollbackError);
+                console.error("Transaction rollback error:", rollbackError.message);
             }
         }
 
-        await removeFile(req.file?.path);
+        console.error("Create student error:", error.message);
 
-        console.error("Create student error:", error);
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Registration number or email is already registered"
+            });
+        }
 
         return res.status(500).json({
             success: false,
-            message: "Failed to create student."
+            message: "Failed to create student"
         });
     } finally {
-        if (connection) connection.release();
+        if (connection) {
+            connection.release();
+        }
     }
 };
 
-// ============================================================
+// =====================================================
 // GET ALL STUDENTS
-// ============================================================
+// GET /api/students
+// =====================================================
 
-const getStudents = async (_req, res) => {
+const getStudents = async (req, res) => {
     try {
         const students = await getAllStudents();
 
@@ -314,18 +325,19 @@ const getStudents = async (_req, res) => {
             students
         });
     } catch (error) {
-        console.error("Get students error:", error);
+        console.error("Get students error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve students."
+            message: "Failed to retrieve students"
         });
     }
 };
 
-// ============================================================
+// =====================================================
 // GET STUDENT BY ID
-// ============================================================
+// GET /api/students/:id
+// =====================================================
 
 const getStudent = async (req, res) => {
     try {
@@ -334,7 +346,7 @@ const getStudent = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 success: false,
-                message: "Student not found."
+                message: "Student not found"
             });
         }
 
@@ -343,22 +355,41 @@ const getStudent = async (req, res) => {
             student
         });
     } catch (error) {
-        console.error("Get student error:", error);
+        console.error("Get student error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve student."
+            message: "Failed to retrieve student"
         });
     }
 };
 
-// ============================================================
-// UPDATE STUDENT
-// ============================================================
+// =====================================================
+// UPDATE STUDENT PROFILE
+// PUT /api/students/:id
+// =====================================================
 
 const editStudent = async (req, res) => {
     try {
         const studentId = req.params.id;
+
+        const payload = {
+            registrationNo: normalizeStudentValue(req.body.registrationNo),
+            firstName: normalizeStudentValue(req.body.firstName),
+            lastName: normalizeStudentValue(req.body.lastName),
+            email: normalizeStudentValue(req.body.email),
+            phoneNumber: normalizeStudentValue(req.body.phoneNumber)
+        };
+
+        const validation = validateStudentData(payload, true);
+
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: validation.firstError,
+                errors: validation.errors
+            });
+        }
 
         const {
             registrationNo,
@@ -366,193 +397,129 @@ const editStudent = async (req, res) => {
             lastName,
             email,
             phoneNumber
-        } = req.body;
+        } = payload;
 
-        const validationErrors = validateStudentInput({
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            requirePassword: false
-        });
-
-        if (Object.keys(validationErrors).length > 0) {
-            await removeFile(req.file?.path);
-
+        if (!isValidRegistrationNumber(registrationNo)) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Please correct the invalid student information.",
-                errors: validationErrors
+                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
+            });
+        }
+
+        const firstNameError = validateName(firstName, "First name");
+
+        if (firstNameError) {
+            return res.status(400).json({
+                success: false,
+                message: firstNameError
+            });
+        }
+
+        const lastNameError = validateName(lastName, "Last name");
+
+        if (lastNameError) {
+            return res.status(400).json({
+                success: false,
+                message: lastNameError
+            });
+        }
+
+        const emailError = validateEmail(email);
+
+        if (emailError) {
+            return res.status(400).json({
+                success: false,
+                message: emailError
+            });
+        }
+
+        const phoneError = validatePhoneNumber(phoneNumber);
+
+        if (phoneError) {
+            return res.status(400).json({
+                success: false,
+                message: phoneError
             });
         }
 
         const existingStudent = await getStudentById(studentId);
 
         if (!existingStudent) {
-            await removeFile(req.file?.path);
-
             return res.status(404).json({
                 success: false,
-                message: "Student not found."
+                message: "Student not found"
             });
         }
 
-        const cleanRegistrationNo = registrationNo.trim();
-        const cleanFirstName = firstName.trim();
-        const cleanLastName = lastName.trim();
-        const cleanEmail = email.trim();
-        const cleanPhoneNumber = phoneNumber.trim();
-
-        // Preserve the existing photo when no new photo is selected.
-        const newPhoto = req.file
-            ? getUploadedPhotoPath(req.file)
-            : existingStudent.profile_photo || null;
-
-        // Check duplicate username.
-        const [duplicateUsername] = await pool.execute(
-            `SELECT user_id
-             FROM users
-             WHERE username = ?
-               AND user_id <> ?
-             LIMIT 1`,
-            [cleanRegistrationNo, existingStudent.user_id]
+        const result = await updateStudent(
+            studentId,
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
         );
-
-        if (duplicateUsername.length > 0) {
-            await removeFile(req.file?.path);
-
-            return res.status(409).json({
-                success: false,
-                message:
-                    "Registration number is already registered."
-            });
-        }
-
-        // Check duplicate email.
-        const [duplicateEmail] = await pool.execute(
-            `SELECT student_id
-             FROM students
-             WHERE email = ?
-               AND student_id <> ?
-             LIMIT 1`,
-            [cleanEmail, studentId]
-        );
-
-        if (duplicateEmail.length > 0) {
-            await removeFile(req.file?.path);
-
-            return res.status(409).json({
-                success: false,
-                message: "Email address is already registered."
-            });
-        }
-
-        const connection = await pool.getConnection();
-
-        try {
-            await connection.beginTransaction();
-
-            await connection.execute(
-                `UPDATE users
-                 SET username = ?
-                 WHERE user_id = ?`,
-                [cleanRegistrationNo, existingStudent.user_id]
-            );
-
-            await connection.execute(
-                `UPDATE students
-                 SET registration_no = ?,
-                     first_name = ?,
-                     last_name = ?,
-                     email = ?,
-                     phone_number = ?,
-                     profile_photo = ?
-                 WHERE student_id = ?`,
-                [
-                    cleanRegistrationNo,
-                    cleanFirstName,
-                    cleanLastName,
-                    cleanEmail,
-                    cleanPhoneNumber,
-                    newPhoto,
-                    studentId
-                ]
-            );
-
-            await connection.commit();
-        } catch (error) {
-            await connection.rollback();
-            await removeFile(req.file?.path);
-            throw error;
-        } finally {
-            connection.release();
-        }
-
-        if (req.file) {
-            await removeOldPhotoIfDifferent(
-                existingStudent.profile_photo,
-                newPhoto
-            );
-        }
 
         return res.status(200).json({
             success: true,
-            message: "Student updated successfully.",
-            profile_photo: newPhoto
+            message: "Student updated successfully",
+            affectedRows: result.affectedRows
         });
     } catch (error) {
-        console.error("Update student error:", error);
+        console.error("Update student error:", error.message);
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Email address or registration number is already registered"
+            });
+        }
 
         return res.status(500).json({
             success: false,
-            message: "Failed to update student."
+            message: "Failed to update student"
         });
     }
 };
 
-// ============================================================
+// =====================================================
 // DELETE STUDENT
-// ============================================================
+// DELETE /api/students/:id
+// =====================================================
 
 const removeStudent = async (req, res) => {
     try {
-        const student = await getStudentById(req.params.id);
+        const studentId = req.params.id;
+        const student = await getStudentById(studentId);
 
         if (!student) {
             return res.status(404).json({
                 success: false,
-                message: "Student not found."
+                message: "Student not found"
             });
         }
 
-        const result = await deleteStudent(req.params.id);
-
-        if (result.affectedRows > 0) {
-            await removeFile(
-                getDiskPathFromPhotoUrl(student.profile_photo)
-            );
-        }
+        const result = await deleteStudent(studentId);
 
         return res.status(200).json({
             success: true,
-            message: "Student deleted successfully.",
+            message: "Student deleted successfully",
             affectedRows: result.affectedRows
         });
     } catch (error) {
-        console.error("Delete student error:", error);
+        console.error("Delete student error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to delete student."
+            message: "Failed to delete student"
         });
     }
 };
 
-// ============================================================
-// GET CURRENT STUDENT PROFILE
-// ============================================================
+// =====================================================
+// GET LOGGED-IN STUDENT PROFILE
+// GET /api/students/me
+// =====================================================
 
 const getMyProfile = async (req, res) => {
     try {
@@ -561,7 +528,7 @@ const getMyProfile = async (req, res) => {
         if (!student) {
             return res.status(404).json({
                 success: false,
-                message: "Student profile not found."
+                message: "Student profile not found"
             });
         }
 
@@ -570,18 +537,19 @@ const getMyProfile = async (req, res) => {
             student
         });
     } catch (error) {
-        console.error("Get my profile error:", error);
+        console.error("Get my profile error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message: "Failed to retrieve profile."
+            message: "Failed to retrieve profile"
         });
     }
 };
 
-// ============================================================
-// CR-020: CHANGE STUDENT PASSWORD
-// ============================================================
+// =====================================================
+// CR-020: CHANGE LOGGED-IN STUDENT PASSWORD
+// PATCH /api/students/me/password
+// =====================================================
 
 const changeMyPassword = async (req, res) => {
     try {
@@ -591,180 +559,99 @@ const changeMyPassword = async (req, res) => {
             confirmPassword
         } = req.body || {};
 
-        // User ID must come from the authenticated token.
-        const authenticatedUserId = req.user?.userId;
-
-        if (!authenticatedUserId) {
-            return res.status(401).json({
-                success: false,
-                message: "Authentication is required."
-            });
-        }
-
-        // Validate required fields.
         if (
             typeof currentPassword !== "string" ||
-            typeof newPassword !== "string" ||
-            typeof confirmPassword !== "string" ||
             !currentPassword ||
+            typeof newPassword !== "string" ||
             !newPassword ||
+            typeof confirmPassword !== "string" ||
             !confirmPassword
         ) {
             return res.status(400).json({
                 success: false,
-                message: "Please fill in all password fields."
+                message: "All password fields are required"
             });
         }
 
-        // Verify new password confirmation.
+        const passwordError = validatePassword(newPassword);
+
+        if (passwordError) {
+            return res.status(400).json({
+                success: false,
+                message: passwordError
+            });
+        }
+
         if (newPassword !== confirmPassword) {
             return res.status(400).json({
                 success: false,
-                message: "New passwords do not match."
+                message: "New password and confirmation password do not match"
             });
         }
 
-        // Apply the password policy.
-        if (newPassword.length < 8) {
+        if (currentPassword === newPassword) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "Password must contain at least 8 characters."
+                message: "New password must be different from current password"
             });
         }
 
-        if (!uppercaseRegex.test(newPassword)) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Password must contain at least one uppercase letter."
-            });
-        }
+        // Never trust a user ID sent by the frontend.
+        const userId = req.user.userId;
 
-        if (!lowercaseRegex.test(newPassword)) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Password must contain at least one lowercase letter."
-            });
-        }
+        const account = await getPasswordHashByUserId(userId);
 
-        if (!numberRegex.test(newPassword)) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Password must contain at least one number."
-            });
-        }
-
-        if (!specialCharacterRegex.test(newPassword)) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Password must contain at least one special character."
-            });
-        }
-
-        // Get the profile belonging to the authenticated user.
-        const student = await getStudentByUserId(
-            authenticatedUserId
-        );
-
-        if (!student) {
+        if (!account) {
             return res.status(404).json({
                 success: false,
-                message: "Student profile not found."
+                message: "Student account not found"
             });
         }
 
-        // Ensure the URL student ID matches the authenticated student.
-        if (
-            String(student.student_id) !== String(req.params.id)
-        ) {
-            return res.status(403).json({
-                success: false,
-                message:
-                    "You can only change your own password."
-            });
-        }
-
-        // Retrieve the current account and password hash.
-        const user = await getPasswordHashByUserId(
-            authenticatedUserId
-        );
-
-        if (!user || user.role !== "STUDENT") {
-            return res.status(403).json({
-                success: false,
-                message:
-                    "Only student accounts can change passwords."
-            });
-        }
-
-        // Verify the current password.
-        const currentPasswordIsValid = await bcrypt.compare(
+        const currentPasswordMatches = await bcrypt.compare(
             currentPassword,
-            user.password_hash
+            account.password_hash
         );
 
-        if (!currentPasswordIsValid) {
-            return res.status(400).json({
+        if (!currentPasswordMatches) {
+            return res.status(401).json({
                 success: false,
-                message: "Current password is incorrect."
+                message: "Current password is incorrect"
             });
         }
 
-        // Ensure the new password is different from the current one.
-        const sameAsCurrent = await bcrypt.compare(
-            newPassword,
-            user.password_hash
-        );
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
-        if (sameAsCurrent) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "New password must be different from the current password."
-            });
-        }
-
-        // Hash before saving. Never store a plain-text password.
-        const newPasswordHash = await bcrypt.hash(
-            newPassword,
-            10
-        );
-
-        const updateResult = await updatePasswordHash(
-            authenticatedUserId,
+        const result = await updatePasswordHash(
+            userId,
             newPasswordHash
         );
 
-        if (!updateResult.affectedRows) {
+        if (!result.affectedRows) {
             return res.status(500).json({
                 success: false,
-                message: "Password could not be updated."
+                message: "Password could not be updated"
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Password changed successfully."
+            message: "Password changed successfully"
         });
     } catch (error) {
         // Do not log passwords or password hashes.
-        console.error("Change student password error:", error);
+        console.error("Change student password error:", error.message);
 
         return res.status(500).json({
             success: false,
-            message:
-                "Failed to change password. Please try again."
+            message: "Failed to change password"
         });
     }
 };
 
-// ============================================================
-// EXPORT CONTROLLER FUNCTIONS
-// ============================================================
+// =====================================================
+// EXPORT CONTROLLERS
+// =====================================================
 
 module.exports = {
     addStudent,

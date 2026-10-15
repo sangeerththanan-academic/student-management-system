@@ -1,23 +1,8 @@
 
 import { useEffect, useState } from "react";
-import apiRequest, { API_BASE_URL } from "../services/api";
+import apiRequest from "../services/api";
 
-const registrationNumberRegex =
-    /^[A-Za-z0-9]+(?:[-/_][A-Za-z0-9]+)*$/;
-
-const nameRegex = /^[A-Za-z]+(?:[ '-][A-Za-z]+)*$/;
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\d{10}$/;
-
-const uppercaseRegex = /[A-Z]/;
-const lowercaseRegex = /[a-z]/;
-const numberRegex = /[0-9]/;
-const specialCharacterRegex = /[^A-Za-z0-9]/;
-
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"];
-
-const emptyForm = {
+const INITIAL_FORM_DATA = {
     registrationNo: "",
     firstName: "",
     lastName: "",
@@ -26,84 +11,94 @@ const emptyForm = {
     password: ""
 };
 
-// Validate student form
-const validateStudentForm = (formData, isEditing) => {
-    const errors = {};
+const MAX_CSV_SIZE = 1024 * 1024; // 1 MB
 
-    const registrationNo = formData.registrationNo.trim();
-    const firstName = formData.firstName.trim();
-    const lastName = formData.lastName.trim();
-    const email = formData.email.trim();
-    const phoneNumber = formData.phoneNumber.trim();
-    const password = formData.password;
+// Parse CSV including quoted commas, escaped quotes and newlines.
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let value = "";
+    let inQuotes = false;
 
-    if (!registrationNo) {
-        errors.registrationNo = "Registration number is required.";
-    } else if (!registrationNumberRegex.test(registrationNo)) {
-        errors.registrationNo =
-            "Registration number contains invalid characters.";
-    }
+    const input = text.replace(/^\uFEFF/, "");
 
-    if (!firstName) {
-        errors.firstName = "First name is required.";
-    } else if (firstName.length < 3) {
-        errors.firstName =
-            "First name must contain at least 3 characters.";
-    } else if (!nameRegex.test(firstName)) {
-        errors.firstName =
-            "First name can contain only valid alphabetic characters.";
-    }
+    for (let i = 0; i < input.length; i++) {
+        const char = input[i];
 
-    if (!lastName) {
-        errors.lastName = "Last name is required.";
-    } else if (lastName.length < 3) {
-        errors.lastName =
-            "Last name must contain at least 3 characters.";
-    } else if (!nameRegex.test(lastName)) {
-        errors.lastName =
-            "Last name can contain only valid alphabetic characters.";
-    }
+        if (inQuotes) {
+            if (char === '"') {
+                if (input[i + 1] === '"') {
+                    value += '"';
+                    i++;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                value += char;
+            }
+        } else if (char === '"' && value.length === 0) {
+            inQuotes = true;
+        } else if (char === ",") {
+            row.push(value);
+            value = "";
+        } else if (char === "\n" || char === "\r") {
+            if (char === "\r" && input[i + 1] === "\n") {
+                i++;
+            }
 
-    if (!email) {
-        errors.email = "Email address is required.";
-    } else if (!emailRegex.test(email)) {
-        errors.email = "Please enter a valid email address.";
-    }
+            row.push(value);
 
-    if (!phoneNumber) {
-        errors.phoneNumber = "Phone number is required.";
-    } else if (!/^\d+$/.test(phoneNumber)) {
-        errors.phoneNumber =
-            "Phone number must contain numeric characters only.";
-    } else if (!phoneRegex.test(phoneNumber)) {
-        errors.phoneNumber =
-            "Phone number must contain exactly 10 digits.";
-    }
+            if (row.some((cell) => cell.trim() !== "")) {
+                rows.push(row);
+            }
 
-    if (!isEditing) {
-        if (!password) {
-            errors.password =
-                "Password is required for a new student.";
-        } else if (password.length < 8) {
-            errors.password =
-                "Password must contain at least 8 characters.";
-        } else if (!uppercaseRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one uppercase letter.";
-        } else if (!lowercaseRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one lowercase letter.";
-        } else if (!numberRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one number.";
-        } else if (!specialCharacterRegex.test(password)) {
-            errors.password =
-                "Password must contain at least one special character.";
+            row = [];
+            value = "";
+        } else {
+            value += char;
         }
     }
 
-    return errors;
+    if (inQuotes) {
+        throw new Error("CSV contains an unclosed quotation mark.");
+    }
+
+    row.push(value);
+
+    if (row.some((cell) => cell.trim() !== "")) {
+        rows.push(row);
+    }
+
+    return rows;
+}
+
+function normalizeHeader(header) {
+    return String(header ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]+/g, "");
+}
+
+const CSV_HEADER_MAP = {
+    registrationno: "registrationNo",
+    registrationnumber: "registrationNo",
+    registrationnum: "registrationNo",
+    firstname: "firstName",
+    lastname: "lastName",
+    email: "email",
+    emailaddress: "email",
+    phonenumber: "phoneNumber",
+    phone: "phoneNumber",
+    password: "password"
 };
+
+const REQUIRED_CSV_FIELDS = [
+    "registrationNo",
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber"
+];
 
 function StudentFormModal({
     show,
@@ -112,16 +107,30 @@ function StudentFormModal({
     onSuccess,
     onAuthError
 }) {
-    const [formData, setFormData] = useState(emptyForm);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState("");
-    const [imageError, setImageError] = useState("");
+    const [formData, setFormData] = useState({
+        ...INITIAL_FORM_DATA
+    });
+
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+    const [touched, setTouched] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
+
+    const [csvError, setCsvError] = useState("");
+    const [csvMessage, setCsvMessage] = useState("");
+    const [csvFileName, setCsvFileName] = useState("");
 
     useEffect(() => {
         if (!show) return;
+
+        setShowPassword(false);
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
+        setFormError("");
+        setFieldErrors({});
+        setTouched({});
 
         if (editingStudent) {
             setFormData({
@@ -129,128 +138,353 @@ function StudentFormModal({
                 firstName: editingStudent.first_name || "",
                 lastName: editingStudent.last_name || "",
                 email: editingStudent.email || "",
-                phoneNumber: editingStudent.phone_number || "",
+                phoneNumber: String(
+                    editingStudent.phone_number ?? ""
+                ),
                 password: ""
             });
-
-            setImagePreview(
-                editingStudent.profile_photo
-                    ? `${API_BASE_URL}${editingStudent.profile_photo}`
-                    : ""
-            );
         } else {
-            setFormData({ ...emptyForm });
-            setImagePreview("");
+            setFormData({ ...INITIAL_FORM_DATA });
         }
-
-        setSelectedImage(null);
-        setImageError("");
-        setFormError("");
-        setFieldErrors({});
     }, [editingStudent, show]);
 
-    // Sanitize input values
-    const sanitizeInput = (name, value) => {
+    // Field validation
+    const validateField = (name, value) => {
+        const v = String(value ?? "").trim();
+
         switch (name) {
             case "registrationNo":
-                return value
-                    .replace(/[^A-Za-z0-9/_-]/g, "")
-                    .slice(0, 30);
+                if (!v) {
+                    return "Registration number is required.";
+                }
+
+                if (!/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(v)) {
+                    return "Use letters, numbers, hyphens, or underscores.";
+                }
+
+                return null;
 
             case "firstName":
             case "lastName":
-                return value
-                    .replace(/[^A-Za-z '-]/g, "")
-                    .slice(0, 30);
+                if (!v) {
+                    return `${name === "firstName" ? "First" : "Last"} name is required.`;
+                }
+
+                if (v.length < 3) {
+                    return "Name must be at least 3 characters.";
+                }
+
+                if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
+                    return "Name must contain letters and spaces only.";
+                }
+
+                return null;
+
+            case "email":
+                if (!v) {
+                    return "Email address is required.";
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                    return "Please enter a valid email address.";
+                }
+
+                return null;
 
             case "phoneNumber":
-                return value.replace(/\D/g, "").slice(0, 10);
+                if (!v) {
+                    return "Phone number is required.";
+                }
+
+                if (!/^\d{10}$/.test(v)) {
+                    return "Phone number must contain exactly 10 digits.";
+                }
+
+                return null;
+
+            case "password":
+                if (editingStudent) return null;
+
+                if (!value) {
+                    return "Password is required.";
+                }
+
+                if (value.length < 8) {
+                    return "Password must be at least 8 characters.";
+                }
+
+                if (!/[A-Z]/.test(value)) {
+                    return "Password must contain an uppercase letter.";
+                }
+
+                if (!/[a-z]/.test(value)) {
+                    return "Password must contain a lowercase letter.";
+                }
+
+                if (!/\d/.test(value)) {
+                    return "Password must contain a number.";
+                }
+
+                if (!/[^A-Za-z0-9]/.test(value)) {
+                    return "Password must contain a special character.";
+                }
+
+                return null;
 
             default:
-                return value;
+                return null;
         }
     };
 
-    // Handle text input changes
+    const validateAll = (data = formData) => {
+        const fields = [
+            ...REQUIRED_CSV_FIELDS
+        ];
+
+        if (!editingStudent) {
+            fields.push("password");
+        }
+
+        const errors = {};
+
+        fields.forEach((name) => {
+            const error = validateField(name, data[name]);
+
+            if (error) {
+                errors[name] = error;
+            }
+        });
+
+        return errors;
+    };
+
+    // CSV file upload and form auto-fill
+    const handleCSVUpload = async (event) => {
+        const file = event.target.files?.[0];
+
+        setCsvError("");
+        setCsvMessage("");
+        setFormError("");
+
+        if (!file) return;
+
+        // Allow selecting the same file again later.
+        event.target.value = "";
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            setCsvError("Please select a CSV file.");
+            return;
+        }
+
+        if (file.size === 0) {
+            setCsvError("The selected CSV file is empty.");
+            return;
+        }
+
+        if (file.size > MAX_CSV_SIZE) {
+            setCsvError("CSV file must not exceed 1 MB.");
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const rows = parseCSV(text);
+
+            if (rows.length < 2) {
+                setCsvError(
+                    "CSV must contain a header row and one student record."
+                );
+                return;
+            }
+
+            const headers = rows[0].map(normalizeHeader);
+
+            if (headers.some((header) => !header)) {
+                setCsvError(
+                    "CSV contains an empty column header."
+                );
+                return;
+            }
+
+            const mappedHeaders = headers.map(
+                (header) => CSV_HEADER_MAP[header] || null
+            );
+
+            const supportedHeaders = mappedHeaders.filter(Boolean);
+
+            if (
+                new Set(supportedHeaders).size !==
+                supportedHeaders.length
+            ) {
+                setCsvError(
+                    "CSV contains duplicate or ambiguous student columns."
+                );
+                return;
+            }
+
+            const missingHeaders = REQUIRED_CSV_FIELDS.filter(
+                (field) => !supportedHeaders.includes(field)
+            );
+
+            if (missingHeaders.length > 0) {
+                setCsvError(
+                    `Missing required CSV columns: ${missingHeaders.join(", ")}.`
+                );
+                return;
+            }
+
+            if (rows.length > 2) {
+                setCsvError(
+                    "This form imports one student at a time. Please use a CSV containing only one student data row."
+                );
+                return;
+            }
+
+            const values = rows[1];
+
+            if (values.length !== headers.length) {
+                setCsvError(
+                    "CSV row has a different number of values than the header row."
+                );
+                return;
+            }
+
+            const importedData = {
+                ...INITIAL_FORM_DATA
+            };
+
+            mappedHeaders.forEach((field, index) => {
+                if (field) {
+                    importedData[field] = values[index].trim();
+                }
+            });
+
+            const errors = validateAll(importedData);
+            const allFieldsTouched = {};
+
+            REQUIRED_CSV_FIELDS.forEach((field) => {
+                allFieldsTouched[field] = true;
+            });
+
+            if (!editingStudent) {
+                allFieldsTouched.password = true;
+            }
+
+            setFormData(importedData);
+            setTouched(allFieldsTouched);
+            setFieldErrors(errors);
+            setCsvFileName(file.name);
+
+            if (Object.keys(errors).length > 0) {
+                setCsvMessage(
+                    "CSV values were imported. Please correct the highlighted fields before saving."
+                );
+            } else {
+                setCsvMessage(
+                    "CSV imported successfully. Review the values before creating the student."
+                );
+            }
+        } catch (error) {
+            console.error("CSV import error:", error);
+            setCsvError(
+                error.message || "Unable to read the CSV file."
+            );
+        }
+    };
+
+    const handleClearCSV = () => {
+        setFormData({ ...INITIAL_FORM_DATA });
+        setFieldErrors({});
+        setTouched({});
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
+        setFormError("");
+    };
+
+    // Input change
     const handleInputChange = (event) => {
         const { name, value } = event.target;
+        let nextValue = value;
 
-        setFormData((previous) => ({
+        if (name === "registrationNo") {
+            nextValue = value
+                .replace(/[^A-Za-z0-9_-]/g, "")
+                .slice(0, 30);
+        } else if (name === "firstName" || name === "lastName") {
+            nextValue = value
+                .replace(/[^A-Za-z ]/g, "")
+                .slice(0, 30);
+        } else if (name === "phoneNumber") {
+            if (!/^\d*$/.test(value) || value.length > 10) {
+                return;
+            }
+        }
+
+        const nextData = {
+            ...formData,
+            [name]: nextValue
+        };
+
+        setFormData(nextData);
+        setFormError("");
+
+        if (touched[name]) {
+            setFieldErrors((previous) => ({
+                ...previous,
+                [name]: validateField(name, nextValue)
+            }));
+        }
+    };
+
+    const handleBlur = (event) => {
+        const { name, value } = event.target;
+
+        setTouched((previous) => ({
             ...previous,
-            [name]: sanitizeInput(name, value)
+            [name]: true
         }));
 
         setFieldErrors((previous) => ({
             ...previous,
-            [name]: ""
+            [name]: validateField(name, value)
         }));
-
-        setFormError("");
     };
 
-    // Handle profile image upload
-    const handleImageChange = (event) => {
-        const file = event.target.files?.[0];
-
-        setImageError("");
-        setSelectedImage(null);
-
-        if (!file) {
-            setImagePreview(
-                editingStudent?.profile_photo
-                    ? `${API_BASE_URL}${editingStudent.profile_photo}`
-                    : ""
-            );
-            return;
-        }
-
-        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-            setImageError(
-                "Only PNG, JPG, and JPEG images are allowed."
-            );
-            event.target.value = "";
-            return;
-        }
-
-        if (file.size > MAX_IMAGE_SIZE) {
-            setImageError(
-                "Profile image must be 2 MB or smaller."
-            );
-            event.target.value = "";
-            return;
-        }
-
-        setSelectedImage(file);
-        setImagePreview(URL.createObjectURL(file));
-    };
-
-    // Close modal
     const handleClose = () => {
         if (formLoading) return;
 
+        setShowPassword(false);
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
         setFormError("");
         setFieldErrors({});
-        setImageError("");
-        setSelectedImage(null);
+        setTouched({});
         onClose();
     };
 
-    // Submit student form
+    // Submit using the existing student creation API
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         setFormError("");
-        setFieldErrors({});
 
-        const errors = validateStudentForm(
-            formData,
-            Boolean(editingStudent)
-        );
+        const errors = validateAll();
+        const allTouched = {};
+
+        [
+            ...REQUIRED_CSV_FIELDS,
+            ...(!editingStudent ? ["password"] : [])
+        ].forEach((field) => {
+            allTouched[field] = true;
+        });
+
+        setTouched(allTouched);
+        setFieldErrors(errors);
 
         if (Object.keys(errors).length > 0) {
-            setFieldErrors(errors);
             setFormError(
-                "Please correct the highlighted fields before submitting."
+                "Please fix the highlighted errors before submitting."
             );
             return;
         }
@@ -258,42 +492,34 @@ function StudentFormModal({
         try {
             setFormLoading(true);
 
-            const payload = new FormData();
-
-            payload.append(
-                "registrationNo",
-                formData.registrationNo.trim()
-            );
-            payload.append("firstName", formData.firstName.trim());
-            payload.append("lastName", formData.lastName.trim());
-            payload.append("email", formData.email.trim());
-            payload.append("phoneNumber", formData.phoneNumber.trim());
-
-            if (!editingStudent) {
-                payload.append("password", formData.password);
-            }
-
-            if (selectedImage) {
-                payload.append("profileImage", selectedImage);
-            }
+            const studentData = {
+                registrationNo: formData.registrationNo.trim(),
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
+                email: formData.email.trim(),
+                phoneNumber: formData.phoneNumber.trim()
+            };
 
             if (editingStudent) {
                 await apiRequest(
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: payload
+                        body: JSON.stringify(studentData)
                     }
                 );
             } else {
                 await apiRequest("/api/students/", {
                     method: "POST",
-                    body: payload
+                    body: JSON.stringify({
+                        ...studentData,
+                        password: formData.password
+                    })
                 });
             }
 
             await onSuccess();
-            onClose();
+            handleClose();
         } catch (error) {
             console.error("Student save error:", error);
 
@@ -309,8 +535,16 @@ function StudentFormModal({
                 return;
             }
 
-            if (error.data?.errors) {
-                setFieldErrors(error.data.errors);
+            if (error.status === 400 && error.data?.errors) {
+                setFieldErrors((previous) => ({
+                    ...previous,
+                    ...error.data.errors
+                }));
+
+                setFormError(
+                    error.message || "Please check the form fields."
+                );
+                return;
             }
 
             setFormError(
@@ -321,13 +555,103 @@ function StudentFormModal({
         }
     };
 
+    const renderField = (label, name, type = "text", hint = "") => {
+        const hasError = Boolean(
+            touched[name] && fieldErrors[name]
+        );
+
+        const hintId = `sf-${name}-hint`;
+        const isPassword = name === "password";
+
+        return (
+            <div
+                key={name}
+                className={`form-group${hasError ? " field-error" : ""}`}
+            >
+                <label htmlFor={`sf-${name}`}>{label}</label>
+
+                {isPassword ? (
+                    <div className="password-input-wrapper">
+                        <input
+                            id={`sf-${name}`}
+                            type={showPassword ? "text" : "password"}
+                            name={name}
+                            value={formData[name]}
+                            onChange={handleInputChange}
+                            onBlur={handleBlur}
+                            disabled={formLoading}
+                            required={!editingStudent}
+                            autoComplete="new-password"
+                            aria-describedby={
+                                hasError || hint ? hintId : undefined
+                            }
+                            aria-invalid={hasError}
+                        />
+
+                        <button
+                            type="button"
+                            className="password-toggle-button"
+                            onClick={() =>
+                                setShowPassword((previous) => !previous)
+                            }
+                            disabled={formLoading}
+                            aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                            }
+                            aria-pressed={showPassword}
+                        >
+                            {showPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                ) : (
+                    <input
+                        id={`sf-${name}`}
+                        type={type}
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        disabled={formLoading}
+                        required
+                        autoComplete="off"
+                        maxLength={
+                            name === "phoneNumber"
+                                ? 10
+                                : name === "email"
+                                    ? 254
+                                    : 100
+                        }
+                        inputMode={
+                            name === "phoneNumber" ? "numeric" : undefined
+                        }
+                        aria-describedby={
+                            hasError || hint ? hintId : undefined
+                        }
+                        aria-invalid={hasError}
+                    />
+                )}
+
+                {hasError ? (
+                    <span
+                        id={hintId}
+                        className="field-error-msg"
+                        role="alert"
+                    >
+                        {fieldErrors[name]}
+                    </span>
+                ) : hint ? (
+                    <span id={hintId} className="field-hint">
+                        {hint}
+                    </span>
+                ) : null}
+            </div>
+        );
+    };
+
     if (!show) return null;
 
     return (
-        <div
-            className="modal-overlay"
-            onClick={handleClose}
-        >
+        <div className="modal-overlay" onClick={handleClose}>
             <div
                 className="modal-content student-form-card"
                 onClick={(event) => event.stopPropagation()}
@@ -342,8 +666,8 @@ function StudentFormModal({
 
                         <p>
                             {editingStudent
-                                ? "Update student information and profile image."
-                                : "Create a student account and upload a profile image."}
+                                ? "Update student information."
+                                : "Create a new student account."}
                         </p>
                     </div>
 
@@ -359,10 +683,7 @@ function StudentFormModal({
                 </div>
 
                 {formError && (
-                    <div
-                        className="dashboard-error"
-                        role="alert"
-                    >
+                    <div className="dashboard-error" role="alert">
                         {formError}
                     </div>
                 )}
@@ -370,200 +691,113 @@ function StudentFormModal({
                 <form
                     className="student-form"
                     onSubmit={handleSubmit}
+                    noValidate
                 >
-                    {/* Profile image */}
-                    <div className="form-group profile-image-group">
-                        <label htmlFor="profileImage">
-                            Profile Image
-                        </label>
-
-                        {imagePreview ? (
-                            <img
-                                className="profile-image-preview"
-                                src={imagePreview}
-                                alt="Student profile preview"
-                                onError={() => setImagePreview("")}
-                            />
-                        ) : (
-                            <div className="profile-image-placeholder">
-                                No image selected
-                            </div>
-                        )}
-
-                        <input
-                            id="profileImage"
-                            name="profileImage"
-                            type="file"
-                            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-                            onChange={handleImageChange}
-                            disabled={formLoading}
-                        />
-
-                        <small className="password-hint">
-                            PNG, JPG, or JPEG. Maximum size: 2 MB.
-                            {editingStudent
-                                ? " Leave this field unchanged to keep the current image."
-                                : ""}
-                        </small>
-
-                        {imageError && (
-                            <small
-                                className="field-error"
-                                role="alert"
-                            >
-                                {imageError}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* Registration number */}
-                    <div className="form-group">
-                        <label htmlFor="registrationNo">
-                            Registration Number
-                        </label>
-
-                        <input
-                            id="registrationNo"
-                            name="registrationNo"
-                            value={formData.registrationNo}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-
-                        {fieldErrors.registrationNo && (
-                            <small className="field-error">
-                                {fieldErrors.registrationNo}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* First name */}
-                    <div className="form-group">
-                        <label htmlFor="firstName">
-                            First Name
-                        </label>
-
-                        <input
-                            id="firstName"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-
-                        {fieldErrors.firstName && (
-                            <small className="field-error">
-                                {fieldErrors.firstName}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* Last name */}
-                    <div className="form-group">
-                        <label htmlFor="lastName">
-                            Last Name
-                        </label>
-
-                        <input
-                            id="lastName"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-
-                        {fieldErrors.lastName && (
-                            <small className="field-error">
-                                {fieldErrors.lastName}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* Email */}
-                    <div className="form-group">
-                        <label htmlFor="email">
-                            Email
-                        </label>
-
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                        />
-
-                        {fieldErrors.email && (
-                            <small className="field-error">
-                                {fieldErrors.email}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* Phone number */}
-                    <div className="form-group">
-                        <label htmlFor="phoneNumber">
-                            Phone Number
-                        </label>
-
-                        <input
-                            id="phoneNumber"
-                            name="phoneNumber"
-                            type="text"
-                            value={formData.phoneNumber}
-                            onChange={handleInputChange}
-                            disabled={formLoading}
-                            required
-                            maxLength={10}
-                            inputMode="numeric"
-                            placeholder="0712345678"
-                        />
-
-                        {fieldErrors.phoneNumber && (
-                            <small className="field-error">
-                                {fieldErrors.phoneNumber}
-                            </small>
-                        )}
-                    </div>
-
-                    {/* Password - only for new students */}
                     {!editingStudent && (
-                        <div className="form-group">
-                            <label htmlFor="password">
-                                Password
+                        <section className="csv-import-section">
+                            <h4>Import Student Details from CSV</h4>
+
+                            <p>
+                                Select a CSV file with one student record.
+                                Review and edit the imported values before
+                                creating the student.
+                            </p>
+
+                            <label htmlFor="student-csv-file">
+                                Choose CSV file
                             </label>
 
                             <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
+                                id="student-csv-file"
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={handleCSVUpload}
                                 disabled={formLoading}
-                                required
-                                minLength={8}
-                                autoComplete="new-password"
                             />
 
-                            {fieldErrors.password && (
-                                <small className="field-error">
-                                    {fieldErrors.password}
-                                </small>
+                            <p className="field-hint">
+                                Required columns: registration_no,
+                                first_name, last_name, email, phone_number.
+                                Password can be entered manually.
+                            </p>
+
+                            {csvFileName && (
+                                <p className="csv-import-filename">
+                                    Selected file: {csvFileName}
+                                </p>
                             )}
 
-                            <small className="password-hint">
-                                Minimum 8 characters with uppercase,
-                                lowercase, number, and special character.
-                            </small>
-                        </div>
+                            {csvError && (
+                                <p className="csv-import-error" role="alert">
+                                    {csvError}
+                                </p>
+                            )}
+
+                            {csvMessage && (
+                                <p
+                                    className="csv-import-success"
+                                    role="status"
+                                >
+                                    {csvMessage}
+                                </p>
+                            )}
+
+                            {csvFileName && (
+                                <button
+                                    type="button"
+                                    className="cancel-button"
+                                    onClick={handleClearCSV}
+                                    disabled={formLoading}
+                                >
+                                    Clear Imported Data
+                                </button>
+                            )}
+                        </section>
                     )}
 
-                    {/* Form buttons */}
+                    {renderField(
+                        "Registration Number",
+                        "registrationNo",
+                        "text",
+                        "Letters, numbers, hyphens, or underscores."
+                    )}
+
+                    {renderField(
+                        "First Name",
+                        "firstName",
+                        "text",
+                        "At least 3 characters; letters and spaces only."
+                    )}
+
+                    {renderField(
+                        "Last Name",
+                        "lastName",
+                        "text",
+                        "At least 3 characters; letters and spaces only."
+                    )}
+
+                    {renderField(
+                        "Email",
+                        "email",
+                        "email",
+                        "Example: student@example.com"
+                    )}
+
+                    {renderField(
+                        "Phone Number",
+                        "phoneNumber",
+                        "text",
+                        "Exactly 10 digits."
+                    )}
+
+                    {!editingStudent &&
+                        renderField(
+                            "Password",
+                            "password",
+                            "password",
+                            "At least 8 characters with uppercase, lowercase, number, and special character."
+                        )}
+
                     <div className="form-actions">
                         <button
                             type="button"
@@ -577,9 +811,7 @@ function StudentFormModal({
                         <button
                             type="submit"
                             className="save-button"
-                            disabled={
-                                formLoading || Boolean(imageError)
-                            }
+                            disabled={formLoading}
                         >
                             {formLoading
                                 ? "Saving..."
