@@ -14,6 +14,7 @@ const {
 } = require("../models/studentModel");
 
 const { validateStudentData } = require("../utils/validation");
+const { generateStudentsCsv } = require("../utils/csvExport");
 
 
 // Helper to delete an uploaded file safely
@@ -469,6 +470,27 @@ const changeMyPassword = async (req, res) => {
 };
 
 
+// EXPORT ALL STUDENTS TO CSV (CR-015)
+// GET /api/students/export/csv
+const exportStudentsCsv = async (req, res) => {
+    try {
+        const students = await getAllStudents();
+        const csvData = generateStudentsCsv(students);
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", 'attachment; filename="students.csv"');
+        return res.status(200).send(csvData);
+    } catch (error) {
+        console.error("Export students CSV error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export student records"
+        });
+    }
+};
+
+
 module.exports = {
     addStudent,
     getStudents,
@@ -476,5 +498,6 @@ module.exports = {
     getMyProfile,
     changeMyPassword,
     editStudent,
-    removeStudent
+    removeStudent,
+    exportStudentsCsv
 };

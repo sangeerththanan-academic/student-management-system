@@ -12,6 +12,7 @@ import apiRequest from "../services/api";
 import StudentFormModal from "../components/StudentFormModal";
 import ThemeToggle from "../components/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { triggerCsvDownload, generateStudentsCsv } from "../utils/csvExport";
 
 import "../styles/dashboard.css";
 
@@ -60,6 +61,8 @@ function DashboardPage() {
     });
 
     const [editingStudent, setEditingStudent] = useState(null);
+    const [exporting, setExporting] = useState(false);
+    const [exportMessage, setExportMessage] = useState("");
 
     // Load current user
     useEffect(() => {
@@ -276,6 +279,65 @@ function DashboardPage() {
     };
 
 
+    // CR-015: Export student records to CSV
+    const handleExportCSV = async () => {
+        try {
+            setExporting(true);
+            setExportMessage("");
+            setError("");
+
+            const token = localStorage.getItem("token");
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+            let downloaded = false;
+
+            try {
+                const response = await fetch(`${apiUrl}/api/students/export/csv`, {
+                    method: "GET",
+                    headers: {
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+
+                if (response.status === 403) {
+                    setError("You do not have permission to export student records.");
+                    return;
+                }
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    triggerCsvDownload(blob, "students.csv");
+                    downloaded = true;
+                }
+            } catch (networkErr) {
+                console.warn("Backend export request failed, falling back to client-side export:", networkErr);
+            }
+
+            // Fallback to client-side CSV generation if backend didn't complete
+            if (!downloaded) {
+                const csvData = generateStudentsCsv(students);
+                triggerCsvDownload(csvData, "students.csv");
+            }
+
+            setExportMessage("Student records exported successfully to students.csv.");
+            setTimeout(() => {
+                setExportMessage("");
+            }, 4000);
+        } catch (err) {
+            console.error("Export students error:", err);
+            setError(err.message || "Failed to export student records.");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+
     // Render
     return (
         <div className={`dashboard-page ${theme}`} data-theme={theme}>
@@ -336,14 +398,59 @@ function DashboardPage() {
                     </div>
 
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+                        <button
+                            type="button"
+                            className="export-student-button"
+                            id="export-csv-btn"
+                            onClick={handleExportCSV}
+                            disabled={exporting || loading}
+                            aria-label="Export student records to CSV"
+                            title="Export student records to CSV"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            {exporting ? "Exporting..." : "Export CSV"}
+                        </button>
+
+                        <button
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
 
                 </div>
+
+
+                {/* Export feedback (CR-015) */}
+                {exportMessage && (
+                    <div className="dashboard-export-feedback" role="status">
+                        <span>{exportMessage}</span>
+                        <button
+                            type="button"
+                            className="feedback-dismiss"
+                            onClick={() => setExportMessage("")}
+                            aria-label="Dismiss message"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                )}
 
 
                 {/* Error */}

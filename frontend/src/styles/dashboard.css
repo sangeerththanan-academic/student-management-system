@@ -136,6 +136,68 @@
     font-size: 14px;
 }
 
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.export-student-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.export-student-button:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.export-student-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.dashboard-export-feedback {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.feedback-dismiss {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 0 4px;
+}
+
+.feedback-dismiss:hover {
+    opacity: 1;
+}
+
 .add-student-button {
     border: none;
 
@@ -1144,5 +1206,27 @@
 .dashboard-page.dark .remove-preview-btn:hover {
     background: rgba(239, 68, 68, 0.3);
     color: #ffffff;
+}
+
+/* Dark mode for CR-015 Export CSV */
+.dashboard-page[data-theme="dark"] .export-student-button,
+.dashboard-page.dark .export-student-button {
+    background: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+.dashboard-page[data-theme="dark"] .export-student-button:hover:not(:disabled),
+.dashboard-page.dark .export-student-button:hover:not(:disabled) {
+    background: #334155;
+    border-color: #64748b;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-export-feedback,
+.dashboard-page.dark .dashboard-export-feedback {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
 }
 

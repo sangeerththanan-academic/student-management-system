@@ -7,7 +7,8 @@ const {
     getMyProfile,
     changeMyPassword,
     editStudent,
-    removeStudent
+    removeStudent,
+    exportStudentsCsv
 } = require("../controllers/studentController");
 
 const {
@@ -60,6 +61,23 @@ router.get(
     authenticate,
     authorizeRoles("ADMIN"),
     getStudents
+);
+
+
+// Export all students to CSV (CR-015)
+// Administrator only
+router.get(
+    "/export/csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    exportStudentsCsv
+);
+
+router.get(
+    "/export",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    exportStudentsCsv
 );
 
 
