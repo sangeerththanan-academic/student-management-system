@@ -8,7 +8,9 @@
     display: flex;
     flex-direction: column;
 
-    background: #ffffff;
+    background: var(--bg-secondary);
+
+    transition: background var(--theme-transition);
 }
 
 
@@ -20,12 +22,18 @@
     background:
         linear-gradient(
             135deg,
-            #eff6ff 0%,
-            #ffffff 55%,
-            #dbeafe 100%
+            var(--brand-bg) 0%,
+            var(--bg-secondary) 55%,
+            var(--accent-bg) 100%
         );
 
     padding: 100px 0;
+
+    transition: background var(--theme-transition);
+}
+
+[data-theme="dark"] .hero-section {
+    background: var(--bg-primary);
 }
 
 .hero-container {
@@ -51,8 +59,8 @@
 
     padding: 7px 12px;
 
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: var(--accent-bg);
+    color: var(--brand-text);
 
     border-radius: 999px;
 
@@ -60,32 +68,40 @@
     font-weight: 700;
 
     margin-bottom: 20px;
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .hero-content h1 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: clamp(42px, 6vw, 68px);
 
     line-height: 1.05;
 
     margin: 0 0 25px;
+
+    transition: color var(--theme-transition);
 }
 
 .hero-content h1 span {
-    color: #2563eb;
+    color: var(--brand-primary);
 }
 
 .hero-content > p {
     max-width: 600px;
 
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 18px;
 
     line-height: 1.7;
 
     margin: 0 0 32px;
+
+    transition: color var(--theme-transition);
 }
 
 .hero-actions {
@@ -113,30 +129,32 @@
 
     transition:
         transform 0.2s ease,
-        background 0.2s ease;
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .primary-button {
-    background: #2563eb;
+    background: var(--brand-primary);
     color: #ffffff;
 }
 
 .primary-button:hover {
-    background: #1d4ed8;
+    background: var(--brand-primary-hover);
 
     transform: translateY(-2px);
 }
 
 .secondary-button {
-    background: #ffffff;
+    background: var(--bg-secondary);
 
-    color: #2563eb;
+    color: var(--brand-primary);
 
-    border: 1px solid #bfdbfe;
+    border: 1px solid var(--brand-border);
 }
 
 .secondary-button:hover {
-    background: #eff6ff;
+    background: var(--brand-bg);
 
     transform: translateY(-2px);
 }
@@ -147,16 +165,21 @@
    ========================================================= */
 
 .hero-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
     padding: 40px;
 
     border-radius: 20px;
 
-    border: 1px solid #dbeafe;
+    border: 1px solid var(--brand-border);
 
     box-shadow:
-        0 25px 60px rgba(37, 99, 235, 0.12);
+        0 25px 60px var(--shadow-brand);
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition),
+        box-shadow var(--theme-transition);
 }
 
 .hero-card-icon {
@@ -167,29 +190,39 @@
     align-items: center;
     justify-content: center;
 
-    background: #eff6ff;
+    background: var(--brand-bg);
 
     border-radius: 18px;
 
     font-size: 35px;
 
     margin-bottom: 25px;
+
+    color: var(--brand-primary);
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .hero-card h2 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 25px;
 
     margin: 0 0 12px;
+
+    transition: color var(--theme-transition);
 }
 
 .hero-card > p {
-    color: #64748b;
+    color: var(--text-muted);
 
     line-height: 1.7;
 
     margin: 0 0 30px;
+
+    transition: color var(--theme-transition);
 }
 
 .hero-card-stats {
@@ -202,11 +235,15 @@
 .hero-card-stats > div {
     padding: 15px;
 
-    background: #f8fafc;
+    background: var(--bg-primary);
 
     border-radius: 10px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-primary);
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .hero-card-stats strong,
@@ -215,13 +252,13 @@
 }
 
 .hero-card-stats strong {
-    color: #2563eb;
+    color: var(--brand-primary);
 
     margin-bottom: 3px;
 }
 
 .hero-card-stats span {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 13px;
 }
@@ -237,11 +274,15 @@
 }
 
 .about-section {
-    background: #ffffff;
+    background: var(--bg-secondary);
+
+    transition: background var(--theme-transition);
 }
 
 .features-section {
-    background: #f8fafc;
+    background: var(--bg-primary);
+
+    transition: background var(--theme-transition);
 }
 
 .section-container {
@@ -262,7 +303,7 @@
 .section-label {
     display: inline-block;
 
-    color: #2563eb;
+    color: var(--brand-primary);
 
     font-size: 13px;
     font-weight: 800;
@@ -275,23 +316,27 @@
 }
 
 .section-heading h2 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 36px;
 
     line-height: 1.2;
 
     margin: 0 0 15px;
+
+    transition: color var(--theme-transition);
 }
 
 .section-heading p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 16px;
 
     line-height: 1.7;
 
     margin: 0;
+
+    transition: color var(--theme-transition);
 }
 
 
@@ -309,24 +354,26 @@
 }
 
 .feature-card {
-    background: #ffffff;
+    background: var(--bg-card);
 
     padding: 30px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-primary);
 
     border-radius: 14px;
 
     transition:
         transform 0.2s ease,
-        box-shadow 0.2s ease;
+        box-shadow 0.2s ease,
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .feature-card:hover {
     transform: translateY(-4px);
 
     box-shadow:
-        0 15px 35px rgba(15, 23, 42, 0.08);
+        0 15px 35px var(--shadow-md);
 }
 
 .feature-icon {
@@ -337,31 +384,41 @@
     align-items: center;
     justify-content: center;
 
-    background: #eff6ff;
+    background: var(--brand-bg);
 
     border-radius: 14px;
 
     font-size: 26px;
 
     margin-bottom: 20px;
+
+    color: var(--brand-primary);
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .feature-card h3 {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 19px;
 
     margin: 0 0 10px;
+
+    transition: color var(--theme-transition);
 }
 
 .feature-card p {
-    color: #64748b;
+    color: var(--text-muted);
 
     font-size: 14px;
 
     line-height: 1.7;
 
     margin: 0;
+
+    transition: color var(--theme-transition);
 }
 
 

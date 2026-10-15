@@ -41,17 +41,20 @@ const getAllStudents = async () => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            users.profile_img_url,
+            users.last_login_at,
+            students.created_at,
+            students.updated_at
         FROM students
-        ORDER BY student_id DESC`
+        JOIN users ON users.user_id = students.user_id
+        ORDER BY students.student_id DESC`
     );
 
     return rows;
@@ -63,16 +66,19 @@ const getStudentById = async (studentId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            users.profile_img_url,
+            users.last_login_at,
+            students.created_at,
+            students.updated_at
         FROM students
+        JOIN users ON users.user_id = students.user_id
         WHERE student_id = ?
         LIMIT 1`,
         [studentId]
@@ -89,10 +95,11 @@ const updateStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    connection = pool
 ) => {
 
-    const [result] = await pool.execute(
+    const [result] = await connection.execute(
         `UPDATE students
         SET
             registration_no = ?,
@@ -133,22 +140,47 @@ const getStudentByUserId = async (userId) => {
 
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
+            students.student_id,
+            students.user_id,
+            students.registration_no,
+            students.first_name,
+            students.last_name,
+            students.email,
+            students.phone_number,
+            users.profile_img_url,
+            users.last_login_at,
+            students.created_at,
+            students.updated_at
         FROM students
-        WHERE user_id = ?
+        JOIN users ON users.user_id = students.user_id
+        WHERE students.user_id = ?
         LIMIT 1`,
         [userId]
     );
 
     return rows[0];
+};
+
+const updateUserProfileImage = async (connection, userId, username, profileImageUrl) => {
+    const [result] = await connection.execute(
+        `UPDATE users
+        SET username = ?, profile_img_url = COALESCE(?, profile_img_url)
+        WHERE user_id = ?`,
+        [username, profileImageUrl, userId]
+    );
+
+    return result;
+};
+
+const setUserProfileImage = async (connection, userId, profileImageUrl) => {
+    const [result] = await connection.execute(
+        `UPDATE users
+        SET profile_img_url = ?
+        WHERE user_id = ?`,
+        [profileImageUrl, userId]
+    );
+
+    return result;
 };
 
 
@@ -158,5 +190,7 @@ module.exports = {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateUserProfileImage,
+    setUserProfileImage
 };

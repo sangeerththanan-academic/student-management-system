@@ -1,4 +1,173 @@
 /* =========================================================
+   Theme Variables
+   ========================================================= */
+
+:root,
+[data-theme="light"] {
+    /* Background */
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --bg-card: #ffffff;
+
+    /* Text */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-placeholder: #94a3b8;
+
+    /* Borders */
+    --border-primary: #e2e8f0;
+    --border-secondary: #cbd5e1;
+    --border-light: #f1f5f9;
+
+    /* Brand */
+    --brand-primary: #2563eb;
+    --brand-primary-hover: #1d4ed8;
+    --brand-bg: #eff6ff;
+    --brand-bg-hover: #dbeafe;
+    --brand-border: #bfdbfe;
+    --brand-text: #1d4ed8;
+
+    /* Accent backgrounds */
+    --accent-bg: #dbeafe;
+
+    /* Footer */
+    --footer-bg: #0f172a;
+    --footer-text: #cbd5e1;
+
+    /* Error */
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --error-text: #b91c1c;
+
+    /* Danger */
+    --danger-bg: #fee2e2;
+    --danger-bg-hover: #fecaca;
+    --danger-text: #b91c1c;
+
+    /* Shadows */
+    --shadow-sm: rgba(15, 23, 42, 0.05);
+    --shadow-md: rgba(15, 23, 42, 0.08);
+    --shadow-lg: rgba(15, 23, 42, 0.06);
+    --shadow-brand: rgba(37, 99, 235, 0.12);
+
+    /* Focus ring */
+    --focus-ring: rgba(37, 99, 235, 0.12);
+
+    /* Input */
+    --input-bg: #ffffff;
+    --input-text: #0f172a;
+    --input-border: #cbd5e1;
+
+    /* Table */
+    --table-header-bg: #f8fafc;
+    --table-row-hover: #f8fafc;
+    --table-border: #f1f5f9;
+
+    /* Modal overlay */
+    --overlay-bg: rgba(15, 23, 42, 0.5);
+
+    /* Toggle button */
+    --toggle-bg: #f1f5f9;
+    --toggle-bg-hover: #e2e8f0;
+    --toggle-color: #475569;
+    --toggle-border: #e2e8f0;
+
+    /* Password toggle */
+    --password-toggle-color: #6b7280;
+    --password-toggle-hover: #374151;
+
+    /* Transition */
+    --theme-transition: 0.3s ease;
+}
+
+[data-theme="dark"] {
+    /* Background - Plain solid black & dark tones */
+    --bg-primary: #000000;
+    --bg-secondary: #0a0a0c;
+    --bg-tertiary: #141416;
+    --bg-card: #0d0e12;
+
+    /* Text - Pure white and clean light tones */
+    --text-primary: #ffffff;
+    --text-secondary: #e5e7eb;
+    --text-muted: #9ca3af;
+    --text-placeholder: #6b7280;
+
+    /* Borders - Plain solid subtle borders */
+    --border-primary: #1f2430;
+    --border-secondary: #2e3440;
+    --border-light: #161820;
+
+    /* Brand - Solid plain blue accents */
+    --brand-primary: #2563eb;
+    --brand-primary-hover: #1d4ed8;
+    --brand-bg: #1e3a8a;
+    --brand-bg-hover: #1e40af;
+    --brand-border: #2563eb;
+    --brand-text: #60a5fa;
+
+    /* Accent backgrounds */
+    --accent-bg: #172554;
+
+    /* Footer */
+    --footer-bg: #000000;
+    --footer-text: #9ca3af;
+
+    /* Error */
+    --error-bg: #2d1215;
+    --error-border: #4d1b22;
+    --error-text: #f87171;
+
+    /* Danger */
+    --danger-bg: #2d1215;
+    --danger-bg-hover: #4d1b22;
+    --danger-text: #f87171;
+
+    /* Shadows - Plain flat (zero glow, zero blur) */
+    --shadow-sm: 0 0 0 transparent;
+    --shadow-md: 0 0 0 transparent;
+    --shadow-lg: 0 0 0 transparent;
+    --shadow-brand: 0 0 0 transparent;
+
+    /* Focus ring */
+    --focus-ring: #2563eb;
+
+    /* Input */
+    --input-bg: #0d0e12;
+    --input-text: #ffffff;
+    --input-border: #1f2430;
+
+    /* Table */
+    --table-header-bg: #0d0e12;
+    --table-row-hover: #161a24;
+    --table-border: #1f2430;
+
+    /* Modal overlay */
+    --overlay-bg: #000000cc;
+
+    /* Toggle button */
+    --toggle-bg: #111827;
+    --toggle-bg-hover: #1f2937;
+    --toggle-color: #60a5fa;
+    --toggle-border: #1f2430;
+
+    /* Password toggle */
+    --password-toggle-color: #9ca3af;
+    --password-toggle-hover: #ffffff;
+
+    /* Transition */
+    --theme-transition: 0.3s ease;
+}
+
+/* Ensure no glow / blur shadows in dark mode */
+[data-theme="dark"] * {
+    box-shadow: none !important;
+}
+
+
+/* =========================================================
    Global
    ========================================================= */
 
@@ -18,10 +187,14 @@ body {
         Helvetica,
         sans-serif;
 
-    background: #f8fafc;
-    color: #0f172a;
+    background: var(--bg-primary);
+    color: var(--text-primary);
 
     line-height: 1.5;
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 button,
@@ -54,14 +227,18 @@ img {
    ========================================================= */
 
 .navbar {
-    background: #ffffff;
+    background: var(--bg-secondary);
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-primary);
 
     position: sticky;
     top: 0;
 
     z-index: 100;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .navbar-container {
@@ -80,14 +257,16 @@ img {
 }
 
 .logo {
-    color: #0f172a;
+    color: var(--text-primary);
 
     font-size: 18px;
     font-weight: 800;
+
+    transition: color 0.2s ease;
 }
 
 .logo:hover {
-    color: #2563eb;
+    color: var(--brand-primary);
 }
 
 .nav-links {
@@ -98,7 +277,7 @@ img {
 }
 
 .nav-link {
-    color: #475569;
+    color: var(--text-secondary);
 
     font-size: 14px;
     font-weight: 600;
@@ -107,11 +286,11 @@ img {
 }
 
 .nav-link:hover {
-    color: #2563eb;
+    color: var(--brand-primary);
 }
 
 .login-button {
-    background: #2563eb;
+    background: var(--brand-primary);
     color: #ffffff;
 
     padding: 10px 18px;
@@ -127,7 +306,7 @@ img {
 }
 
 .login-button:hover {
-    background: #1d4ed8;
+    background: var(--brand-primary-hover);
 
     transform: translateY(-1px);
 }
@@ -144,9 +323,13 @@ img {
 
     text-align: center;
 
-    background: #0f172a;
+    background: var(--footer-bg);
 
-    color: #cbd5e1;
+    color: var(--footer-text);
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .footer p {

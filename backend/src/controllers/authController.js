@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const pool = require("../config/db");
 
 const {
     findUserByUsername,
@@ -7,6 +8,9 @@ const {
     findUserByIdWithPassword,
     updatePasswordHash
 } = require("../models/userModel");
+const {
+    shouldTrackStudentLogin
+} = require("../utils/loginTracking");
 
 const login = async (req, res) => {
     try {
@@ -43,6 +47,13 @@ const login = async (req, res) => {
             });
         }
 
+        if (shouldTrackStudentLogin(user)) {
+            await pool.execute(
+                "UPDATE users SET last_login_at = NOW() WHERE user_id = ?",
+                [user.user_id]
+            );
+        }
+
         // Create JWT
         const token = jwt.sign(
             {
@@ -63,7 +74,8 @@ const login = async (req, res) => {
             user: {
                 id: user.user_id,
                 username: user.username,
-                role: user.role
+                role: user.role,
+                lastLoginAt: shouldTrackStudentLogin(user) ? new Date().toISOString() : null
             }
         });
 

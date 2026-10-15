@@ -4,7 +4,9 @@
 
 .student-dashboard-page {
     min-height: 100vh;
-    background: #f8fafc;
+    background: var(--bg-primary);
+
+    transition: background var(--theme-transition);
 }
 
 
@@ -15,24 +17,32 @@
 .student-dashboard-header {
     min-height: 80px;
     padding: 18px 5%;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 30px;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .student-dashboard-header h1 {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 22px;
     margin: 0 0 3px;
+
+    transition: color var(--theme-transition);
 }
 
 .student-dashboard-header p {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 13px;
     margin: 0;
+
+    transition: color var(--theme-transition);
 }
 
 .student-header-actions {
@@ -42,29 +52,36 @@
 }
 
 .role-badge {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: var(--accent-bg);
+    color: var(--brand-text);
     font-size: 12px;
     font-weight: 600;
     padding: 5px 14px;
     border-radius: 20px;
     letter-spacing: 0.5px;
+
+    transition:
+        background var(--theme-transition),
+        color var(--theme-transition);
 }
 
 .logout-button {
-    background: #ef4444;
-    color: #ffffff;
+    background: var(--danger-bg);
+    color: var(--danger-text);
     border: none;
     padding: 9px 22px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+
+    transition:
+        background 0.2s ease,
+        color var(--theme-transition);
 }
 
 .logout-button:hover {
-    background: #dc2626;
+    background: var(--danger-bg-hover);
 }
 
 
@@ -79,9 +96,11 @@
 }
 
 .section-title {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 20px;
     margin: 0 0 20px;
+
+    transition: color var(--theme-transition);
 }
 
 
@@ -90,10 +109,14 @@
    ========================================================= */
 
 .profile-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     border-radius: 12px;
     overflow: hidden;
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition);
 }
 
 .profile-header {
@@ -104,9 +127,13 @@
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
+[data-theme="dark"] .profile-header {
+    background: #1d4ed8;
+}
+
 .profile-avatar {
-    width: 60px;
-    height: 60px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.25);
     color: #ffffff;
@@ -115,6 +142,176 @@
     justify-content: center;
     font-size: 22px;
     font-weight: 700;
+    overflow: hidden;
+}
+
+.profile-avatar-wrap {
+    position: relative;
+    width: 68px;
+    height: 68px;
+    flex: 0 0 68px;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-actions {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: 50%;
+    background: rgba(13, 24, 38, 0.62);
+    opacity: 0;
+    transition: opacity 0.16s ease;
+}
+
+
+
+.profile-avatar-wrap:hover .profile-avatar-actions,
+.profile-avatar-wrap:focus-within .profile-avatar-actions {
+    opacity: 1;
+}
+
+.profile-avatar-actions button,
+.profile-image-dialog-close {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1f2937;
+    cursor: pointer;
+}
+
+.profile-avatar-actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.profile-avatar-actions button:focus-visible,
+.profile-image-dialog button:focus-visible,
+.profile-image-dialog input:focus-visible {
+    outline: 3px solid #fbbf24;
+    outline-offset: 2px;
+}
+
+.profile-image-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8, 17, 29, 0.58);
+}
+
+.profile-image-dialog {
+    width: min(100%, 430px);
+    padding: 22px;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+}
+
+.profile-image-dialog-header,
+.profile-image-dialog-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.profile-image-dialog-header {
+    margin-bottom: 20px;
+}
+
+.profile-image-dialog-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.profile-image-dialog-close {
+    flex: 0 0 30px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.profile-image-file-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-image-dialog input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+}
+
+.profile-image-file-hint,
+.profile-image-selected-name {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.profile-image-dialog-error {
+    margin: 12px 0 0;
+    color: var(--error-text);
+    font-size: 13px;
+}
+
+.profile-image-dialog-actions {
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+.profile-image-dialog-actions button {
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-image-cancel {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.profile-image-save {
+    color: #ffffff;
+    background: #176b55;
+}
+
+.profile-image-dialog-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (hover: none) {
+    .profile-avatar-actions {
+        opacity: 1;
+    }
 }
 
 .profile-name h3 {
@@ -143,7 +340,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 0;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--table-border);
+
+    transition: border-color var(--theme-transition);
 }
 
 .detail-row:last-child {
@@ -151,15 +350,142 @@
 }
 
 .detail-label {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 14px;
     font-weight: 500;
+
+    transition: color var(--theme-transition);
 }
 
 .detail-value {
-    color: #0f172a;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 600;
+
+    transition: color var(--theme-transition);
+}
+
+.profile-security {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 28px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.profile-security span {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+
+    transition: color var(--theme-transition);
+}
+
+.change-password-button,
+.profile-back-button {
+    padding: 9px 14px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-password-button:hover,
+.profile-back-button:hover {
+    background: #eff6ff;
+}
+
+.password-card {
+    padding: 26px 28px 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.password-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.password-card-header h3 {
+    margin: 0 0 5px;
+    color: #0f172a;
+    font-size: 18px;
+}
+
+.password-card-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.password-form {
+    display: grid;
+    gap: 9px;
+}
+
+.password-form label {
+    margin-top: 8px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: color var(--theme-transition);
+}
+
+.password-form input {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #0f172a;
+    font: inherit;
+}
+
+.password-form input:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 1px;
+    border-color: #2563eb;
+}
+
+.password-submit-button {
+    justify-self: start;
+    margin-top: 14px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.password-submit-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.password-submit-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.password-success {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 14px;
 }
 
 .profile-security {
@@ -289,18 +615,41 @@
 .student-loading {
     text-align: center;
     padding: 50px 20px;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 15px;
+
+    transition: color var(--theme-transition);
 }
 
 .student-error {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: var(--error-bg);
+    color: var(--error-text);
     padding: 14px 18px;
     border-radius: 8px;
     margin-bottom: 20px;
     font-size: 14px;
-    border: 1px solid #fecaca;
+    border: 1px solid var(--error-border);
+
+    transition:
+        background var(--theme-transition),
+        border-color var(--theme-transition),
+        color var(--theme-transition);
+}
+
+@media (max-width: 520px) {
+    .password-card {
+        padding: 22px 18px;
+    }
+
+    .password-card-header {
+        flex-direction: column;
+    }
+
+    .profile-security {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+    }
 }
 
 @media (max-width: 520px) {

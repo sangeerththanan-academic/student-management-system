@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import PasswordShowHide from "./PasswordShowHide"
 
 import apiRequest from "../services/api";
+import "../styles/login.css";
 
 function StudentFormModal({
     show,
@@ -21,6 +23,7 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [profileImage, setProfileImage] = useState(null);
 
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
@@ -46,6 +49,7 @@ function StudentFormModal({
             });
         }
 
+        setProfileImage(null);
         setFormError("");
     }, [editingStudent, show]);
 
@@ -57,6 +61,27 @@ function StudentFormModal({
             ...previous,
             [name]: value
         }));
+    };
+
+
+    const handleProfileImageChange = (event) => {
+        const selectedFile = event.target.files?.[0] || null;
+        setProfileImage(selectedFile);
+        setFormError("");
+
+        if (!selectedFile) return;
+
+        const extension = selectedFile.name.split(".").pop().toLowerCase();
+        const allowedTypes = ["png", "jpg", "jpeg"];
+
+        if (!allowedTypes.includes(extension) || !["image/png", "image/jpeg"].includes(selectedFile.type)) {
+            setFormError("Profile image must be a PNG, JPG, or JPEG file.");
+            return;
+        }
+
+        if (selectedFile.size > 10 * 1024 * 1024) {
+            setFormError("Profile image must be 10 MB or smaller.");
+        }
     };
 
 
@@ -88,6 +113,37 @@ function StudentFormModal({
             return;
         }
 
+        if (profileImage) {
+            const extension = profileImage.name.split(".").pop().toLowerCase();
+            if (
+                !["png", "jpg", "jpeg"].includes(extension) ||
+                !["image/png", "image/jpeg"].includes(profileImage.type)
+            ) {
+                setFormError("Profile image must be a PNG, JPG, or JPEG file.");
+                return;
+            }
+
+            if (profileImage.size > 10 * 1024 * 1024) {
+                setFormError("Profile image must be 10 MB or smaller.");
+                return;
+            }
+        }
+
+        const requestData = new FormData();
+        requestData.append("registrationNo", formData.registrationNo.trim());
+        requestData.append("firstName", formData.firstName.trim());
+        requestData.append("lastName", formData.lastName.trim());
+        requestData.append("email", formData.email.trim());
+        requestData.append("phoneNumber", formData.phoneNumber.trim());
+
+        if (!editingStudent) {
+            requestData.append("password", formData.password);
+        }
+
+        if (profileImage) {
+            requestData.append("profileImage", profileImage);
+        }
+
         try {
             setFormLoading(true);
 
@@ -96,13 +152,7 @@ function StudentFormModal({
                     `/api/students/${editingStudent.student_id}`,
                     {
                         method: "PUT",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim()
-                        })
+                        body: requestData
                     }
                 );
             } else {
@@ -110,14 +160,7 @@ function StudentFormModal({
                     "/api/students/",
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim(),
-                            password: formData.password
-                        })
+                        body: requestData
                     }
                 );
             }
@@ -155,176 +198,185 @@ function StudentFormModal({
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
-        <div className="modal-content student-form-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content student-form-card" onClick={(e) => e.stopPropagation()}>
 
-            <div className="form-card-header">
+                <div className="form-card-header">
 
-                <div>
-                    <h3>
-                        {editingStudent
-                            ? "Edit Student"
-                            : "Add New Student"
-                        }
-                    </h3>
+                    <div>
+                        <h3>
+                            {editingStudent
+                                ? "Edit Student"
+                                : "Add New Student"
+                            }
+                        </h3>
 
-                    <p>
-                        {editingStudent
-                            ? "Update student information."
-                            : "Create a new student account."
-                        }
-                    </p>
+                        <p>
+                            {editingStudent
+                                ? "Update student information."
+                                : "Create a new student account."
+                            }
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="close-form-button"
+                        onClick={handleClose}
+                    >
+                        ×
+                    </button>
+
                 </div>
 
-                <button
-                    type="button"
-                    className="close-form-button"
-                    onClick={handleClose}
+
+                {formError && (
+                    <div className="dashboard-error">
+                        {formError}
+                    </div>
+                )}
+
+
+                <form
+                    className="student-form"
+                    onSubmit={handleSubmit}
                 >
-                    ×
-                </button>
 
-            </div>
-
-
-            {formError && (
-                <div className="dashboard-error">
-                    {formError}
-                </div>
-            )}
-
-
-            <form
-                className="student-form"
-                onSubmit={handleSubmit}
-            >
-
-                <div className="form-group">
-                    <label>
-                        Registration Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="registrationNo"
-                        value={formData.registrationNo}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        First Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Last Name
-                    </label>
-
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                <div className="form-group">
-                    <label>
-                        Phone Number
-                    </label>
-
-                    <input
-                        type="text"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        disabled={formLoading}
-                        required
-                    />
-                </div>
-
-
-                {!editingStudent && (
                     <div className="form-group">
                         <label>
-                            Password
+                            Registration Number
                         </label>
 
                         <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
+                            type="text"
+                            name="registrationNo"
+                            value={formData.registrationNo}
                             onChange={handleInputChange}
                             disabled={formLoading}
                             required
                         />
                     </div>
-                )}
 
 
-                <div className="form-actions">
+                    <div className="form-group">
+                        <label>
+                            First Name
+                        </label>
 
-                    <button
-                        type="button"
-                        className="cancel-button"
-                        onClick={handleClose}
-                        disabled={formLoading}
-                    >
-                        Cancel
-                    </button>
+                        <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
 
-                    <button
-                        type="submit"
-                        className="save-button"
-                        disabled={formLoading}
-                    >
-                        {formLoading
-                            ? "Saving..."
-                            : editingStudent
-                                ? "Update Student"
-                                : "Create Student"
-                        }
-                    </button>
 
-                </div>
+                    <div className="form-group">
+                        <label>
+                            Last Name
+                        </label>
 
-            </form>
+                        <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
 
-        </div>
+
+                    <div className="form-group">
+                        <label>
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
+
+
+                    <div className="form-group">
+                        <label>
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleInputChange}
+                            disabled={formLoading}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>
+                            Profile Img
+                        </label>
+
+                        <input
+                            type="file"
+                            name="profileImage"
+                            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                            onChange={handleProfileImageChange}
+                            disabled={formLoading}
+                        />
+                        <small>PNG, JPG, or JPEG; 10 MB maximum</small>
+                    </div>
+
+
+                    {!editingStudent && (
+                        <div className="form-group">
+                            <label>
+                                Password
+                            </label>
+
+                            <PasswordShowHide password={formData.password} setPassword={(val) => handleInputChange({ target: { name: "password", value: val } })} loadingVal={formLoading} />
+
+                        </div>
+                    )}
+
+
+                    <div className="form-actions">
+
+                        <button
+                            type="button"
+                            className="cancel-button"
+                            onClick={handleClose}
+                            disabled={formLoading}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="submit"
+                            className="save-button"
+                            disabled={formLoading}
+                        >
+                            {formLoading
+                                ? "Saving..."
+                                : editingStudent
+                                    ? "Update Student"
+                                    : "Create Student"
+                            }
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
         </div>
     );
 }
