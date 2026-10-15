@@ -2,6 +2,29 @@
 
 All notable changes to the Student Management System are documented in this file.
 
+## [1.2.0] - 2026-10-15
+
+### Added
+
+#### CR-015: Student Records Export to CSV
+
+- Added CSV export functionality for student records.
+- Added "Export CSV" button to administrator dashboard alongside Add Student action.
+- Added CSV utility module (`frontend/src/utils/csvExport.js`) supporting RFC 4180 escaping and browser download.
+- Added backend CSV streaming endpoints `GET /api/students/export` and `GET /api/students/export/csv`.
+- Export includes student ID, registration number, first name, last name, email, and phone number.
+- Added filtered export support when search terms are applied in administrator dashboard.
+- Added temporary feedback banner for export status and record count.
+- Added automated test suite verifying 15 functional, security, and immutability test cases.
+
+### Security
+
+- Enforced administrator-only access (`authMiddleware` and `adminOnly`) on export routes.
+- Student accounts and unauthenticated requests are strictly rejected (HTTP 401/403).
+- Student dashboard interface hides all export controls.
+
+---
+
 ## [1.1.0] - 2026-10-05
 
 ### Added

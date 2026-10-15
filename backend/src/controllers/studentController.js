@@ -934,6 +934,74 @@ const changeStudentPassword = async (req, res) => {
 
 
 // ============================================================
+// EXPORT STUDENTS TO CSV (CR-015)
+// ============================================================
+
+const formatCsvCell = (value) => {
+    if (value === null || value === undefined) {
+        return "";
+    }
+    const stringValue = String(value);
+    if (
+        stringValue.includes(",") ||
+        stringValue.includes('"') ||
+        stringValue.includes("\n") ||
+        stringValue.includes("\r")
+    ) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+};
+
+const exportStudentsCsv = async (req, res) => {
+    try {
+        const students = await getAllStudents();
+
+        const headers = [
+            "Student ID",
+            "Registration Number",
+            "First Name",
+            "Last Name",
+            "Email",
+            "Phone Number"
+        ];
+
+        const lines = [headers.join(",")];
+
+        if (Array.isArray(students)) {
+            for (const student of students) {
+                const row = [
+                    formatCsvCell(student.student_id),
+                    formatCsvCell(student.registration_no),
+                    formatCsvCell(student.first_name),
+                    formatCsvCell(student.last_name),
+                    formatCsvCell(student.email),
+                    formatCsvCell(student.phone_number)
+                ];
+                lines.push(row.join(","));
+            }
+        }
+
+        const csvContent = lines.join("\r\n");
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="students.csv"'
+        );
+
+        return res.status(200).send(csvContent);
+    } catch (error) {
+        console.error("Export students CSV error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export student records"
+        });
+    }
+};
+
+
+// ============================================================
 // EXPORT
 // ============================================================
 
@@ -944,6 +1012,7 @@ module.exports = {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeStudentPassword
+    changeStudentPassword,
+    exportStudentsCsv
 };
 

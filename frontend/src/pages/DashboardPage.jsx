@@ -10,6 +10,7 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import { exportStudentsToCsv } from "../utils/csvExport";
 
 import "../styles/dashboard.css";
 
@@ -48,6 +49,7 @@ function DashboardPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [exportMessage, setExportMessage] = useState("");
 
     const [showForm, setShowForm] = useState(false);
 
@@ -255,6 +257,40 @@ function DashboardPage() {
     };
 
 
+    // Export student records to CSV (CR-015)
+    const handleExportCsv = (e) => {
+        if (e && typeof e.preventDefault === "function") {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        try {
+            setError("");
+            const targetStudents = isSearching ? filteredStudents : students;
+            const result = exportStudentsToCsv(targetStudents, "students.csv");
+
+            if (result.count === 0) {
+                setExportMessage(
+                    "Exported empty student list (headers only) to students.csv"
+                );
+            } else {
+                setExportMessage(
+                    `Successfully exported ${result.count} ${
+                        result.count === 1 ? "student record" : "student records"
+                    } to ${result.filename}`
+                );
+            }
+
+            setTimeout(() => {
+                setExportMessage("");
+            }, 6000);
+        } catch (err) {
+            console.error("Export error:", err);
+            setError("Failed to export student records.");
+        }
+    };
+
+
     // Logout
     const handleLogout = () => {
         logout();
@@ -326,14 +362,53 @@ function DashboardPage() {
                     </div>
 
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+
+                        <button
+                            type="button"
+                            id="export-csv-btn"
+                            className="export-csv-button"
+                            onClick={handleExportCsv}
+                            disabled={loading}
+                            title="Export student records to CSV"
+                        >
+                            <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            Export CSV
+                        </button>
+
+                        <button
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+
+                    </div>
 
                 </div>
+
+
+                {/* Export feedback (CR-015) */}
+
+                {exportMessage && (
+                    <div className="dashboard-success">
+                        {exportMessage}
+                    </div>
+                )}
 
 
                 {/* Error */}

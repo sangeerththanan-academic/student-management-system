@@ -102,6 +102,37 @@
     font-size: 14px;
 }
 
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.export-csv-button {
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+.export-csv-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .add-student-button {
     border: none;
     background: var(--primary-color);
@@ -114,6 +145,23 @@
 
 .add-student-button:hover {
     background: var(--primary-hover);
+}
+
+/* Feedback & Alerts */
+.dashboard-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+[data-theme="dark"] .dashboard-success {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
 }
 
 /* Error */
@@ -485,6 +533,18 @@
         flex-direction: column;
     }
 
+    .students-heading-actions {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+
+    .export-csv-button,
+    .add-student-button {
+        flex: 1;
+        justify-content: center;
+    }
+
     .students-search {
         align-items: stretch;
         flex-direction: column;
@@ -530,6 +590,12 @@
 
     .students-heading h2 {
         font-size: 25px;
+    }
+
+    .export-csv-button,
+    .add-student-button {
+        padding: 10px 14px;
+        font-size: 13px;
     }
 
     .student-form-card {
