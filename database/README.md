@@ -32,7 +32,9 @@ The database currently supports:
 database/
 ├── README.md
 ├── schema.sql
-└── seed.sql
+├── seed.sql
+└── migrations/
+    └── 001_add_user_email.sql
 ````
 
  ### `schema.sql`
@@ -60,11 +62,18 @@ database/
 
  The sample passwords are for development/testing only.
 
+### `migrations/001_add_user_email.sql`
+
+Adds the `users.email` column required for password recovery to an existing
+database without dropping data. It also copies each student's email from the
+`students` table to the linked user account. Run this migration once if the
+existing database was created before `users.email` was added.
+
 ---
 
  ## 4\. Current Database Structure
 
- The current database contains two main tables:
+ The current database contains these tables:
 
 ```
 users
@@ -75,6 +84,9 @@ users
   |
 students
 ```
+
+The `password_reset_tokens` table stores temporary, hashed password-reset
+tokens associated with users.
 
  A user may have zero or one associated student record.
 
@@ -91,6 +103,7 @@ students
 | --- | --- |
 | `user_id` | Unique user identifier |
 | `username` | Login username |
+| `email` | Account email used for password recovery |
 | `password_hash` | Hashed password |
 | `role` | User role |
 | `created_at` | Account creation date |
@@ -164,6 +177,12 @@ mysql -u root -p < schema.sql
 
  Alternatively, open `schema.sql` in MySQL Workbench and execute it.
 
+For an existing database, apply the email/password-reset migration once:
+
+```
+mysql -u root -p student_management < migrations/001_add_user_email.sql
+```
+
  ### Load Sample Data
 
  After creating the database, execute `seed.sql`:
@@ -191,7 +210,13 @@ SHOW TABLES;
 ```
 users
 students
+password_reset_tokens
 ```
+
+For an existing database whose `users` table does not contain `email`, run
+`migrations/001_add_user_email.sql` instead of re-running `schema.sql`.
+Re-running `schema.sql` drops and recreates the database, deleting existing
+data.
 
  To view the sample users:
 

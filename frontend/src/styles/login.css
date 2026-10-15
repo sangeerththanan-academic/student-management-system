@@ -19,6 +19,10 @@
     grid-template-columns: 1fr 1fr;
 }
 
+.login-container--centered {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 /* =========================================================
    Login Information Side
    ========================================================= */

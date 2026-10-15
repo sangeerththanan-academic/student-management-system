@@ -159,12 +159,14 @@ const addStudent = async (req, res) => {
             `INSERT INTO users
             (
                 username,
+                email,
                 password_hash,
                 role
             )
-            VALUES (?, ?, 'STUDENT')`,
+            VALUES (?, ?, ?, 'STUDENT')`,
             [
                 normalizedRegistrationNo,
+                normalizedEmail,
                 passwordHash
             ]
         );
