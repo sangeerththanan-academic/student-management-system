@@ -219,12 +219,13 @@ const addStudent = async (req, res) => {
         password: req.body.password
     };
 
-    const validationMessage = validateStudentPayload(payload, true);
+    const validationResult = validateStudentData(payload);
 
-    if (validationMessage) {
+    if (!validationResult.isValid) {
         return res.status(400).json({
             success: false,
-            message: validationMessage
+            message: validationResult.firstError,
+            errors: validationResult.errors
         });
     }
 
@@ -236,11 +237,11 @@ const addStudent = async (req, res) => {
         phoneNumber,
         password
     } = {
-        registrationNo: normalizeStudentValue(payload.registrationNo),
-        firstName: normalizeStudentValue(payload.firstName),
-        lastName: normalizeStudentValue(payload.lastName),
-        email: normalizeStudentValue(payload.email),
-        phoneNumber: normalizeStudentValue(payload.phoneNumber),
+        registrationNo: String(payload.registrationNo || "").trim(),
+        firstName: String(payload.firstName || "").trim(),
+        lastName: String(payload.lastName || "").trim(),
+        email: String(payload.email || "").trim(),
+        phoneNumber: String(payload.phoneNumber || "").trim(),
         password: payload.password
     };
 

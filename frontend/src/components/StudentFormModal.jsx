@@ -46,8 +46,8 @@ const parseCsvRow = (line) => {
 
 const parseStudentCsv = (content) => {
     const lines = content.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
-    if (lines.length < 2) throw new Error("The CSV must include a header row and one student row.");
-    if (lines.length > 2) throw new Error("Upload one student per CSV file. Extra data rows were found.");
+    if (lines.length < 2) throw new Error("The CSV must include a header row and at least one student row.");
+    if (lines.length > 101) throw new Error("A CSV can contain at most 100 student rows.");
 
     const headers = parseCsvRow(lines[0]).map((header) => header.toLowerCase().replace(/[^a-z0-9]/g, ""));
     if (headers.some((header) => !header)) throw new Error("Every CSV column needs a header.");
@@ -63,13 +63,17 @@ const parseStudentCsv = (content) => {
         throw new Error(`Missing required CSV columns: ${missingFields.map((field) => labels[field]).join(", ")}.`);
     }
 
-    const values = parseCsvRow(lines[1]);
-    if (values.length !== headers.length) throw new Error("The student row does not match the number of CSV columns.");
-    const imported = {};
-    mappedFields.forEach((field, index) => {
-        if (field) imported[field] = values[index];
+    return lines.slice(1).map((line, rowIndex) => {
+        const values = parseCsvRow(line);
+        if (values.length !== headers.length) {
+            throw new Error(`Student row ${rowIndex + 1} does not match the number of CSV columns.`);
+        }
+        const imported = {};
+        mappedFields.forEach((field, index) => {
+            if (field) imported[field] = values[index];
+        });
+        return imported;
     });
-    return imported;
 };
 
 function StudentFormModal({
@@ -94,6 +98,9 @@ function StudentFormModal({
     const [fieldErrors, setFieldErrors] = useState({});
     const [csvError, setCsvError] = useState("");
     const [csvFileName, setCsvFileName] = useState("");
+    const [csvStatus, setCsvStatus] = useState("");
+    const [csvRecords, setCsvRecords] = useState([]);
+    const [csvRecordIndex, setCsvRecordIndex] = useState(0);
     const csvInputRef = useRef(null);
 
 
@@ -129,6 +136,9 @@ function StudentFormModal({
         setFieldErrors({});
         setCsvError("");
         setCsvFileName("");
+        setCsvStatus("");
+        setCsvRecords([]);
+        setCsvRecordIndex(0);
 
     }, [editingStudent, show]);
 
@@ -220,6 +230,10 @@ function StudentFormModal({
     const handleCsvUpload = async (event) => {
         const file = event.target.files?.[0];
         setCsvError("");
+        setCsvStatus("");
+        setCsvFileName("");
+        setCsvRecords([]);
+        setCsvRecordIndex(0);
         if (!file) return;
 
         if (!file.name.toLowerCase().endsWith(".csv")) {
@@ -239,11 +253,14 @@ function StudentFormModal({
         }
 
         try {
-            const imported = parseStudentCsv(await file.text());
-            setFormData((previous) => ({ ...previous, ...imported }));
+            const records = parseStudentCsv(await file.text());
+            setCsvRecords(records);
+            setCsvRecordIndex(0);
+            setFormData((previous) => ({ ...previous, ...records[0], password: "" }));
             setFieldErrors({});
             setFormError("");
             setCsvFileName(file.name);
+            setCsvStatus("");
         } catch (error) {
             setCsvError(error.message || "Could not read this CSV file.");
             setCsvFileName("");
@@ -257,6 +274,9 @@ function StudentFormModal({
         setFormError("");
         setCsvError("");
         setCsvFileName("");
+        setCsvStatus("");
+        setCsvRecords([]);
+        setCsvRecordIndex(0);
         if (csvInputRef.current) csvInputRef.current.value = "";
     };
 
@@ -497,10 +517,18 @@ function StudentFormModal({
             }
 
 
-            // Refresh student list
-            onSuccess();
+            // Create each CSV row through the same validated endpoint, one at a time.
+            if (!editingStudent && csvRecordIndex + 1 < csvRecords.length) {
+                const nextIndex = csvRecordIndex + 1;
+                setCsvRecordIndex(nextIndex);
+                setFormData({ ...csvRecords[nextIndex], password: "" });
+                setFieldErrors({});
+                setCsvStatus(`Student ${nextIndex} was created. Continue with student ${nextIndex + 1}.`);
+                onSuccess();
+                return;
+            }
 
-            // Close modal
+            onSuccess();
             handleClose();
 
 
@@ -642,8 +670,9 @@ function StudentFormModal({
                                 onChange={handleCsvUpload}
                                 disabled={formLoading}
                             />
-                            <small>One student per file. Required headers: Registration Number, First Name, Last Name, Email, Phone Number. Enter the password manually.</small>
-                            {csvFileName && <span className="student-csv-status" role="status">Loaded {csvFileName}. Review and edit the fields below.</span>}
+                            <small>Up to 100 students per file. Required headers: Registration Number, First Name, Last Name, Email, Phone Number. Review each row and enter its password before creating that student.</small>
+                            {csvFileName && <span className="student-csv-status" role="status">Loaded {csvFileName} ({csvRecords.length} students). Review student {csvRecordIndex + 1} of {csvRecords.length} below.</span>}
+                            {csvStatus && <span className="student-csv-status" role="status">{csvStatus}</span>}
                             {csvError && <span className="student-csv-error" role="alert">{csvError}</span>}
                             {csvFileName && <button type="button" className="students-search-clear" onClick={clearCsvImport} disabled={formLoading}>Clear imported values</button>}
                         </section>
