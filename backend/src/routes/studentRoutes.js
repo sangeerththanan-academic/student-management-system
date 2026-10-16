@@ -8,7 +8,8 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    importStudents
 } = require("../controllers/studentController");
 
 const {
@@ -16,13 +17,12 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
-const {
-    uploadStudentProfileImage
-} = require("../middleware/uploadMiddleware");
-
 const router = express.Router();
 
-// Student's own profile
+// ============================================
+// STUDENT SELF-SERVICE ROUTES
+// ============================================
+
 router.get(
     "/me",
     authenticate,
@@ -30,24 +30,35 @@ router.get(
     getMyProfile
 );
 
-// CR-020: Change own password
 router.patch(
-    "/:id/password",
+    "/me/password",
     authenticate,
     authorizeRoles("STUDENT"),
     changeMyPassword
 );
 
-// Create student — Admin only
+// ============================================
+// ADMIN-ONLY ROUTES
+// ============================================
+
+// CR-015: Import multiple student records from CSV.
+// Keep this route before "/:id".
+router.post(
+    "/import-csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    importStudents
+);
+
+// Create student
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
-    uploadStudentProfileImage,
     addStudent
 );
 
-// Get all students — Admin only
+// Get all students
 router.get(
     "/",
     authenticate,
@@ -55,7 +66,7 @@ router.get(
     getStudents
 );
 
-// Get student by ID — Admin only
+// Get student by ID
 router.get(
     "/:id",
     authenticate,
@@ -63,16 +74,15 @@ router.get(
     getStudent
 );
 
-// Update student — Admin only
+// Update student profile
 router.put(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
-    uploadStudentProfileImage,
     editStudent
 );
 
-// Delete student — Admin only
+// Delete student
 router.delete(
     "/:id",
     authenticate,
