@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
 
 const pool = require("../config/db");
 
@@ -208,6 +209,12 @@ const validateStudentInput = ({
 // POST /api/students/
 // ============================================================
 
+const removeUploadedImage = async (file) => {
+    if (file?.path) {
+        await fs.promises.unlink(file.path).catch(() => {});
+    }
+};
+
 const addStudent = async (req, res) => {
 
     const payload = {
@@ -267,6 +274,7 @@ const addStudent = async (req, res) => {
 
 
         if (Object.keys(validationErrors).length > 0) {
+            await removeUploadedImage(req.file);
 
             return res.status(400).json({
                 success: false,
@@ -305,7 +313,7 @@ const addStudent = async (req, res) => {
 
 
         if (existingUser.length > 0) {
-
+            await removeUploadedImage(req.file);
             await connection.rollback();
 
             return res.status(409).json({
@@ -333,7 +341,7 @@ const addStudent = async (req, res) => {
 
 
         if (existingStudent.length > 0) {
-
+            await removeUploadedImage(req.file);
             await connection.rollback();
 
             return res.status(409).json({
@@ -388,7 +396,8 @@ const addStudent = async (req, res) => {
                 firstName.trim(),
                 lastName.trim(),
                 email.trim(),
-                phoneNumber.trim()
+                phoneNumber.trim(),
+                req.file ? `/uploads/students/${req.file.filename}` : null
             );
 
 
@@ -423,6 +432,7 @@ const addStudent = async (req, res) => {
                     email.trim(),
                 phoneNumber:
                     phoneNumber.trim(),
+                profilePhoto: req.file ? `/uploads/students/${req.file.filename}` : null,
                 role: "STUDENT"
             }
         });
@@ -432,9 +442,10 @@ const addStudent = async (req, res) => {
 
         // Rollback if transaction started
         if (connection) {
-
-            await connection.rollback();
+            await connection.rollback().catch(() => {});
         }
+
+        await removeUploadedImage(req.file);
 
         console.error(
             "Create student error:",

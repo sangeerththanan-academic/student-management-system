@@ -1,3 +1,4 @@
+
 /* =========================================================
    Dashboard
    ========================================================= */
@@ -606,7 +607,7 @@
 
     border-collapse: collapse;
 
-    min-width: 800px;
+    min-width: 860px;
 }
 
 .students-table th {
@@ -975,4 +976,51 @@
     color: #f8fafc;
 }
 
+
+
+
+/* CR-010: Student profile image upload and list display */
+.profile-image-form-group {
+    grid-column: 1 / -1;
+}
+
+.profile-image-form-group input[type="file"] {
+    padding: 10px;
+    max-width: 100%;
+}
+
+.profile-image-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.profile-image-preview,
+.student-list-profile-image {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--border-color, #e2e8f0);
+    background: var(--surface-secondary, #f1f5f9);
+}
+
+.student-list-profile-image {
+    width: 48px;
+    height: 48px;
+    display: block;
+}
+
+.dashboard-page .profile-image-form-group label,
+.dashboard-page .profile-image-form-group .field-hint {
+    color: var(--text-primary, #334155);
+}
+
+@media (max-width: 800px) {
+    .profile-image-form-group {
+        grid-column: auto;
+    }
+}
 
