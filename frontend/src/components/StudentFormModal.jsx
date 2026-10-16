@@ -1,6 +1,63 @@
 import { useEffect, useRef, useState } from "react";
 import apiRequest from "../services/api";
 
+
+// Remove control characters before storing user-entered text.
+const sanitizeInput = (_fieldName, value) =>
+    Array.from(String(value ?? ""))
+        .filter((character) => {
+            const code = character.charCodeAt(0);
+            return code >= 32 || code === 9 || code === 10 || code === 13;
+        })
+        .join("");
+
+// Parse CSV rows, including commas and escaped quotes inside quoted cells.
+const parseCsv = (text) => {
+    const rows = [];
+    let row = [];
+    let cell = "";
+    let inQuotes = false;
+
+    const source = String(text ?? "").replace(/^\uFEFF/, "");
+
+    for (let i = 0; i < source.length; i += 1) {
+        const character = source[i];
+        const nextCharacter = source[i + 1];
+
+        if (character === '"') {
+            if (inQuotes && nextCharacter === '"') {
+                cell += '"';
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (character === "," && !inQuotes) {
+            row.push(cell.trim());
+            cell = "";
+        } else if ((character === "\n" || character === "\r") && !inQuotes) {
+            if (character === "\r" && nextCharacter === "\n") i += 1;
+            row.push(cell.trim());
+            if (row.some((value) => value !== "")) rows.push(row);
+            row = [];
+            cell = "";
+        } else {
+            cell += character;
+        }
+    }
+
+    if (inQuotes) {
+        throw new Error("The CSV file has an unclosed quotation mark.");
+    }
+
+    row.push(cell.trim());
+    if (row.some((value) => value !== "")) rows.push(row);
+
+    return rows;
+};
+
+const normalizeCsvHeader = (header) =>
+    String(header ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
 const getProfileImageUrl = (profileImage) => {
     if (!profileImage) return "";
 
@@ -40,6 +97,10 @@ function StudentFormModal({
 
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
+    const [csvError, setCsvError] = useState("");
+    const [csvSuccess, setCsvSuccess] = useState("");
+    const [csvLoading, setCsvLoading] = useState(false);
+    const csvInputRef = useRef(null);
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -82,6 +143,124 @@ function StudentFormModal({
         }));
 
         setFormError("");
+    };
+
+    const handleCsvImport = async (event) => {
+        const file = event.target.files?.[0];
+        setCsvError("");
+        setCsvSuccess("");
+
+        if (!file) return;
+
+        const validCsvType = [
+            "text/csv",
+            "application/csv",
+            "application/vnd.ms-excel",
+            "text/plain",
+            ""
+        ].includes(file.type);
+        const hasCsvExtension = file.name.toLowerCase().endsWith(".csv");
+
+        if (!hasCsvExtension || !validCsvType) {
+            setCsvError("Please select a valid .csv file.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size === 0) {
+            setCsvError("The selected CSV file is empty.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > 1024 * 1024) {
+            setCsvError("CSV file size must be 1 MB or smaller.");
+            event.target.value = "";
+            return;
+        }
+
+        setCsvLoading(true);
+
+        try {
+            const fileText = await file.text();
+            const rows = parseCsv(fileText);
+
+            if (rows.length < 2) {
+                throw new Error("The CSV must contain a header row and one student data row.");
+            }
+
+            if (rows.length > 2) {
+                throw new Error("Please import one student per CSV file. Extra student rows were found.");
+            }
+
+            const headers = rows[0].map(normalizeCsvHeader);
+            const values = rows[1];
+            const headerAliases = {
+                registrationNo: ["registrationno", "registrationnumber", "regno", "studentid", "studentregistrationno"],
+                firstName: ["firstname", "givenname", "studentfirstname"],
+                lastName: ["lastname", "surname", "familyname", "studentlastname"],
+                email: ["email", "emailaddress", "studentemail"],
+                phoneNumber: ["phonenumber", "phone", "mobile", "mobilenumber", "contactnumber"]
+            };
+
+            const mappedValues = {};
+            const missingColumns = [];
+
+            Object.entries(headerAliases).forEach(([fieldName, aliases]) => {
+                const columnIndex = headers.findIndex((header) => aliases.includes(header));
+                if (columnIndex === -1) {
+                    missingColumns.push(fieldName);
+                } else {
+                    mappedValues[fieldName] = sanitizeInput(fieldName, values[columnIndex] ?? "").trim();
+                }
+            });
+
+            if (missingColumns.length > 0) {
+                const labels = {
+                    registrationNo: "Registration Number",
+                    firstName: "First Name",
+                    lastName: "Last Name",
+                    email: "Email",
+                    phoneNumber: "Phone Number"
+                };
+                throw new Error(`Missing required CSV column(s): ${missingColumns.map((field) => labels[field]).join(", ")}.`);
+            }
+
+            const emptyFields = Object.entries(mappedValues)
+                .filter(([, value]) => !value)
+                .map(([fieldName]) => fieldName);
+
+            if (emptyFields.length > 0) {
+                const labels = {
+                    registrationNo: "Registration Number",
+                    firstName: "First Name",
+                    lastName: "Last Name",
+                    email: "Email",
+                    phoneNumber: "Phone Number"
+                };
+                throw new Error(`Missing student information for: ${emptyFields.map((field) => labels[field]).join(", ")}.`);
+            }
+
+            setFormData((previous) => ({
+                ...previous,
+                ...mappedValues
+            }));
+            setFieldErrors((previous) => ({
+                ...previous,
+                registrationNo: "",
+                firstName: "",
+                lastName: "",
+                email: "",
+                phoneNumber: ""
+            }));
+            setFormError("");
+            setCsvSuccess("CSV data imported. Review the fields below and enter a password manually.");
+        } catch (error) {
+            setCsvError(error.message || "Unable to read this CSV file. Check its format and try again.");
+        } finally {
+            setCsvLoading(false);
+            event.target.value = "";
+        }
     };
 
     const handleImageChange = (event) => {
@@ -288,7 +467,12 @@ function StudentFormModal({
             }
 
             onSuccess();
-            handleClose();
+            setFormError("");
+            setFieldErrors({});
+            setShowPassword(false);
+            setSelectedImage(null);
+            updateImagePreview("");
+            onClose();
 
         } catch (error) {
 
@@ -361,6 +545,39 @@ function StudentFormModal({
                     </div>
                 )}
 
+
+                {!editingStudent && (
+                    <section className="csv-import-panel" aria-label="Import student details from CSV">
+                        <div className="csv-import-heading">
+                            <div>
+                                <h4>Import Student Details (CSV)</h4>
+                                <p>Upload a CSV with one student row to fill the form automatically.</p>
+                            </div>
+                            <span className="csv-import-badge">CSV</span>
+                        </div>
+
+                        <label className="csv-file-label" htmlFor="student-csv-file">
+                            <span className="csv-upload-icon" aria-hidden="true">↑</span>
+                            <span>{csvLoading ? "Reading CSV..." : "Choose CSV file"}</span>
+                            <input
+                                ref={csvInputRef}
+                                id="student-csv-file"
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={handleCsvImport}
+                                disabled={formLoading || csvLoading}
+                            />
+                        </label>
+
+                        <p className="csv-format-hint">
+                            Required columns: registrationNo, firstName, lastName, email, phoneNumber.
+                            Password must be entered manually.
+                        </p>
+
+                        {csvError && <p className="csv-message csv-message-error" role="alert">{csvError}</p>}
+                        {csvSuccess && <p className="csv-message csv-message-success" role="status">{csvSuccess}</p>}
+                    </section>
+                )}
 
                 <form
                     className="student-form"
