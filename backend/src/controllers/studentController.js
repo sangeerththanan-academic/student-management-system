@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
 
 const pool = require("../config/db");
 
@@ -208,6 +209,12 @@ const validateStudentInput = ({
 // POST /api/students/
 // ============================================================
 
+const removeUploadedImage = async (file) => {
+    if (file?.path) {
+        await fs.promises.unlink(file.path).catch(() => {});
+    }
+};
+
 const addStudent = async (req, res) => {
 
     const {
@@ -241,6 +248,7 @@ const addStudent = async (req, res) => {
 
 
         if (Object.keys(validationErrors).length > 0) {
+            await removeUploadedImage(req.file);
 
             return res.status(400).json({
                 success: false,
@@ -279,7 +287,7 @@ const addStudent = async (req, res) => {
 
 
         if (existingUser.length > 0) {
-
+            await removeUploadedImage(req.file);
             await connection.rollback();
 
             return res.status(409).json({
@@ -307,7 +315,7 @@ const addStudent = async (req, res) => {
 
 
         if (existingStudent.length > 0) {
-
+            await removeUploadedImage(req.file);
             await connection.rollback();
 
             return res.status(409).json({
@@ -362,7 +370,8 @@ const addStudent = async (req, res) => {
                 firstName.trim(),
                 lastName.trim(),
                 email.trim(),
-                phoneNumber.trim()
+                phoneNumber.trim(),
+                req.file ? `/uploads/students/${req.file.filename}` : null
             );
 
 
@@ -397,6 +406,7 @@ const addStudent = async (req, res) => {
                     email.trim(),
                 phoneNumber:
                     phoneNumber.trim(),
+                profilePhoto: req.file ? `/uploads/students/${req.file.filename}` : null,
                 role: "STUDENT"
             }
         });
@@ -406,9 +416,10 @@ const addStudent = async (req, res) => {
 
         // Rollback if transaction started
         if (connection) {
-
-            await connection.rollback();
+            await connection.rollback().catch(() => {});
         }
+
+        await removeUploadedImage(req.file);
 
         console.error(
             "Create student error:",
@@ -679,64 +690,78 @@ const editStudent = async (req, res) => {
 // DELETE STUDENT
 // DELETE /api/students/:id
 // ============================================================
-
 const removeStudent = async (req, res) => {
+    let connection;
 
     try {
+        const studentId = req.params.id;
 
-        const studentId =
-            req.params.id;
+        connection = await pool.getConnection();
 
+        await connection.beginTransaction();
 
-        // Check student exists
-        const student =
-            await getStudentById(studentId);
+        // 1. Find the student and their linked user account
+        const [students] = await connection.execute(
+            `SELECT student_id, user_id
+             FROM students
+             WHERE student_id = ?`,
+            [studentId]
+        );
 
-
-        if (!student) {
+        if (students.length === 0) {
+            await connection.rollback();
 
             return res.status(404).json({
-
                 success: false,
-
-                message:
-                    "Student not found"
+                message: "Student not found"
             });
         }
 
+        const userId = students[0].user_id;
 
-        // Delete student
-        const result =
-            await deleteStudent(studentId);
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            message:
-                "Student deleted successfully",
-
-            affectedRows:
-                result.affectedRows
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Delete student error:",
-            error
+        // 2. Delete the student record first
+        await connection.execute(
+            `DELETE FROM students
+             WHERE student_id = ?`,
+            [studentId]
         );
 
+        // 3. Delete the linked student user account
+        await connection.execute(
+            `DELETE FROM users
+             WHERE user_id = ?
+             AND role = 'STUDENT'`,
+            [userId]
+        );
+
+        // 4. Save both deletions together
+        await connection.commit();
+
+        return res.status(200).json({
+            success: true,
+            message: "Student and linked user account deleted successfully"
+        });
+
+    } catch (error) {
+        if (connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error("Rollback error:", rollbackError);
+            }
+        }
+
+        console.error("Delete student error:", error);
 
         return res.status(500).json({
-
             success: false,
-
-            message:
-                "Failed to delete student"
+            message: "Failed to delete student"
         });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 };
 
@@ -933,3 +958,4 @@ module.exports = {
 
     removeStudent
 };
+
