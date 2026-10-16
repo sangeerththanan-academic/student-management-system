@@ -8,7 +8,8 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    importStudents
 } = require("../controllers/studentController");
 
 const {
@@ -16,13 +17,11 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
-const uploadProfileImage = require("../middleware/uploadMiddleware");
-
 const router = express.Router();
 
-// ============================================================
-// GET CURRENT STUDENT'S OWN PROFILE
-// ============================================================
+// ============================================
+// STUDENT SELF-SERVICE ROUTES
+// ============================================
 
 router.get(
     "/me",
@@ -31,33 +30,35 @@ router.get(
     getMyProfile
 );
 
-// ============================================================
-// CR-020: CHANGE CURRENT STUDENT'S PASSWORD
-// ============================================================
-
 router.patch(
-    "/change-password",
+    "/me/password",
     authenticate,
     authorizeRoles("STUDENT"),
     changeMyPassword
 );
 
-// ============================================================
-// CREATE STUDENT — ADMIN ONLY
-// ============================================================
+// ============================================
+// ADMIN-ONLY ROUTES
+// ============================================
 
+// CR-015: Import multiple student records from CSV.
+// Keep this route before "/:id".
+router.post(
+    "/import-csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    importStudents
+);
+
+// Create student
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
-    uploadProfileImage,
     addStudent
 );
 
-// ============================================================
-// GET ALL STUDENTS — ADMIN ONLY
-// ============================================================
-
+// Get all students
 router.get(
     "/",
     authenticate,
@@ -65,10 +66,7 @@ router.get(
     getStudents
 );
 
-// ============================================================
-// GET STUDENT BY ID — ADMIN ONLY
-// ============================================================
-
+// Get student by ID
 router.get(
     "/:id",
     authenticate,
@@ -76,10 +74,7 @@ router.get(
     getStudent
 );
 
-// ============================================================
-// UPDATE STUDENT — ADMIN ONLY
-// ============================================================
-
+// Update student profile
 router.put(
     "/:id",
     authenticate,
@@ -87,10 +82,7 @@ router.put(
     editStudent
 );
 
-// ============================================================
-// DELETE STUDENT — ADMIN ONLY
-// ============================================================
-
+// Delete student
 router.delete(
     "/:id",
     authenticate,
