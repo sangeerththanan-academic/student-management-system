@@ -11,15 +11,44 @@ const INITIAL_FORM_DATA = {
     password: ""
 };
 
-const MAX_CSV_SIZE = 1024 * 1024; // 1 MB
+const MAX_CSV_SIZE = 1024 * 1024;
+const MAX_CSV_ROWS = 500;
 
-// Parse CSV including quoted commas, escaped quotes and newlines.
+const REQUIRED_FIELDS = [
+    "registrationNo",
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber"
+];
+
+const CSV_HEADER_MAP = {
+    registrationno: "registrationNo",
+    registrationnumber: "registrationNo",
+    registrationnum: "registrationNo",
+    firstname: "firstName",
+    lastname: "lastName",
+    email: "email",
+    emailaddress: "email",
+    phonenumber: "phoneNumber",
+    phone: "phoneNumber",
+    password: "password"
+};
+
+function normalizeHeader(value) {
+    return String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]+/g, "");
+}
+
+// Parse CSV while supporting quoted commas, escaped quotes,
+// Windows line endings and quoted multiline values.
 function parseCSV(text) {
     const rows = [];
     let row = [];
     let value = "";
     let inQuotes = false;
-
     const input = text.replace(/^\uFEFF/, "");
 
     for (let i = 0; i < input.length; i++) {
@@ -72,33 +101,82 @@ function parseCSV(text) {
     return rows;
 }
 
-function normalizeHeader(header) {
-    return String(header ?? "")
-        .trim()
-        .toLowerCase()
-        .replace(/[\s_-]+/g, "");
+function validateValue(name, value, requirePassword = false) {
+    const v = String(value ?? "").trim();
+
+    switch (name) {
+        case "registrationNo":
+            if (!v) return "Registration number is required.";
+
+            if (!/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(v)) {
+                return "Use letters, numbers, hyphens, or underscores.";
+            }
+
+            return null;
+
+        case "firstName":
+        case "lastName":
+            if (!v) return "Name is required.";
+
+            if (v.length < 3) {
+                return "Name must contain at least 3 characters.";
+            }
+
+            if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
+                return "Name must contain letters and spaces only.";
+            }
+
+            return null;
+
+        case "email":
+            if (!v) return "Email address is required.";
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                return "Please enter a valid email address.";
+            }
+
+            return null;
+
+        case "phoneNumber":
+            if (!v) return "Phone number is required.";
+
+            if (!/^\d{10}$/.test(v)) {
+                return "Phone number must contain exactly 10 digits.";
+            }
+
+            return null;
+
+        case "password":
+            if (!requirePassword && !v) return null;
+
+            if (!v) return "Password is required.";
+
+            if (value.length < 8) {
+                return "Password must be at least 8 characters.";
+            }
+
+            if (!/[A-Z]/.test(value)) {
+                return "Password must contain an uppercase letter.";
+            }
+
+            if (!/[a-z]/.test(value)) {
+                return "Password must contain a lowercase letter.";
+            }
+
+            if (!/\d/.test(value)) {
+                return "Password must contain a number.";
+            }
+
+            if (!/[^A-Za-z0-9]/.test(value)) {
+                return "Password must contain a special character.";
+            }
+
+            return null;
+
+        default:
+            return null;
+    }
 }
-
-const CSV_HEADER_MAP = {
-    registrationno: "registrationNo",
-    registrationnumber: "registrationNo",
-    registrationnum: "registrationNo",
-    firstname: "firstName",
-    lastname: "lastName",
-    email: "email",
-    emailaddress: "email",
-    phonenumber: "phoneNumber",
-    phone: "phoneNumber",
-    password: "password"
-};
-
-const REQUIRED_CSV_FIELDS = [
-    "registrationNo",
-    "firstName",
-    "lastName",
-    "email",
-    "phoneNumber"
-];
 
 function StudentFormModal({
     show,
@@ -117,20 +195,27 @@ function StudentFormModal({
     const [touched, setTouched] = useState({});
     const [showPassword, setShowPassword] = useState(false);
 
+    // CSV state
+    const [csvFileName, setCsvFileName] = useState("");
     const [csvError, setCsvError] = useState("");
     const [csvMessage, setCsvMessage] = useState("");
-    const [csvFileName, setCsvFileName] = useState("");
+    const [csvStudents, setCsvStudents] = useState([]);
+    const [csvResults, setCsvResults] = useState([]);
+    const [csvImporting, setCsvImporting] = useState(false);
 
     useEffect(() => {
         if (!show) return;
 
-        setShowPassword(false);
-        setCsvError("");
-        setCsvMessage("");
-        setCsvFileName("");
         setFormError("");
         setFieldErrors({});
         setTouched({});
+        setShowPassword(false);
+
+        setCsvFileName("");
+        setCsvError("");
+        setCsvMessage("");
+        setCsvStudents([]);
+        setCsvResults([]);
 
         if (editingStudent) {
             setFormData({
@@ -146,100 +231,18 @@ function StudentFormModal({
         } else {
             setFormData({ ...INITIAL_FORM_DATA });
         }
-    }, [editingStudent, show]);
+    }, [show, editingStudent]);
 
-    // Field validation
     const validateField = (name, value) => {
-        const v = String(value ?? "").trim();
-
-        switch (name) {
-            case "registrationNo":
-                if (!v) {
-                    return "Registration number is required.";
-                }
-
-                if (!/^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(v)) {
-                    return "Use letters, numbers, hyphens, or underscores.";
-                }
-
-                return null;
-
-            case "firstName":
-            case "lastName":
-                if (!v) {
-                    return `${name === "firstName" ? "First" : "Last"} name is required.`;
-                }
-
-                if (v.length < 3) {
-                    return "Name must be at least 3 characters.";
-                }
-
-                if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(v)) {
-                    return "Name must contain letters and spaces only.";
-                }
-
-                return null;
-
-            case "email":
-                if (!v) {
-                    return "Email address is required.";
-                }
-
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
-                    return "Please enter a valid email address.";
-                }
-
-                return null;
-
-            case "phoneNumber":
-                if (!v) {
-                    return "Phone number is required.";
-                }
-
-                if (!/^\d{10}$/.test(v)) {
-                    return "Phone number must contain exactly 10 digits.";
-                }
-
-                return null;
-
-            case "password":
-                if (editingStudent) return null;
-
-                if (!value) {
-                    return "Password is required.";
-                }
-
-                if (value.length < 8) {
-                    return "Password must be at least 8 characters.";
-                }
-
-                if (!/[A-Z]/.test(value)) {
-                    return "Password must contain an uppercase letter.";
-                }
-
-                if (!/[a-z]/.test(value)) {
-                    return "Password must contain a lowercase letter.";
-                }
-
-                if (!/\d/.test(value)) {
-                    return "Password must contain a number.";
-                }
-
-                if (!/[^A-Za-z0-9]/.test(value)) {
-                    return "Password must contain a special character.";
-                }
-
-                return null;
-
-            default:
-                return null;
+        if (name === "password" && editingStudent) {
+            return null;
         }
+
+        return validateValue(name, value, !editingStudent);
     };
 
     const validateAll = (data = formData) => {
-        const fields = [
-            ...REQUIRED_CSV_FIELDS
-        ];
+        const fields = [...REQUIRED_FIELDS];
 
         if (!editingStudent) {
             fields.push("password");
@@ -247,63 +250,64 @@ function StudentFormModal({
 
         const errors = {};
 
-        fields.forEach((name) => {
-            const error = validateField(name, data[name]);
+        fields.forEach((field) => {
+            const error = validateField(field, data[field]);
 
             if (error) {
-                errors[name] = error;
+                errors[field] = error;
             }
         });
 
         return errors;
     };
 
-    // CSV file upload and form auto-fill
+    // ============================================
+    // CSV FILE UPLOAD AND PREVIEW
+    // ============================================
+
     const handleCSVUpload = async (event) => {
         const file = event.target.files?.[0];
 
+        // Permit selecting the same file again.
+        event.target.value = "";
+
         setCsvError("");
         setCsvMessage("");
-        setFormError("");
+        setCsvFileName("");
+        setCsvStudents([]);
+        setCsvResults([]);
 
         if (!file) return;
-
-        // Allow selecting the same file again later.
-        event.target.value = "";
 
         if (!file.name.toLowerCase().endsWith(".csv")) {
             setCsvError("Please select a CSV file.");
             return;
         }
 
-        if (file.size === 0) {
-            setCsvError("The selected CSV file is empty.");
-            return;
-        }
-
-        if (file.size > MAX_CSV_SIZE) {
-            setCsvError("CSV file must not exceed 1 MB.");
+        if (!file.size || file.size > MAX_CSV_SIZE) {
+            setCsvError("CSV file must be between 1 byte and 1 MB.");
             return;
         }
 
         try {
-            const text = await file.text();
-            const rows = parseCSV(text);
+            const rows = parseCSV(await file.text());
 
             if (rows.length < 2) {
-                setCsvError(
-                    "CSV must contain a header row and one student record."
+                throw new Error(
+                    "CSV must contain a header and at least one student."
                 );
-                return;
+            }
+
+            if (rows.length - 1 > MAX_CSV_ROWS) {
+                throw new Error(
+                    `A maximum of ${MAX_CSV_ROWS} student rows is allowed.`
+                );
             }
 
             const headers = rows[0].map(normalizeHeader);
 
             if (headers.some((header) => !header)) {
-                setCsvError(
-                    "CSV contains an empty column header."
-                );
-                return;
+                throw new Error("CSV contains an empty column header.");
             }
 
             const mappedHeaders = headers.map(
@@ -316,93 +320,226 @@ function StudentFormModal({
                 new Set(supportedHeaders).size !==
                 supportedHeaders.length
             ) {
-                setCsvError(
+                throw new Error(
                     "CSV contains duplicate or ambiguous student columns."
                 );
-                return;
             }
 
-            const missingHeaders = REQUIRED_CSV_FIELDS.filter(
+            const requiredHeaders = [
+                ...REQUIRED_FIELDS,
+                "password"
+            ];
+
+            const missingHeaders = requiredHeaders.filter(
                 (field) => !supportedHeaders.includes(field)
             );
 
             if (missingHeaders.length > 0) {
-                setCsvError(
-                    `Missing required CSV columns: ${missingHeaders.join(", ")}.`
+                throw new Error(
+                    `Missing required columns: ${missingHeaders.join(", ")}.`
                 );
-                return;
             }
 
-            if (rows.length > 2) {
-                setCsvError(
-                    "This form imports one student at a time. Please use a CSV containing only one student data row."
-                );
-                return;
-            }
+            const validStudents = [];
+            const results = [];
 
-            const values = rows[1];
+            const seenRegistrationNumbers = new Set();
+            const seenEmails = new Set();
 
-            if (values.length !== headers.length) {
-                setCsvError(
-                    "CSV row has a different number of values than the header row."
-                );
-                return;
-            }
+            for (let i = 1; i < rows.length; i++) {
+                const rowNumber = i + 1;
+                const values = rows[i];
 
-            const importedData = {
-                ...INITIAL_FORM_DATA
-            };
+                if (values.length !== headers.length) {
+                    results.push({
+                        row: rowNumber,
+                        status: "rejected",
+                        errors: [
+                            "Column count does not match the header."
+                        ]
+                    });
 
-            mappedHeaders.forEach((field, index) => {
-                if (field) {
-                    importedData[field] = values[index].trim();
+                    continue;
                 }
-            });
 
-            const errors = validateAll(importedData);
-            const allFieldsTouched = {};
+                const student = {};
 
-            REQUIRED_CSV_FIELDS.forEach((field) => {
-                allFieldsTouched[field] = true;
-            });
+                mappedHeaders.forEach((field, index) => {
+                    if (field) {
+                        student[field] = values[index].trim();
+                    }
+                });
 
-            if (!editingStudent) {
-                allFieldsTouched.password = true;
+                const errors = [];
+
+                for (const field of REQUIRED_FIELDS) {
+                    const error = validateValue(
+                        field,
+                        student[field]
+                    );
+
+                    if (error) errors.push(error);
+                }
+
+                const passwordError = validateValue(
+                    "password",
+                    student.password,
+                    true
+                );
+
+                if (passwordError) {
+                    errors.push(passwordError);
+                }
+
+                const registrationKey =
+                    (student.registrationNo || "").toLowerCase();
+
+                const emailKey =
+                    (student.email || "").toLowerCase();
+
+                if (
+                    registrationKey &&
+                    seenRegistrationNumbers.has(registrationKey)
+                ) {
+                    errors.push(
+                        "Duplicate registration number in this CSV."
+                    );
+                }
+
+                if (emailKey && seenEmails.has(emailKey)) {
+                    errors.push("Duplicate email address in this CSV.");
+                }
+
+                if (registrationKey) {
+                    seenRegistrationNumbers.add(registrationKey);
+                }
+
+                if (emailKey) {
+                    seenEmails.add(emailKey);
+                }
+
+                if (errors.length > 0) {
+                    results.push({
+                        row: rowNumber,
+                        registrationNo: student.registrationNo || "",
+                        status: "rejected",
+                        errors
+                    });
+                } else {
+                    validStudents.push(student);
+
+                    results.push({
+                        row: rowNumber,
+                        registrationNo: student.registrationNo,
+                        status: "ready",
+                        errors: []
+                    });
+                }
             }
 
-            setFormData(importedData);
-            setTouched(allFieldsTouched);
-            setFieldErrors(errors);
             setCsvFileName(file.name);
+            setCsvStudents(validStudents);
+            setCsvResults(results);
 
-            if (Object.keys(errors).length > 0) {
-                setCsvMessage(
-                    "CSV values were imported. Please correct the highlighted fields before saving."
+            setCsvMessage(
+                `${validStudents.length} valid records ready to import. ` +
+                `${results.length - validStudents.length} rows need correction.`
+            );
+        } catch (error) {
+            setCsvError(error.message || "Unable to read the CSV file.");
+        }
+    };
+
+    // ============================================
+    // BULK CSV IMPORT
+    // ============================================
+
+    const handleBulkCSVImport = async () => {
+        if (
+            !csvStudents.length ||
+            csvImporting ||
+            formLoading
+        ) {
+            return;
+        }
+
+        setCsvImporting(true);
+        setCsvError("");
+        setCsvMessage("");
+
+        try {
+            const data = await apiRequest(
+                "/api/students/import-csv",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        students: csvStudents
+                    })
+                }
+            );
+
+            const responseData = data?.data ?? data;
+
+            const serverResults = responseData.results || [];
+
+            // Keep frontend-rejected rows and replace ready rows
+            // with the results returned by the backend.
+            setCsvResults((previous) => {
+                const rejectedRows = previous.filter(
+                    (item) => item.status === "rejected"
                 );
-            } else {
-                setCsvMessage(
-                    "CSV imported successfully. Review the values before creating the student."
-                );
+
+                return [...rejectedRows, ...serverResults];
+            });
+
+            const summary = responseData.summary;
+
+            setCsvMessage(
+                summary
+                    ? `Import finished: ${summary.imported} imported, ${summary.rejected} rejected.`
+                    : responseData.message || "CSV import completed."
+            );
+
+            setCsvStudents([]);
+
+            if (typeof onSuccess === "function") {
+                await onSuccess();
             }
         } catch (error) {
-            console.error("CSV import error:", error);
+            if (error.status === 401) {
+                onAuthError();
+                return;
+            }
+
+            if (error.status === 403) {
+                setCsvError(
+                    "Administrator permission is required to import students."
+                );
+                return;
+            }
+
             setCsvError(
-                error.message || "Unable to read the CSV file."
+                error.message || "Failed to import student records."
             );
+        } finally {
+            setCsvImporting(false);
         }
     };
 
     const handleClearCSV = () => {
-        setFormData({ ...INITIAL_FORM_DATA });
-        setFieldErrors({});
-        setTouched({});
+        if (csvImporting || formLoading) return;
+
+        setCsvFileName("");
         setCsvError("");
         setCsvMessage("");
-        setCsvFileName("");
-        setFormError("");
+        setCsvStudents([]);
+        setCsvResults([]);
     };
 
-    // Input change
+    // ============================================
+    // FORM INPUT HANDLING
+    // ============================================
+
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         let nextValue = value;
@@ -411,22 +548,24 @@ function StudentFormModal({
             nextValue = value
                 .replace(/[^A-Za-z0-9_-]/g, "")
                 .slice(0, 30);
-        } else if (name === "firstName" || name === "lastName") {
+        } else if (
+            name === "firstName" ||
+            name === "lastName"
+        ) {
             nextValue = value
                 .replace(/[^A-Za-z ]/g, "")
-                .slice(0, 30);
+                .slice(0, 50);
         } else if (name === "phoneNumber") {
             if (!/^\d*$/.test(value) || value.length > 10) {
                 return;
             }
         }
 
-        const nextData = {
-            ...formData,
+        setFormData((previous) => ({
+            ...previous,
             [name]: nextValue
-        };
+        }));
 
-        setFormData(nextData);
         setFormError("");
 
         if (touched[name]) {
@@ -451,40 +590,33 @@ function StudentFormModal({
         }));
     };
 
-    const handleClose = () => {
-        if (formLoading) return;
+    // ============================================
+    // SAVE SINGLE STUDENT
+    // ============================================
 
-        setShowPassword(false);
-        setCsvError("");
-        setCsvMessage("");
-        setCsvFileName("");
-        setFormError("");
-        setFieldErrors({});
-        setTouched({});
-        onClose();
-    };
-
-    // Submit using the existing student creation API
     const handleSubmit = async (event) => {
         event.preventDefault();
         setFormError("");
 
         const errors = validateAll();
+        const fields = [...REQUIRED_FIELDS];
+
+        if (!editingStudent) {
+            fields.push("password");
+        }
+
         const allTouched = {};
 
-        [
-            ...REQUIRED_CSV_FIELDS,
-            ...(!editingStudent ? ["password"] : [])
-        ].forEach((field) => {
+        fields.forEach((field) => {
             allTouched[field] = true;
         });
 
         setTouched(allTouched);
         setFieldErrors(errors);
 
-        if (Object.keys(errors).length > 0) {
+        if (Object.values(errors).some(Boolean)) {
             setFormError(
-                "Please fix the highlighted errors before submitting."
+                "Please correct the highlighted fields before submitting."
             );
             return;
         }
@@ -519,10 +651,8 @@ function StudentFormModal({
             }
 
             await onSuccess();
-            handleClose();
+            onClose();
         } catch (error) {
-            console.error("Student save error:", error);
-
             if (error.status === 401) {
                 onAuthError();
                 return;
@@ -540,11 +670,6 @@ function StudentFormModal({
                     ...previous,
                     ...error.data.errors
                 }));
-
-                setFormError(
-                    error.message || "Please check the form fields."
-                );
-                return;
             }
 
             setFormError(
@@ -555,37 +680,48 @@ function StudentFormModal({
         }
     };
 
-    const renderField = (label, name, type = "text", hint = "") => {
-        const hasError = Boolean(
-            touched[name] && fieldErrors[name]
-        );
+    const handleClose = () => {
+        if (formLoading || csvImporting) return;
+        onClose();
+    };
 
+    // ============================================
+    // REUSABLE FORM FIELD
+    // ============================================
+
+    const renderField = (
+        label,
+        name,
+        type = "text",
+        hint = ""
+    ) => {
+        const error = touched[name] && fieldErrors[name];
         const hintId = `sf-${name}-hint`;
-        const isPassword = name === "password";
+        const passwordField = name === "password";
 
         return (
             <div
                 key={name}
-                className={`form-group${hasError ? " field-error" : ""}`}
+                className={`form-group${error ? " field-error" : ""}`}
             >
                 <label htmlFor={`sf-${name}`}>{label}</label>
 
-                {isPassword ? (
+                {passwordField ? (
                     <div className="password-input-wrapper">
                         <input
                             id={`sf-${name}`}
-                            type={showPassword ? "text" : "password"}
                             name={name}
+                            type={showPassword ? "text" : "password"}
                             value={formData[name]}
                             onChange={handleInputChange}
                             onBlur={handleBlur}
                             disabled={formLoading}
                             required={!editingStudent}
                             autoComplete="new-password"
+                            aria-invalid={Boolean(error)}
                             aria-describedby={
-                                hasError || hint ? hintId : undefined
+                                error || hint ? hintId : undefined
                             }
-                            aria-invalid={hasError}
                         />
 
                         <button
@@ -596,9 +732,10 @@ function StudentFormModal({
                             }
                             disabled={formLoading}
                             aria-label={
-                                showPassword ? "Hide password" : "Show password"
+                                showPassword
+                                    ? "Hide password"
+                                    : "Show password"
                             }
-                            aria-pressed={showPassword}
                         >
                             {showPassword ? "Hide" : "Show"}
                         </button>
@@ -606,38 +743,32 @@ function StudentFormModal({
                 ) : (
                     <input
                         id={`sf-${name}`}
-                        type={type}
                         name={name}
+                        type={type}
                         value={formData[name]}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         disabled={formLoading}
                         required
                         autoComplete="off"
-                        maxLength={
-                            name === "phoneNumber"
-                                ? 10
-                                : name === "email"
-                                    ? 254
-                                    : 100
-                        }
+                        maxLength={name === "phoneNumber" ? 10 : 254}
                         inputMode={
                             name === "phoneNumber" ? "numeric" : undefined
                         }
+                        aria-invalid={Boolean(error)}
                         aria-describedby={
-                            hasError || hint ? hintId : undefined
+                            error || hint ? hintId : undefined
                         }
-                        aria-invalid={hasError}
                     />
                 )}
 
-                {hasError ? (
+                {error ? (
                     <span
                         id={hintId}
                         className="field-error-msg"
                         role="alert"
                     >
-                        {fieldErrors[name]}
+                        {error}
                     </span>
                 ) : hint ? (
                     <span id={hintId} className="field-hint">
@@ -667,7 +798,7 @@ function StudentFormModal({
                         <p>
                             {editingStudent
                                 ? "Update student information."
-                                : "Create a new student account."}
+                                : "Create a student or import multiple students from CSV."}
                         </p>
                     </div>
 
@@ -675,7 +806,7 @@ function StudentFormModal({
                         type="button"
                         className="close-form-button"
                         onClick={handleClose}
-                        disabled={formLoading}
+                        disabled={formLoading || csvImporting}
                         aria-label="Close form"
                     >
                         ×
@@ -688,72 +819,129 @@ function StudentFormModal({
                     </div>
                 )}
 
-                <form
-                    className="student-form"
-                    onSubmit={handleSubmit}
-                    noValidate
-                >
-                    {!editingStudent && (
-                        <section className="csv-import-section">
-                            <h4>Import Student Details from CSV</h4>
+                {!editingStudent && (
+                    <section className="csv-import-section">
+                        <h4>Import Students from CSV</h4>
 
-                            <p>
-                                Select a CSV file with one student record.
-                                Review and edit the imported values before
-                                creating the student.
+                        <p>
+                            Select a CSV file to preview and import
+                            multiple student records.
+                        </p>
+
+                        <label htmlFor="student-csv-file">
+                            Choose CSV file
+                        </label>
+
+                        <input
+                            id="student-csv-file"
+                            type="file"
+                            accept=".csv,text/csv"
+                            onChange={handleCSVUpload}
+                            disabled={formLoading || csvImporting}
+                        />
+
+                        <p className="field-hint">
+                            Required columns: registration_no,
+                            first_name, last_name, email, phone_number,
+                            password. Maximum file size: 1 MB.
+                        </p>
+
+                        {csvFileName && (
+                            <p className="csv-import-filename">
+                                Selected file: {csvFileName}
                             </p>
+                        )}
 
-                            <label htmlFor="student-csv-file">
-                                Choose CSV file
-                            </label>
-
-                            <input
-                                id="student-csv-file"
-                                type="file"
-                                accept=".csv,text/csv"
-                                onChange={handleCSVUpload}
-                                disabled={formLoading}
-                            />
-
-                            <p className="field-hint">
-                                Required columns: registration_no,
-                                first_name, last_name, email, phone_number.
-                                Password can be entered manually.
+                        {csvError && (
+                            <p className="csv-import-error" role="alert">
+                                {csvError}
                             </p>
+                        )}
 
-                            {csvFileName && (
-                                <p className="csv-import-filename">
-                                    Selected file: {csvFileName}
-                                </p>
-                            )}
+                        {csvMessage && (
+                            <p
+                                className="csv-import-success"
+                                role="status"
+                            >
+                                {csvMessage}
+                            </p>
+                        )}
 
-                            {csvError && (
-                                <p className="csv-import-error" role="alert">
-                                    {csvError}
-                                </p>
-                            )}
+                        {csvResults.length > 0 && (
+                            <div className="csv-results">
+                                <h4>Import Preview and Results</h4>
 
-                            {csvMessage && (
-                                <p
-                                    className="csv-import-success"
-                                    role="status"
-                                >
-                                    {csvMessage}
-                                </p>
-                            )}
+                                {csvResults.map((item, index) => (
+                                    <div
+                                        key={`${item.row}-${index}`}
+                                        className="csv-result-row"
+                                    >
+                                        <strong>
+                                            Row {item.row}
+                                            {item.registrationNo
+                                                ? ` — ${item.registrationNo}`
+                                                : ""}
+                                        </strong>
+
+                                        <span>
+                                            {" "}{item.status}
+                                        </span>
+
+                                        {item.errors?.map(
+                                            (message, errorIndex) => (
+                                                <p
+                                                    key={errorIndex}
+                                                    className="csv-import-error"
+                                                >
+                                                    {message}
+                                                </p>
+                                            )
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                className="save-button"
+                                onClick={handleBulkCSVImport}
+                                disabled={
+                                    !csvStudents.length ||
+                                    csvImporting ||
+                                    formLoading
+                                }
+                            >
+                                {csvImporting
+                                    ? "Importing..."
+                                    : `Import ${csvStudents.length} Valid Students`}
+                            </button>
 
                             {csvFileName && (
                                 <button
                                     type="button"
                                     className="cancel-button"
                                     onClick={handleClearCSV}
-                                    disabled={formLoading}
+                                    disabled={csvImporting || formLoading}
                                 >
-                                    Clear Imported Data
+                                    Clear CSV
                                 </button>
                             )}
-                        </section>
-                    )}
+                        </div>
+                    </section>
+                )}
+
+                <form
+                    className="student-form"
+                    onSubmit={handleSubmit}
+                    noValidate
+                >
+                    <h4>
+                        {editingStudent
+                            ? "Edit Individual Student"
+                            : "Add One Student Manually"}
+                    </h4>
 
                     {renderField(
                         "Registration Number",
@@ -786,7 +974,7 @@ function StudentFormModal({
                     {renderField(
                         "Phone Number",
                         "phoneNumber",
-                        "text",
+                        "tel",
                         "Exactly 10 digits."
                     )}
 
@@ -803,15 +991,15 @@ function StudentFormModal({
                             type="button"
                             className="cancel-button"
                             onClick={handleClose}
-                            disabled={formLoading}
+                            disabled={formLoading || csvImporting}
                         >
-                            Cancel
+                            Close
                         </button>
 
                         <button
                             type="submit"
                             className="save-button"
-                            disabled={formLoading}
+                            disabled={formLoading || csvImporting}
                         >
                             {formLoading
                                 ? "Saving..."

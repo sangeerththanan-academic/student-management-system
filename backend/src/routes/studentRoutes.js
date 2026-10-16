@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const {
@@ -7,7 +8,8 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    importStudents
 } = require("../controllers/studentController");
 
 const {
@@ -21,7 +23,6 @@ const router = express.Router();
 // STUDENT SELF-SERVICE ROUTES
 // ============================================
 
-// Get the logged-in student's own profile
 router.get(
     "/me",
     authenticate,
@@ -29,7 +30,6 @@ router.get(
     getMyProfile
 );
 
-// CR-020: Change the logged-in student's password
 router.patch(
     "/me/password",
     authenticate,
@@ -40,6 +40,15 @@ router.patch(
 // ============================================
 // ADMIN-ONLY ROUTES
 // ============================================
+
+// CR-015: Import multiple student records from CSV.
+// Keep this route before "/:id".
+router.post(
+    "/import-csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    importStudents
+);
 
 // Create student
 router.post(

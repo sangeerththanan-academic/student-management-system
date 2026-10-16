@@ -19,7 +19,7 @@ const {
 const { validateStudentData } = require("../utils/validation");
 
 // =====================================================
-// VALIDATION HELPERS
+// COMMON VALIDATION HELPERS
 // =====================================================
 
 const normalizeStudentValue = (value) => {
@@ -32,6 +32,7 @@ const normalizeStudentValue = (value) => {
 
 const isValidRegistrationNumber = (value) => {
     const normalized = normalizeStudentValue(value);
+
     return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(normalized);
 };
 
@@ -106,17 +107,275 @@ const validatePassword = (password) => {
 };
 
 // =====================================================
+// CR-015: IMPORT MULTIPLE STUDENTS FROM CSV DATA
+// POST /api/students/import-csv
+// =====================================================
+
+const importStudents = async (req, res) => {
+    const students = req.body?.students;
+
+    if (!Array.isArray(students) || students.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide at least one student record."
+        });
+    }
+
+    if (students.length > 500) {
+        return res.status(400).json({
+            success: false,
+            message: "A maximum of 500 students can be imported per request."
+        });
+    }
+
+    const results = [];
+    let imported = 0;
+    let rejected = 0;
+
+    // Detect duplicates inside the uploaded file as well as in MySQL.
+    const seenRegistrationNumbers = new Set();
+    const seenEmails = new Set();
+
+    for (let index = 0; index < students.length; index++) {
+        const row = students[index];
+        const rowNumber = index + 2;
+        let connection;
+
+        try {
+            if (!row || typeof row !== "object" || Array.isArray(row)) {
+                results.push({
+                    row: rowNumber,
+                    status: "rejected",
+                    errors: ["Invalid student record."]
+                });
+
+                rejected++;
+                continue;
+            }
+
+            const registrationNo =
+                normalizeStudentValue(row.registrationNo);
+
+            const firstName =
+                normalizeStudentValue(row.firstName);
+
+            const lastName =
+                normalizeStudentValue(row.lastName);
+
+            const email =
+                normalizeStudentValue(row.email);
+
+            const phoneNumber =
+                normalizeStudentValue(row.phoneNumber);
+
+            const password = row.password;
+            const errors = [];
+
+            if (!isValidRegistrationNumber(registrationNo)) {
+                errors.push(
+                    "Registration number must contain letters, numbers, hyphens, or underscores."
+                );
+            }
+
+            const firstNameError = validateName(firstName, "First name");
+            if (firstNameError) errors.push(firstNameError);
+
+            const lastNameError = validateName(lastName, "Last name");
+            if (lastNameError) errors.push(lastNameError);
+
+            const emailError = validateEmail(email);
+            if (emailError) errors.push(emailError);
+
+            const phoneError = validatePhoneNumber(phoneNumber);
+            if (phoneError) errors.push(phoneError);
+
+            const passwordError = validatePassword(password);
+            if (passwordError) errors.push(passwordError);
+
+            const normalizedRegistration = registrationNo.toLowerCase();
+            const normalizedEmail = email.toLowerCase();
+
+            if (
+                normalizedRegistration &&
+                seenRegistrationNumbers.has(normalizedRegistration)
+            ) {
+                errors.push(
+                    "Registration number is duplicated in this CSV file."
+                );
+            }
+
+            if (
+                normalizedEmail &&
+                seenEmails.has(normalizedEmail)
+            ) {
+                errors.push(
+                    "Email address is duplicated in this CSV file."
+                );
+            }
+
+            if (normalizedRegistration) {
+                seenRegistrationNumbers.add(normalizedRegistration);
+            }
+
+            if (normalizedEmail) {
+                seenEmails.add(normalizedEmail);
+            }
+
+            if (errors.length > 0) {
+                results.push({
+                    row: rowNumber,
+                    registrationNo,
+                    status: "rejected",
+                    errors
+                });
+
+                rejected++;
+                continue;
+            }
+
+            connection = await pool.getConnection();
+            await connection.beginTransaction();
+
+            const [existingUser] = await connection.execute(
+                `SELECT user_id
+                 FROM users
+                 WHERE username = ?
+                 LIMIT 1`,
+                [registrationNo]
+            );
+
+            if (existingUser.length > 0) {
+                await connection.rollback();
+
+                results.push({
+                    row: rowNumber,
+                    registrationNo,
+                    status: "rejected",
+                    errors: [
+                        "Registration number is already registered."
+                    ]
+                });
+
+                rejected++;
+                continue;
+            }
+
+            const [existingStudent] = await connection.execute(
+                `SELECT student_id
+                 FROM students
+                 WHERE email = ?
+                 LIMIT 1`,
+                [email]
+            );
+
+            if (existingStudent.length > 0) {
+                await connection.rollback();
+
+                results.push({
+                    row: rowNumber,
+                    registrationNo,
+                    status: "rejected",
+                    errors: [
+                        "Email address is already registered."
+                    ]
+                });
+
+                rejected++;
+                continue;
+            }
+
+            const passwordHash = await bcrypt.hash(password, 10);
+
+            const [userResult] = await connection.execute(
+                `INSERT INTO users (username, password_hash, role)
+                 VALUES (?, ?, 'STUDENT')`,
+                [registrationNo, passwordHash]
+            );
+
+            const studentId = await createStudent(
+                connection,
+                userResult.insertId,
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber
+            );
+
+            await connection.commit();
+
+            results.push({
+                row: rowNumber,
+                registrationNo,
+                studentId,
+                status: "imported",
+                message: "Student created successfully."
+            });
+
+            imported++;
+        } catch (error) {
+            if (connection) {
+                try {
+                    await connection.rollback();
+                } catch (rollbackError) {
+                    console.error(
+                        "CSV import rollback error:",
+                        rollbackError.message
+                    );
+                }
+            }
+
+            console.error(
+                `CSV import error on row ${rowNumber}:`,
+                error.message
+            );
+
+            results.push({
+                row: rowNumber,
+                registrationNo:
+                    typeof row?.registrationNo === "string"
+                        ? row.registrationNo.trim()
+                        : "",
+                status: "rejected",
+                errors: [
+                    error.code === "ER_DUP_ENTRY"
+                        ? "Registration number or email is already registered."
+                        : "The student could not be imported."
+                ]
+            });
+
+            rejected++;
+        } finally {
+            if (connection) {
+                connection.release();
+            }
+        }
+    }
+
+    return res.status(200).json({
+        success: imported > 0,
+        message: `Import completed: ${imported} imported, ${rejected} rejected.`,
+        summary: {
+            total: students.length,
+            imported,
+            rejected
+        },
+        results
+    });
+};
+
+// =====================================================
 // CREATE STUDENT
 // POST /api/students
 // =====================================================
 
 const addStudent = async (req, res) => {
     const payload = {
-        registrationNo: req.body.registrationNo,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
+        registrationNo: normalizeStudentValue(req.body.registrationNo),
+        firstName: normalizeStudentValue(req.body.firstName),
+        lastName: normalizeStudentValue(req.body.lastName),
+        email: normalizeStudentValue(req.body.email),
+        phoneNumber: normalizeStudentValue(req.body.phoneNumber),
         password: req.body.password
     };
 
@@ -127,26 +386,12 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = {
-        registrationNo: normalizeStudentValue(payload.registrationNo),
-        firstName: normalizeStudentValue(payload.firstName),
-        lastName: normalizeStudentValue(payload.lastName),
-        email: normalizeStudentValue(payload.email),
-        phoneNumber: normalizeStudentValue(payload.phoneNumber),
-        password: payload.password
-    };
+    } = payload;
 
     let connection;
 
     try {
-        const validation = validateStudentData({
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            password
-        }, false);
+        const validation = validateStudentData(payload, false);
 
         if (!validation.isValid) {
             return res.status(400).json({
@@ -156,55 +401,30 @@ const addStudent = async (req, res) => {
             });
         }
 
-        if (!isValidRegistrationNumber(registrationNo)) {
-            return res.status(400).json({
-                success: false,
-                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
-            });
-        }
+        const registrationError = isValidRegistrationNumber(registrationNo)
+            ? null
+            : "Registration number must contain only letters, numbers, hyphen, or underscore.";
 
         const firstNameError = validateName(firstName, "First name");
-
-        if (firstNameError) {
-            return res.status(400).json({
-                success: false,
-                message: firstNameError
-            });
-        }
-
         const lastNameError = validateName(lastName, "Last name");
-
-        if (lastNameError) {
-            return res.status(400).json({
-                success: false,
-                message: lastNameError
-            });
-        }
-
         const emailError = validateEmail(email);
-
-        if (emailError) {
-            return res.status(400).json({
-                success: false,
-                message: emailError
-            });
-        }
-
         const phoneError = validatePhoneNumber(phoneNumber);
-
-        if (phoneError) {
-            return res.status(400).json({
-                success: false,
-                message: phoneError
-            });
-        }
-
         const passwordError = validatePassword(password);
 
-        if (passwordError) {
+        const errors = [
+            registrationError,
+            firstNameError,
+            lastNameError,
+            emailError,
+            phoneError,
+            passwordError
+        ].filter(Boolean);
+
+        if (errors.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: passwordError
+                message: errors[0],
+                errors
             });
         }
 
@@ -212,10 +432,7 @@ const addStudent = async (req, res) => {
         await connection.beginTransaction();
 
         const [existingUser] = await connection.execute(
-            `SELECT user_id
-             FROM users
-             WHERE username = ?
-             LIMIT 1`,
+            `SELECT user_id FROM users WHERE username = ? LIMIT 1`,
             [registrationNo]
         );
 
@@ -229,10 +446,7 @@ const addStudent = async (req, res) => {
         }
 
         const [existingStudent] = await connection.execute(
-            `SELECT student_id
-             FROM students
-             WHERE email = ?
-             LIMIT 1`,
+            `SELECT student_id FROM students WHERE email = ? LIMIT 1`,
             [email]
         );
 
@@ -304,15 +518,12 @@ const addStudent = async (req, res) => {
             message: "Failed to create student"
         });
     } finally {
-        if (connection) {
-            connection.release();
-        }
+        if (connection) connection.release();
     }
 };
 
 // =====================================================
 // GET ALL STUDENTS
-// GET /api/students
 // =====================================================
 
 const getStudents = async (req, res) => {
@@ -336,7 +547,6 @@ const getStudents = async (req, res) => {
 
 // =====================================================
 // GET STUDENT BY ID
-// GET /api/students/:id
 // =====================================================
 
 const getStudent = async (req, res) => {
@@ -365,8 +575,7 @@ const getStudent = async (req, res) => {
 };
 
 // =====================================================
-// UPDATE STUDENT PROFILE
-// PUT /api/students/:id
+// UPDATE STUDENT
 // =====================================================
 
 const editStudent = async (req, res) => {
@@ -391,54 +600,21 @@ const editStudent = async (req, res) => {
             });
         }
 
-        const {
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
-        } = payload;
+        const errors = [
+            isValidRegistrationNumber(payload.registrationNo)
+                ? null
+                : "Registration number must contain only letters, numbers, hyphen, or underscore.",
+            validateName(payload.firstName, "First name"),
+            validateName(payload.lastName, "Last name"),
+            validateEmail(payload.email),
+            validatePhoneNumber(payload.phoneNumber)
+        ].filter(Boolean);
 
-        if (!isValidRegistrationNumber(registrationNo)) {
+        if (errors.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: "Registration number must contain only letters, numbers, hyphen, or underscore."
-            });
-        }
-
-        const firstNameError = validateName(firstName, "First name");
-
-        if (firstNameError) {
-            return res.status(400).json({
-                success: false,
-                message: firstNameError
-            });
-        }
-
-        const lastNameError = validateName(lastName, "Last name");
-
-        if (lastNameError) {
-            return res.status(400).json({
-                success: false,
-                message: lastNameError
-            });
-        }
-
-        const emailError = validateEmail(email);
-
-        if (emailError) {
-            return res.status(400).json({
-                success: false,
-                message: emailError
-            });
-        }
-
-        const phoneError = validatePhoneNumber(phoneNumber);
-
-        if (phoneError) {
-            return res.status(400).json({
-                success: false,
-                message: phoneError
+                message: errors[0],
+                errors
             });
         }
 
@@ -453,11 +629,11 @@ const editStudent = async (req, res) => {
 
         const result = await updateStudent(
             studentId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
+            payload.registrationNo,
+            payload.firstName,
+            payload.lastName,
+            payload.email,
+            payload.phoneNumber
         );
 
         return res.status(200).json({
@@ -484,7 +660,6 @@ const editStudent = async (req, res) => {
 
 // =====================================================
 // DELETE STUDENT
-// DELETE /api/students/:id
 // =====================================================
 
 const removeStudent = async (req, res) => {
@@ -518,7 +693,6 @@ const removeStudent = async (req, res) => {
 
 // =====================================================
 // GET LOGGED-IN STUDENT PROFILE
-// GET /api/students/me
 // =====================================================
 
 const getMyProfile = async (req, res) => {
@@ -547,8 +721,7 @@ const getMyProfile = async (req, res) => {
 };
 
 // =====================================================
-// CR-020: CHANGE LOGGED-IN STUDENT PASSWORD
-// PATCH /api/students/me/password
+// CR-020: CHANGE STUDENT PASSWORD
 // =====================================================
 
 const changeMyPassword = async (req, res) => {
@@ -596,9 +769,7 @@ const changeMyPassword = async (req, res) => {
             });
         }
 
-        // Never trust a user ID sent by the frontend.
         const userId = req.user.userId;
-
         const account = await getPasswordHashByUserId(userId);
 
         if (!account) {
@@ -608,12 +779,12 @@ const changeMyPassword = async (req, res) => {
             });
         }
 
-        const currentPasswordMatches = await bcrypt.compare(
+        const matches = await bcrypt.compare(
             currentPassword,
             account.password_hash
         );
 
-        if (!currentPasswordMatches) {
+        if (!matches) {
             return res.status(401).json({
                 success: false,
                 message: "Current password is incorrect"
@@ -639,7 +810,6 @@ const changeMyPassword = async (req, res) => {
             message: "Password changed successfully"
         });
     } catch (error) {
-        // Do not log passwords or password hashes.
         console.error("Change student password error:", error.message);
 
         return res.status(500).json({
@@ -660,5 +830,6 @@ module.exports = {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    importStudents
 };

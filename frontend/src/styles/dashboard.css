@@ -661,7 +661,7 @@ html[data-theme="dark"] .cancel-button:hover {
     padding: 16px;
     border: 1px solid #cbd5e1;
     border-radius: 10px;
-    background: #f8fafc;
+    background: hsl(184, 74%, 42%);
 }
 
 .csv-import-section h4 {
