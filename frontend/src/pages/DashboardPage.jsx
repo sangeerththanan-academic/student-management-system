@@ -201,6 +201,41 @@ function DashboardPage() {
         setShowForm(true);
     };
 
+    function csvExport(students, filename = "students.csv") {
+        const headers = ["Student ID", "Registration Number", "First Name", "Last Name", "Email", "Phone Number"];
+
+        // 2. Map student objects to CSV rows
+        const rows = students.map(student => [
+            student.student_id ?? "",
+            // Wrap fields in quotes to handle commas or special characters safely
+            `"${(student.registration_no || "").replace(/"/g, '""')}"`,
+            `"${(student.first_name || "").replace(/"/g, '""')}"`,
+            `"${(student.last_name || "").replace(/"/g, '""')}"`,
+            `"${(student.email || "").replace(/"/g, '""')}"`,
+            `"${(student.phone_number || "").replace(/"/g, '""')}"`
+        ]);
+
+        // 3. Combine headers and rows into a single CSV string
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(row => row.join(","))
+        ].join("\n");
+
+        // 4. Create a Blob and trigger a download link in the browser
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 
     const openEditForm = (student) => {
         setEditingStudent(student);
@@ -339,12 +374,10 @@ function DashboardPage() {
                     </div>
 
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div>
+                        <button className="export-csv-button" onClick={() => csvExport(students)}> Export CSV </button>
+                        <button className="add-student-button" onClick={openAddForm}> + Add Student </button>
+                    </div>
 
                 </div>
 
