@@ -7,7 +7,7 @@ import {
     logout
 } from "../services/authService";
 
-import apiRequest from "../services/api";
+import apiRequest, { downloadFile } from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
 
@@ -175,6 +175,34 @@ function DashboardPage() {
         setSearchTerm("");
     };
 
+    const handleExportStudents = async () => {
+        try {
+            setError("");
+            const blob = await downloadFile("/api/students/export");
+            const downloadUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = downloadUrl;
+            link.download = "students.csv";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error("Export students error:", error);
+
+            if (error.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
+            }
+
+            setError(error.status === 403
+                ? "You do not have permission to export students."
+                : error.message || "Failed to export students.");
+        }
+    };
+
 
     // Form handling
     const openAddForm = () => {
@@ -318,12 +346,21 @@ function DashboardPage() {
                     </div>
 
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="student-heading-actions">
+                        <button
+                            className="export-students-button"
+                            onClick={handleExportStudents}
+                        >
+                            Export CSV
+                        </button>
+
+                        <button
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
 
                 </div>
 

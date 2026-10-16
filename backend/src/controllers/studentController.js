@@ -18,6 +18,22 @@ const {
 
 const { updatePasswordByUserId } = require("../models/userModel");
 
+const csvEscape = (value) => {
+    const text = value === null || value === undefined ? "" : String(value);
+    return /[",\r\n]/.test(text)
+        ? `"${text.replace(/"/g, '""')}"`
+        : text;
+};
+
+const studentCsvHeaders = [
+    "Student ID",
+    "Registration Number",
+    "First Name",
+    "Last Name",
+    "Email",
+    "Phone Number"
+];
+
 
 // CREATE STUDENT
 const addStudent = async (req, res) => {
@@ -192,6 +208,39 @@ const getStudents = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Failed to retrieve students"
+        });
+    }
+};
+
+// EXPORT ALL STUDENTS AS CSV
+const exportStudents = async (req, res) => {
+    try {
+        const students = await getAllStudents();
+        const rows = students.map((student) => [
+            student.student_id,
+            student.registration_no,
+            student.first_name,
+            student.last_name,
+            student.email,
+            student.phone_number
+        ]);
+        const csv = [studentCsvHeaders, ...rows]
+            .map((row) => row.map(csvEscape).join(","))
+            .join("\r\n");
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="students.csv"'
+        );
+
+        return res.status(200).send(csv);
+    } catch (error) {
+        console.error("Export students error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export students"
         });
     }
 };
@@ -428,6 +477,7 @@ const getMyProfile = async (req, res) => {
 module.exports = {
     addStudent,
     getStudents,
+    exportStudents,
     getStudent,
     getMyProfile,
     changeMyPassword,

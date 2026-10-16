@@ -157,6 +157,41 @@ const getStudentByUserId = async (userId) => {
     return rows[0];
 };
 
+const mongoose = require("mongoose");
+
+const studentSchema = new mongoose.Schema(
+  {
+    studentId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    registrationNumber: {
+      type: String,
+      required: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+      default: "",
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Student", studentSchema);
+
 
 module.exports = {
     createStudent,

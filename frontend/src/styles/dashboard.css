@@ -136,6 +136,26 @@
     font-size: 14px;
 }
 
+.student-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.export-students-button {
+    border: 1px solid #2563eb;
+    background: #ffffff;
+    color: #2563eb;
+    padding: 11px 17px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.export-students-button:hover {
+    background: #eff6ff;
+}
+
 .add-student-button {
     border: none;
 
@@ -688,6 +708,14 @@
 
     .dashboard-header-actions {
         width: 100%;
+    }
+
+    .student-heading-actions {
+        width: 100%;
+    }
+
+    .student-heading-actions button {
+        flex: 1;
 
         justify-content: space-between;
     }

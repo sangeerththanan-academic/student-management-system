@@ -3,6 +3,7 @@ const express = require("express");
 const {
     addStudent,
     getStudents,
+    exportStudents,
     getStudent,
     getMyProfile,
     changeMyPassword,
@@ -17,6 +18,14 @@ const {
 
 const router = express.Router();
 
+// Export all students as CSV. Keep this before "/:id" so "export" is
+// never interpreted as a student identifier.
+router.get(
+    "/export",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    exportStudents
+);
 
 // STUDENT ROUTES
 
@@ -55,7 +64,6 @@ router.get(
     authorizeRoles("ADMIN"),
     getStudents
 );
-
 
 // Get student by ID
 // Administrator only
