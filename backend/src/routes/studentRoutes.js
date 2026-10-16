@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const {
@@ -7,7 +8,8 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    importStudents
 } = require("../controllers/studentController");
 
 const {
@@ -17,27 +19,38 @@ const {
 
 const router = express.Router();
 
+// ============================================
+// STUDENT SELF-SERVICE ROUTES
+// ============================================
 
-// STUDENT ROUTES
-
-// Get current student's own profile
 router.get(
     "/me",
     authenticate,
+    authorizeRoles("STUDENT"),
     getMyProfile
 );
 
-
-router.put(
+router.patch(
     "/me/password",
     authenticate,
     authorizeRoles("STUDENT"),
     changeMyPassword
 );
 
+// ============================================
+// ADMIN-ONLY ROUTES
+// ============================================
+
+// CR-015: Import multiple student records from CSV.
+// Keep this route before "/:id".
+router.post(
+    "/import-csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    importStudents
+);
 
 // Create student
-// Administrator only
 router.post(
     "/",
     authenticate,
@@ -45,9 +58,7 @@ router.post(
     addStudent
 );
 
-
 // Get all students
-// Administrator only
 router.get(
     "/",
     authenticate,
@@ -55,9 +66,7 @@ router.get(
     getStudents
 );
 
-
 // Get student by ID
-// Administrator only
 router.get(
     "/:id",
     authenticate,
@@ -65,9 +74,7 @@ router.get(
     getStudent
 );
 
-
-// Update student
-// Administrator only
+// Update student profile
 router.put(
     "/:id",
     authenticate,
@@ -75,15 +82,12 @@ router.put(
     editStudent
 );
 
-
 // Delete student
-// Administrator only
 router.delete(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
     removeStudent
 );
-
 
 module.exports = router;
