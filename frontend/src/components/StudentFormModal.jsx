@@ -1,8 +1,212 @@
+
 import { useEffect, useState } from "react";
 import apiRequest from "../services/api";
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+const MAX_CSV_SIZE = 1024 * 1024;
+const MAX_CSV_ROWS = 1000;
+
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg"];
+
+const CSV_FIELDS = {
+    registrationno: "registrationNo",
+    registrationnumber: "registrationNo",
+    firstname: "firstName",
+    lastname: "lastName",
+    email: "email",
+    phonenumber: "phoneNumber",
+    phone: "phoneNumber"
+};
+
+const REQUIRED_CSV_FIELDS = [
+    "registrationNo",
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber"
+];
+
+const CSV_FIELD_LABELS = {
+    registrationNo: "Registration Number",
+    firstName: "First Name",
+    lastName: "Last Name",
+    email: "Email",
+    phoneNumber: "Phone Number"
+};
+
+const normalizeHeader = (header) =>
+    String(header || "")
+        .replace(/^\uFEFF/, "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+// Parse CSV with support for quoted values, commas inside quotes,
+// escaped quotes, and Windows/Mac/Linux line endings.
+const parseCSV = (text) => {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+    let afterQuote = false;
+
+    const pushField = () => {
+        row.push(field);
+        field = "";
+        afterQuote = false;
+    };
+
+    const pushRow = () => {
+        pushField();
+
+        if (row.some((value) => value.trim() !== "")) {
+            rows.push(row);
+        }
+
+        row = [];
+    };
+
+    for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+
+        if (inQuotes) {
+            if (char === '"') {
+                if (text[i + 1] === '"') {
+                    field += '"';
+                    i += 1;
+                } else {
+                    inQuotes = false;
+                    afterQuote = true;
+                }
+            } else {
+                field += char;
+            }
+
+            continue;
+        }
+
+        if (afterQuote) {
+            if (char === ",") {
+                pushField();
+            } else if (char === "\n") {
+                pushRow();
+            } else if (char === "\r") {
+                // Handle CRLF line endings.
+            } else if (/\s/.test(char)) {
+                // Allow spaces after a closing quotation mark.
+            } else {
+                throw new Error(
+                    "Invalid CSV format: unexpected characters after a quoted value."
+                );
+            }
+
+            continue;
+        }
+
+        if (char === '"') {
+            if (field.length > 0) {
+                throw new Error(
+                    "Invalid CSV format: unexpected quotation mark."
+                );
+            }
+
+            inQuotes = true;
+        } else if (char === ",") {
+            pushField();
+        } else if (char === "\n") {
+            pushRow();
+        } else if (char !== "\r") {
+            field += char;
+        }
+    }
+
+    if (inQuotes) {
+        throw new Error(
+            "Invalid CSV format: a quoted value is not properly closed."
+        );
+    }
+
+    if (field.length > 0 || row.length > 0 || afterQuote) {
+        pushRow();
+    }
+
+    if (rows.length < 2) {
+        throw new Error(
+            "CSV must contain a header row and at least one student data row."
+        );
+    }
+
+    const headers = rows[0].map((header) => header.trim());
+
+    if (headers.some((header) => !header)) {
+        throw new Error(
+            "CSV contains an empty column header."
+        );
+    }
+
+    const normalizedHeaders = headers.map(normalizeHeader);
+
+    if (new Set(normalizedHeaders).size !== normalizedHeaders.length) {
+        throw new Error(
+            "CSV contains duplicate column headers."
+        );
+    }
+
+    const mappedColumns = {};
+
+    normalizedHeaders.forEach((header, index) => {
+        const fieldName = CSV_FIELDS[header];
+
+        // Ignore unsupported columns.
+        if (!fieldName) return;
+
+        if (mappedColumns[fieldName] !== undefined) {
+            throw new Error(
+                `Multiple CSV columns map to ${CSV_FIELD_LABELS[fieldName]}.`
+            );
+        }
+
+        mappedColumns[fieldName] = index;
+    });
+
+    const missingColumns = REQUIRED_CSV_FIELDS.filter(
+        (fieldName) => mappedColumns[fieldName] === undefined
+    );
+
+    if (missingColumns.length > 0) {
+        const labels = missingColumns
+            .map((fieldName) => CSV_FIELD_LABELS[fieldName])
+            .join(", ");
+
+        throw new Error(`Missing required CSV columns: ${labels}.`);
+    }
+
+    const dataRows = rows.slice(1);
+
+    if (dataRows.length > MAX_CSV_ROWS) {
+        throw new Error(
+            `A maximum of ${MAX_CSV_ROWS} students can be imported at once.`
+        );
+    }
+
+    return dataRows.map((values, index) => {
+        if (values.length !== headers.length) {
+            throw new Error(
+                `CSV row ${index + 2} has a different number of values from the header columns.`
+            );
+        }
+
+        const student = {};
+
+        REQUIRED_CSV_FIELDS.forEach((fieldName) => {
+            student[fieldName] = String(
+                values[mappedColumns[fieldName]] ?? ""
+            ).trim();
+        });
+
+        return student;
+    });
+};
 
 const getProfileImageUrl = (photo) => {
     if (!photo || typeof photo !== "string") {
@@ -53,10 +257,16 @@ function StudentFormModal({
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
 
-    // CR-010: Profile image state
+    // Profile image state.
     const [profileImage, setProfileImage] = useState(null);
     const [imagePreview, setImagePreview] = useState("");
     const [imageError, setImageError] = useState("");
+
+    // Multiple-row CSV import state.
+    const [csvStudents, setCsvStudents] = useState([]);
+    const [csvError, setCsvError] = useState("");
+    const [csvMessage, setCsvMessage] = useState("");
+    const [csvFileName, setCsvFileName] = useState("");
 
     useEffect(() => {
         if (!show) return;
@@ -84,17 +294,23 @@ function StudentFormModal({
         setFormError("");
         setFieldErrors({});
         setShowPassword(false);
+
+        setCsvStudents([]);
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editingStudent, show]);
 
-    // CR-004: Handle text input changes
+    // Handle form input changes.
     const handleInputChange = (event) => {
         const { name, value } = event.target;
 
-        let updatedValue = value;
-
-        if (name === "phoneNumber") {
-            updatedValue = value.replace(/\D/g, "").slice(0, 10);
-        }
+        const updatedValue =
+            name === "phoneNumber"
+                ? value.replace(/\D/g, "").slice(0, 10)
+                : value;
 
         setFormData((previous) => ({
             ...previous,
@@ -109,16 +325,160 @@ function StudentFormModal({
         setFormError("");
     };
 
-    // CR-010: Validate and preview selected image
+    // Read CSV and prepare all student records.
+    const handleCSVChange = async (event) => {
+        const file = event.target.files?.[0];
+
+        setCsvError("");
+        setCsvMessage("");
+        setFormError("");
+        setCsvStudents([]);
+        setCsvFileName("");
+
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            setCsvError("Invalid file type. Please select a .csv file.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size === 0) {
+            setCsvError("The selected CSV file is empty.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > MAX_CSV_SIZE) {
+            setCsvError("CSV file size must not exceed 1 MB.");
+            event.target.value = "";
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const students = parseCSV(text);
+
+            setCsvStudents(students);
+            setCsvFileName(file.name);
+            setCsvMessage(
+                `${students.length} student row(s) loaded successfully. ` +
+                "Click Import Students to submit all rows."
+            );
+        } catch (error) {
+            setCsvError(
+                error?.message ||
+                "Unable to read this CSV file. Please check its format."
+            );
+
+            event.target.value = "";
+        }
+    };
+
+    // Remove the selected CSV before importing.
+    const handleClearCSV = () => {
+        setCsvStudents([]);
+        setCsvError("");
+        setCsvMessage("");
+        setCsvFileName("");
+
+        const input = document.getElementById("student-csv-file");
+
+        if (input) {
+            input.value = "";
+        }
+    };
+
+    // Import all CSV records through the bulk-import API.
+    const handleBulkImport = async () => {
+        if (csvStudents.length === 0) {
+            setCsvError("Please select a valid CSV file first.");
+            return;
+        }
+
+        setFormError("");
+        setCsvError("");
+        setCsvMessage("");
+
+        try {
+            setFormLoading(true);
+
+            const result = await apiRequest(
+                "/api/students/bulk-import",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        students: csvStudents
+                    })
+                }
+            );
+
+            setCsvMessage(
+                result?.message ||
+                `Successfully imported ${csvStudents.length} students.`
+            );
+
+            setCsvStudents([]);
+            setCsvFileName("");
+
+            const input = document.getElementById("student-csv-file");
+
+            if (input) {
+                input.value = "";
+            }
+
+            await onSuccess();
+        } catch (error) {
+            console.error("Bulk student import error:", error);
+
+            if (error?.status === 401 || error?.statusCode === 401) {
+                onAuthError?.();
+                return;
+            }
+
+            if (error?.status === 403 || error?.statusCode === 403) {
+                setCsvError(
+                    error.message ||
+                    "Only an administrator can import students."
+                );
+                return;
+            }
+
+            // The backend may return row-specific validation errors.
+            const details = error?.errors;
+
+            if (Array.isArray(details) && details.length > 0) {
+                setCsvError(
+                    details
+                        .map((item) =>
+                            typeof item === "string"
+                                ? item
+                                : `Row ${item.row || "?"}: ${item.message || item.error || "Invalid data"}`
+                        )
+                        .join("\n")
+                );
+            } else {
+                setCsvError(
+                    error?.message ||
+                    "Student import failed. Please check the CSV data."
+                );
+            }
+        } finally {
+            setFormLoading(false);
+        }
+    };
+
+    // Validate profile image.
     const handleImageChange = (event) => {
         const file = event.target.files?.[0];
 
         setImageError("");
         setFormError("");
 
-        if (!file) {
-            return;
-        }
+        if (!file) return;
 
         const extension = file.name
             .slice(file.name.lastIndexOf("."))
@@ -146,11 +506,10 @@ function StudentFormModal({
         }
 
         setProfileImage(file);
-
         setImagePreview(URL.createObjectURL(file));
     };
 
-    // CR-010: Remove selected image
+    // Remove or reset the profile image.
     const handleRemoveImage = () => {
         setProfileImage(null);
         setImageError("");
@@ -170,7 +529,7 @@ function StudentFormModal({
         }
     };
 
-    // CR-004: Validate student fields
+    // Validate manual Add/Edit form.
     const validateForm = () => {
         const errors = {};
 
@@ -182,8 +541,7 @@ function StudentFormModal({
         const password = formData.password;
 
         if (!registrationNo) {
-            errors.registrationNo =
-                "Registration number is required.";
+            errors.registrationNo = "Registration number is required.";
         } else if (!/^REG\d{3}$/i.test(registrationNo)) {
             errors.registrationNo =
                 "Registration number must be in the format REG001.";
@@ -218,8 +576,7 @@ function StudentFormModal({
 
         if (!editingStudent) {
             if (!password) {
-                errors.password =
-                    "Password is required for a new student.";
+                errors.password = "Password is required for a new student.";
             } else if (password.length < 8) {
                 errors.password =
                     "Password must contain at least 8 characters.";
@@ -249,10 +606,15 @@ function StudentFormModal({
         setImageError("");
         setProfileImage(null);
         setImagePreview("");
+        setCsvError("");
+        setCsvMessage("");
+        setCsvStudents([]);
+        setCsvFileName("");
 
         onClose();
     };
 
+    // Existing manual Add/Edit workflow.
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -277,7 +639,6 @@ function StudentFormModal({
         try {
             setFormLoading(true);
 
-            // Send fields and optional image as multipart FormData.
             const payload = new FormData();
 
             payload.append(
@@ -321,16 +682,14 @@ function StudentFormModal({
             console.error("Student save error:", error);
 
             if (error?.status === 401 || error?.statusCode === 401) {
-                if (onAuthError) {
-                    onAuthError();
-                }
+                onAuthError?.();
                 return;
             }
 
             if (error?.status === 403 || error?.statusCode === 403) {
                 setFormError(
                     error.message ||
-                        "Only an administrator can modify student records."
+                    "Only an administrator can modify student records."
                 );
                 return;
             }
@@ -369,7 +728,7 @@ function StudentFormModal({
                         <p>
                             {editingStudent
                                 ? "Update student information."
-                                : "Create a new student account."}
+                                : "Create a new student account or import multiple students."}
                         </p>
                     </div>
 
@@ -390,6 +749,93 @@ function StudentFormModal({
                     </div>
                 )}
 
+                {/* Multiple student CSV import */}
+                {!editingStudent && (
+                    <div className="csv-import-panel">
+                        <h4>Import Student Details from CSV</h4>
+
+                        <p className="field-hint">
+                            Upload one CSV file containing multiple student
+                            records. The backend must validate all rows before
+                            saving any records.
+                        </p>
+
+                        <label htmlFor="student-csv-file">
+                            Select CSV File
+                        </label>
+
+                        <input
+                            id="student-csv-file"
+                            type="file"
+                            accept=".csv,text/csv"
+                            onChange={handleCSVChange}
+                            disabled={formLoading}
+                        />
+
+                        <small className="field-hint">
+                            Maximum size: 1 MB. Maximum 1000 students.
+                            Required columns: registrationNo, firstName,
+                            lastName, email, phoneNumber.
+                        </small>
+
+                        {csvFileName && (
+                            <p className="field-hint">
+                                Selected file: {csvFileName}
+                            </p>
+                        )}
+
+                        {csvStudents.length > 0 && (
+                            <p className="field-hint">
+                                Number of student rows: {csvStudents.length}
+                            </p>
+                        )}
+
+                        {csvError && (
+                            <div
+                                className="dashboard-error"
+                                role="alert"
+                                style={{ whiteSpace: "pre-line" }}
+                            >
+                                {csvError}
+                            </div>
+                        )}
+
+                        {csvMessage && (
+                            <div
+                                className="csv-import-success"
+                                role="status"
+                            >
+                                {csvMessage}
+                            </div>
+                        )}
+
+                        {csvStudents.length > 0 && (
+                            <div className="form-actions">
+                                <button
+                                    type="button"
+                                    className="cancel-button"
+                                    onClick={handleClearCSV}
+                                    disabled={formLoading}
+                                >
+                                    Clear CSV
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="submit-button"
+                                    onClick={handleBulkImport}
+                                    disabled={formLoading}
+                                >
+                                    {formLoading
+                                        ? "Importing..."
+                                        : `Import ${csvStudents.length} Students`}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Existing manual Add/Edit form */}
                 <form
                     className="student-form"
                     onSubmit={handleSubmit}
@@ -399,7 +845,6 @@ function StudentFormModal({
                         <label htmlFor="registrationNo">
                             Registration Number
                         </label>
-
                         <input
                             id="registrationNo"
                             type="text"
@@ -410,13 +855,11 @@ function StudentFormModal({
                             required
                             placeholder="REG001"
                         />
-
                         {renderFieldError("registrationNo")}
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="firstName">First Name</label>
-
                         <input
                             id="firstName"
                             type="text"
@@ -426,13 +869,11 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
-
                         {renderFieldError("firstName")}
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="lastName">Last Name</label>
-
                         <input
                             id="lastName"
                             type="text"
@@ -442,13 +883,11 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
-
                         {renderFieldError("lastName")}
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
-
                         <input
                             id="email"
                             type="email"
@@ -458,15 +897,11 @@ function StudentFormModal({
                             disabled={formLoading}
                             required
                         />
-
                         {renderFieldError("email")}
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="phoneNumber">
-                            Phone Number
-                        </label>
-
+                        <label htmlFor="phoneNumber">Phone Number</label>
                         <input
                             id="phoneNumber"
                             type="text"
@@ -478,7 +913,6 @@ function StudentFormModal({
                             inputMode="numeric"
                             maxLength={10}
                         />
-
                         {renderFieldError("phoneNumber")}
                     </div>
 
@@ -491,9 +925,7 @@ function StudentFormModal({
                             <div className="password-input-wrapper">
                                 <input
                                     id="student-password"
-                                    type={
-                                        showPassword ? "text" : "password"
-                                    }
+                                    type={showPassword ? "text" : "password"}
                                     name="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
@@ -507,9 +939,7 @@ function StudentFormModal({
                                     type="button"
                                     className="password-toggle-button"
                                     onClick={() =>
-                                        setShowPassword(
-                                            (previous) => !previous
-                                        )
+                                        setShowPassword((previous) => !previous)
                                     }
                                     disabled={formLoading}
                                     aria-label={
@@ -563,7 +993,7 @@ function StudentFormModal({
                         </div>
                     )}
 
-                    {/* CR-010: Profile image upload */}
+                    {/* Existing profile image upload */}
                     <div className="form-group">
                         <label htmlFor="student-profile-image">
                             Profile Image
@@ -575,8 +1005,7 @@ function StudentFormModal({
                                     src={imagePreview}
                                     alt="Student profile preview"
                                     onError={(event) => {
-                                        event.currentTarget.style.display =
-                                            "none";
+                                        event.currentTarget.style.display = "none";
                                     }}
                                 />
                             </div>

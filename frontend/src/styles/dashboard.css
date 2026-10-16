@@ -1229,3 +1229,54 @@ html[data-theme="dark"] .password-cancel-button:hover {
         max-width: 100%;
     }
 }
+
+
+/* CR-002: CSV import panel */
+.csv-import-panel {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.csv-import-panel h4 {
+    margin: 0 0 8px;
+    color: #1e293b;
+}
+
+.csv-import-panel p {
+    overflow-wrap: anywhere;
+}
+
+.csv-import-panel label {
+    display: block;
+    margin: 12px 0 8px;
+    font-weight: 600;
+}
+
+.csv-import-panel input[type="file"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 8px;
+}
+
+.csv-import-panel .cancel-button {
+    margin-top: 10px;
+}
+
+.csv-import-success {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    background: #ecfdf5;
+    color: #065f46;
+    overflow-wrap: anywhere;
+}
+
+.csv-import-panel .dashboard-error {
+    margin-top: 10px;
+    overflow-wrap: anywhere;
+}

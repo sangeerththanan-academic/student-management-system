@@ -8,7 +8,8 @@ const {
     getMyProfile,
     editStudent,
     removeStudent,
-    changeMyPassword
+    changeMyPassword,
+    bulkImportStudents
 } = require("../controllers/studentController");
 
 const {
@@ -76,5 +77,14 @@ router.delete(
     authorizeRoles("ADMIN"),
     removeStudent
 );
+
+
+router.post(
+    "/bulk-import",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    bulkImportStudents
+);
+
 
 module.exports = router;
