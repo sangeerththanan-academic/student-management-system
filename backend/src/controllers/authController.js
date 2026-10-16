@@ -1,9 +1,11 @@
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const {
     findUserByUsername,
-    findUserById
+    findUserById,
+    updateLastLogin
 } = require("../models/userModel");
 
 const login = async (req, res) => {
@@ -18,7 +20,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Find user
+        // Find user by username
         const user = await findUserByUsername(username);
 
         if (!user) {
@@ -28,7 +30,7 @@ const login = async (req, res) => {
             });
         }
 
-        // Compare password
+        // Verify password using bcrypt
         const passwordMatch = await bcrypt.compare(
             password,
             user.password_hash
@@ -41,7 +43,12 @@ const login = async (req, res) => {
             });
         }
 
-        // Create JWT
+        // CR033:
+        // Update last_login only after successful password verification.
+        // NOW() gets the current date and time from the database server.
+        await updateLastLogin(user.user_id);
+
+        // Create JWT using the existing authentication flow
         const token = jwt.sign(
             {
                 userId: user.user_id,
@@ -54,6 +61,7 @@ const login = async (req, res) => {
             }
         );
 
+        // Return the existing login response structure
         return res.status(200).json({
             success: true,
             message: "Login successful",
