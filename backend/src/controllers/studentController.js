@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -59,10 +60,6 @@ const validateRegistrationNumber = (registrationNo) => {
 
     if (!registrationNo) {
         return "Registration number is required.";
-    }
-
-    if (registrationNo.length < 2) {
-        return "Registration number must contain at least 2 characters.";
     }
 
     // Allows letters, numbers, / and -
@@ -231,14 +228,7 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = {
-        registrationNo: normalizeStudentValue(payload.registrationNo),
-        firstName: normalizeStudentValue(payload.firstName),
-        lastName: normalizeStudentValue(payload.lastName),
-        email: normalizeStudentValue(payload.email),
-        phoneNumber: normalizeStudentValue(payload.phoneNumber),
-        password: payload.password
-    };
+    } = req.body;
 
     let connection;
     let transactionStarted = false;
@@ -469,6 +459,252 @@ const addStudent = async (req, res) => {
     }
 };
 
+
+// =====================================================
+// BULK CREATE STUDENTS (CSV IMPORT - MANY STUDENTS)
+// =====================================================
+
+const MAX_BULK_STUDENTS = 200;
+
+// Generate a random password that satisfies validatePassword().
+// Always starts with a letter so it is safe inside spreadsheets.
+const generateStrongPassword = () => {
+    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const lower = "abcdefghijkmnopqrstuvwxyz";
+    const digits = "23456789";
+    const special = "@#$%&*!?";
+    const all = upper + lower + digits + special;
+
+    const pick = (chars) => chars[crypto.randomInt(chars.length)];
+
+    const characters = [
+        pick(upper),
+        pick(lower),
+        pick(digits),
+        pick(special)
+    ];
+
+    while (characters.length < 12) {
+        characters.push(pick(all));
+    }
+
+    // Shuffle the characters after the first one (first is an uppercase letter).
+    for (let i = characters.length - 1; i > 1; i -= 1) {
+        const j = 1 + crypto.randomInt(i);
+        [characters[i], characters[j]] = [characters[j], characters[i]];
+    }
+
+    return characters.join("");
+};
+
+const bulkAddStudents = async (req, res) => {
+    const rows = req.body?.students;
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "No student rows were received."
+        });
+    }
+
+    if (rows.length > MAX_BULK_STUDENTS) {
+        return res.status(400).json({
+            success: false,
+            message: `You can import a maximum of ${MAX_BULK_STUDENTS} students at a time.`
+        });
+    }
+
+    const created = [];
+    const failed = [];
+    const seenRegistrations = new Set();
+    const seenEmails = new Set();
+
+    let connection;
+
+    try {
+        connection = await pool.getConnection();
+
+        for (let index = 0; index < rows.length; index += 1) {
+            const row = rows[index] || {};
+            // Row 1 is the CSV header, so the first student is row 2.
+            const rowNumber = index + 2;
+
+            const cleanRegistrationNo = String(row.registrationNo ?? "").trim();
+            const cleanFirstName = String(row.firstName ?? "").trim();
+            const cleanLastName = String(row.lastName ?? "").trim();
+            const cleanEmail = String(row.email ?? "").trim();
+            const cleanPhoneNumber = String(row.phoneNumber ?? "").trim();
+            // Use the CSV password if given, otherwise auto-generate one.
+            const csvPassword =
+                row.password && String(row.password).length > 0
+                    ? String(row.password)
+                    : "";
+            const passwordWasGenerated = !csvPassword;
+            const password = csvPassword || generateStrongPassword();
+
+            const fail = (message) => {
+                failed.push({
+                    row: rowNumber,
+                    registrationNo: cleanRegistrationNo,
+                    message
+                });
+            };
+
+            // ---------- Field validation ----------
+            const validationErrors = validateStudentFields({
+                registrationNo: cleanRegistrationNo,
+                firstName: cleanFirstName,
+                lastName: cleanLastName,
+                email: cleanEmail,
+                phoneNumber: cleanPhoneNumber
+            });
+
+            const passwordError = validatePassword(password);
+            if (passwordError) {
+                validationErrors.password = passwordError;
+            }
+
+            if (Object.keys(validationErrors).length > 0) {
+                fail(Object.values(validationErrors).join(" "));
+                continue;
+            }
+
+            // ---------- Duplicates inside the same CSV ----------
+            const registrationKey = cleanRegistrationNo.toLowerCase();
+            const emailKey = cleanEmail.toLowerCase();
+
+            if (seenRegistrations.has(registrationKey)) {
+                fail("Duplicate registration number inside the CSV file.");
+                continue;
+            }
+
+            if (seenEmails.has(emailKey)) {
+                fail("Duplicate email address inside the CSV file.");
+                continue;
+            }
+
+            seenRegistrations.add(registrationKey);
+            seenEmails.add(emailKey);
+
+            // ---------- Save this student in its own transaction ----------
+            let transactionStarted = false;
+
+            try {
+                await connection.beginTransaction();
+                transactionStarted = true;
+
+                const [existingUser] = await connection.execute(
+                    `SELECT user_id
+                     FROM users
+                     WHERE username = ?
+                     LIMIT 1`,
+                    [cleanRegistrationNo]
+                );
+
+                if (existingUser.length > 0) {
+                    await connection.rollback();
+                    transactionStarted = false;
+                    fail("Registration number is already registered.");
+                    continue;
+                }
+
+                const [existingStudent] = await connection.execute(
+                    `SELECT student_id
+                     FROM students
+                     WHERE email = ?
+                     LIMIT 1`,
+                    [cleanEmail]
+                );
+
+                const [existingAccountEmail] = await connection.execute(
+                    `SELECT user_id
+                     FROM users
+                     WHERE email = ?
+                     LIMIT 1`,
+                    [cleanEmail]
+                );
+
+                if (existingStudent.length > 0 || existingAccountEmail.length > 0) {
+                    await connection.rollback();
+                    transactionStarted = false;
+                    fail("Email address is already registered.");
+                    continue;
+                }
+
+                const passwordHash = await bcrypt.hash(password, 10);
+
+                const [userResult] = await connection.execute(
+                    `INSERT INTO users
+                    (
+                        username,
+                        email,
+                        password_hash,
+                        role
+                    )
+                    VALUES (?, ?, ?, 'STUDENT')`,
+                    [cleanRegistrationNo, cleanEmail, passwordHash]
+                );
+
+                const studentId = await createStudent(
+                    connection,
+                    userResult.insertId,
+                    cleanRegistrationNo,
+                    cleanFirstName,
+                    cleanLastName,
+                    cleanEmail,
+                    cleanPhoneNumber,
+                    null
+                );
+
+                await connection.commit();
+                transactionStarted = false;
+
+                created.push({
+                    row: rowNumber,
+                    studentId,
+                    registrationNo: cleanRegistrationNo,
+                    email: cleanEmail,
+                    generatedPassword: passwordWasGenerated ? password : null
+                });
+            } catch (rowError) {
+                if (transactionStarted) {
+                    try {
+                        await connection.rollback();
+                    } catch (rollbackError) {
+                        console.error("Bulk rollback error:", rollbackError);
+                    }
+                }
+
+                console.error("Bulk import row error:", rowError);
+                fail("Could not save this student.");
+            }
+        }
+
+        const allFailed = created.length === 0;
+
+        return res.status(allFailed ? 400 : 201).json({
+            success: !allFailed,
+            message: allFailed
+                ? "No students were imported."
+                : `${created.length} student(s) imported successfully.`,
+            createdCount: created.length,
+            failedCount: failed.length,
+            created,
+            failed
+        });
+
+    } catch (error) {
+        console.error("Bulk create students error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to import students."
+        });
+
+    } finally {
+        if (connection) connection.release();
+    }
+};
 
 // =====================================================
 // GET ALL STUDENTS
@@ -970,6 +1206,7 @@ const exportStudentsCsv = async (req, res) => {
 
 module.exports = {
     addStudent,
+    bulkAddStudents,
     getStudents,
     exportStudentsCsv,
     getStudent,

@@ -1,9 +1,9 @@
-
 const express = require("express");
 const router = express.Router();
 
 const {
     addStudent,
+    bulkAddStudents,
     getStudents,
     exportStudentsCsv,
     getStudent,
@@ -55,6 +55,14 @@ router.get(
     authenticate,
     authorizeRoles("ADMIN"),
     getStudent
+);
+
+// Bulk add students (CSV import with many rows)
+router.post(
+    "/bulk",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    bulkAddStudents
 );
 
 // Add student

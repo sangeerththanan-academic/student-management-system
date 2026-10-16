@@ -11,6 +11,13 @@ const sanitizeInput = (_fieldName, value) =>
         })
         .join("");
 
+// Excel removes the leading 0 from phone numbers (0771234567 -> 771234567).
+// If a phone number has exactly 9 digits, add the missing leading 0 back.
+const fixCsvPhoneNumber = (value) => {
+    const phone = String(value ?? "").trim();
+    return /^\d{9}$/.test(phone) ? `0${phone}` : phone;
+};
+
 // Parse CSV rows, including commas and escaped quotes inside quoted cells.
 const parseCsv = (text) => {
     const rows = [];
@@ -54,6 +61,8 @@ const parseCsv = (text) => {
 
     return rows;
 };
+
+const MAX_BULK_STUDENTS = 200;
 
 const normalizeCsvHeader = (header) =>
     String(header ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -101,6 +110,10 @@ function StudentFormModal({
     const [csvSuccess, setCsvSuccess] = useState("");
     const [csvLoading, setCsvLoading] = useState(false);
     const csvInputRef = useRef(null);
+    const [bulkRows, setBulkRows] = useState(null);
+    const [bulkLoading, setBulkLoading] = useState(false);
+    const [bulkError, setBulkError] = useState("");
+    const [bulkResult, setBulkResult] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -189,10 +202,6 @@ function StudentFormModal({
                 throw new Error("The CSV must contain a header row and one student data row.");
             }
 
-            if (rows.length > 2) {
-                throw new Error("Please import one student per CSV file. Extra student rows were found.");
-            }
-
             const headers = rows[0].map(normalizeCsvHeader);
             const values = rows[1];
             const headerAliases = {
@@ -206,12 +215,18 @@ function StudentFormModal({
             const mappedValues = {};
             const missingColumns = [];
 
+            const columnIndexes = {};
+
             Object.entries(headerAliases).forEach(([fieldName, aliases]) => {
                 const columnIndex = headers.findIndex((header) => aliases.includes(header));
                 if (columnIndex === -1) {
                     missingColumns.push(fieldName);
                 } else {
+                    columnIndexes[fieldName] = columnIndex;
                     mappedValues[fieldName] = sanitizeInput(fieldName, values[columnIndex] ?? "").trim();
+                    if (fieldName === "phoneNumber") {
+                        mappedValues[fieldName] = fixCsvPhoneNumber(mappedValues[fieldName]);
+                    }
                 }
             });
 
@@ -224,6 +239,43 @@ function StudentFormModal({
                     phoneNumber: "Phone Number"
                 };
                 throw new Error(`Missing required CSV column(s): ${missingColumns.map((field) => labels[field]).join(", ")}.`);
+            }
+
+            // More than one student row -> bulk import mode.
+            if (rows.length > 2) {
+                const passwordColumnIndex = headers.findIndex((header) =>
+                    ["password", "studentpassword"].includes(header)
+                );
+
+                const parsedRows = rows.slice(1).map((rowValues) => {
+                    const student = {};
+
+                    Object.keys(columnIndexes).forEach((fieldName) => {
+                        student[fieldName] = sanitizeInput(
+                            fieldName,
+                            rowValues[columnIndexes[fieldName]] ?? ""
+                        ).trim();
+                    });
+
+                    student.phoneNumber = fixCsvPhoneNumber(student.phoneNumber);
+
+                    student.password =
+                        passwordColumnIndex === -1
+                            ? ""
+                            : String(rowValues[passwordColumnIndex] ?? "");
+
+                    return student;
+                });
+
+                if (parsedRows.length > MAX_BULK_STUDENTS) {
+                    throw new Error(`You can import a maximum of ${MAX_BULK_STUDENTS} students at a time.`);
+                }
+
+                setBulkRows(parsedRows);
+                setBulkResult(null);
+                setBulkError("");
+                setFormError("");
+                return;
             }
 
             const emptyFields = Object.entries(mappedValues)
@@ -260,6 +312,100 @@ function StudentFormModal({
         } finally {
             setCsvLoading(false);
             event.target.value = "";
+        }
+    };
+
+    const cancelBulkImport = () => {
+        if (bulkLoading) return;
+
+        setBulkRows(null);
+        setBulkError("");
+        setBulkResult(null);
+        setCsvSuccess("");
+    };
+
+    // Download the auto-generated passwords so the admin can share them.
+    const downloadCredentials = () => {
+        const generated = (bulkResult?.created || []).filter(
+            (item) => item.generatedPassword
+        );
+
+        const escapeCell = (value) =>
+            `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+        const csv =
+            "\uFEFF" +
+            [
+                ["registrationNo", "email", "password"],
+                ...generated.map((item) => [
+                    item.registrationNo,
+                    item.email,
+                    item.generatedPassword
+                ])
+            ]
+                .map((line) => line.map(escapeCell).join(","))
+                .join("\r\n") +
+            "\r\n";
+
+        const url = URL.createObjectURL(
+            new Blob([csv], { type: "text/csv;charset=utf-8" })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "imported-student-credentials.csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleBulkImport = async () => {
+        setBulkError("");
+
+        try {
+            setBulkLoading(true);
+
+            const response = await apiRequest("/api/students/bulk", {
+                method: "POST",
+                body: JSON.stringify({
+                    students: bulkRows
+                })
+            });
+
+            onSuccess();
+
+            const hasGeneratedPasswords = response.created.some(
+                (item) => item.generatedPassword
+            );
+
+            if (response.failedCount === 0 && !hasGeneratedPasswords) {
+                onClose();
+                return;
+            }
+
+            // Keep the modal open to show failures and/or generated passwords.
+            setBulkResult(response);
+        } catch (error) {
+            console.error("Bulk import error:", error);
+
+            if (error.status === 401) {
+                onAuthError();
+                return;
+            }
+
+            if (error.status === 403) {
+                setBulkError("You do not have permission to modify students.");
+                return;
+            }
+
+            if (error.data?.failed?.length) {
+                setBulkResult(error.data);
+                return;
+            }
+
+            setBulkError(error.message || "Failed to import students.");
+        } finally {
+            setBulkLoading(false);
         }
     };
 
@@ -318,9 +464,6 @@ function StudentFormModal({
         // Registration Number Validation
         if (!registrationNo) {
             errors.registrationNo = "Registration number is required.";
-        } else if (registrationNo.length < 2) {
-            errors.registrationNo =
-                "Registration number must contain at least 2 characters.";
         } else if (!/^[A-Za-z0-9/-]+$/.test(registrationNo)) {
             errors.registrationNo =
                 "Registration number contains invalid characters.";
@@ -404,7 +547,7 @@ function StudentFormModal({
     };
 
     const handleClose = () => {
-        if (formLoading) return;
+        if (formLoading || bulkLoading) return;
 
         setFormError("");
         setFieldErrors({});
@@ -551,7 +694,7 @@ function StudentFormModal({
                         <div className="csv-import-heading">
                             <div>
                                 <h4>Import Student Details (CSV)</h4>
-                                <p>Upload a CSV with one student row to fill the form automatically.</p>
+                                <p>Upload a CSV with one student to fill the form, or many students to import them all at once.</p>
                             </div>
                             <span className="csv-import-badge">CSV</span>
                         </div>
@@ -565,13 +708,13 @@ function StudentFormModal({
                                 type="file"
                                 accept=".csv,text/csv"
                                 onChange={handleCsvImport}
-                                disabled={formLoading || csvLoading}
+                                disabled={formLoading || csvLoading || bulkLoading}
                             />
                         </label>
 
                         <p className="csv-format-hint">
                             Required columns: registrationNo, firstName, lastName, email, phoneNumber.
-                            Password must be entered manually.
+                            Optional column: password (auto-generated if missing). One row fills the form; several rows are imported in bulk (max 200).
                         </p>
 
                         {csvError && <p className="csv-message csv-message-error" role="alert">{csvError}</p>}
@@ -579,6 +722,127 @@ function StudentFormModal({
                     </section>
                 )}
 
+                {bulkRows && (
+                    <section className="csv-import-panel" aria-label="Bulk student import">
+                        <div className="csv-import-heading">
+                            <div>
+                                <h4>Bulk Import: {bulkRows.length} students found</h4>
+                                <p>Review the first rows, then import all students.</p>
+                            </div>
+                            <span className="csv-import-badge">BULK</span>
+                        </div>
+
+                        {!bulkResult && (
+                            <>
+                                <div style={{ overflowX: "auto", margin: "12px 0" }}>
+                                    <table style={{ width: "100%", fontSize: "0.8rem", borderCollapse: "collapse" }}>
+                                        <thead>
+                                            <tr>
+                                                <th style={{ textAlign: "left", padding: "4px 6px" }}>Reg. No</th>
+                                                <th style={{ textAlign: "left", padding: "4px 6px" }}>Name</th>
+                                                <th style={{ textAlign: "left", padding: "4px 6px" }}>Email</th>
+                                                <th style={{ textAlign: "left", padding: "4px 6px" }}>Phone</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {bulkRows.slice(0, 5).map((row, index) => (
+                                                <tr key={`${row.registrationNo}-${index}`}>
+                                                    <td style={{ padding: "4px 6px" }}>{row.registrationNo}</td>
+                                                    <td style={{ padding: "4px 6px" }}>{row.firstName} {row.lastName}</td>
+                                                    <td style={{ padding: "4px 6px" }}>{row.email}</td>
+                                                    <td style={{ padding: "4px 6px" }}>{row.phoneNumber}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    {bulkRows.length > 5 && (
+                                        <p className="csv-format-hint">
+                                            ...and {bulkRows.length - 5} more student(s).
+                                        </p>
+                                    )}
+                                </div>
+
+                                <p className="csv-format-hint">
+                                    No password needed. Students whose CSV row has no password get a
+                                    random secure password automatically. You can download all
+                                    passwords after the import.
+                                </p>
+
+                                {bulkError && (
+                                    <div className="dashboard-error">{bulkError}</div>
+                                )}
+
+                                <div className="form-actions">
+                                    <button
+                                        type="button"
+                                        className="cancel-button"
+                                        onClick={cancelBulkImport}
+                                        disabled={bulkLoading}
+                                    >
+                                        Cancel Bulk Import
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="save-button"
+                                        onClick={handleBulkImport}
+                                        disabled={bulkLoading}
+                                    >
+                                        {bulkLoading
+                                            ? "Importing..."
+                                            : `Import ${bulkRows.length} Students`}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {bulkResult && (
+                            <>
+                                <p className="csv-message csv-message-success" role="status">
+                                    {bulkResult.createdCount} imported, {bulkResult.failedCount} failed.
+                                    {bulkResult.created.some((item) => item.generatedPassword) &&
+                                        " Download the passwords now - they cannot be viewed again."}
+                                </p>
+
+                                {bulkResult.created.some((item) => item.generatedPassword) && (
+                                    <div className="form-actions">
+                                        <button
+                                            type="button"
+                                            className="save-button"
+                                            onClick={downloadCredentials}
+                                        >
+                                            Download Passwords (CSV)
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div style={{ maxHeight: "180px", overflowY: "auto", fontSize: "0.85rem" }}>
+                                    {bulkResult.failed.map((item) => (
+                                        <p
+                                            key={`${item.row}-${item.registrationNo}`}
+                                            className="csv-message csv-message-error"
+                                        >
+                                            Row {item.row}
+                                            {item.registrationNo ? ` (${item.registrationNo})` : ""}: {item.message}
+                                        </p>
+                                    ))}
+                                </div>
+
+                                <div className="form-actions">
+                                    <button
+                                        type="button"
+                                        className="save-button"
+                                        onClick={handleClose}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </section>
+                )}
+
+                {!bulkRows && (
                 <form
                     className="student-form"
                     onSubmit={handleSubmit}
@@ -851,6 +1115,7 @@ function StudentFormModal({
                     </div>
 
                 </form>
+                )}
 
             </div>
 
