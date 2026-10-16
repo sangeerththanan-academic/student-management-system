@@ -21,6 +21,10 @@ function StudentFormModal({
         password: ""
     });
 
+    const [profileImage, setProfileImage] = useState(null);
+    const [profileImageError, setProfileImageError] = useState("");
+    const [profileImagePreview, setProfileImagePreview] = useState("");
+
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
@@ -54,6 +58,9 @@ function StudentFormModal({
             });
         }
 
+        setProfileImage(null);
+        setProfileImageError("");
+        setProfileImagePreview("");
         setFormError("");
         setFieldErrors({});
 
@@ -124,6 +131,41 @@ function StudentFormModal({
     };
     // ────────────────────────────────────────────────────────────
 
+
+    useEffect(() => {
+        if (!profileImage) {
+            setProfileImagePreview("");
+            return undefined;
+        }
+
+        const previewUrl = URL.createObjectURL(profileImage);
+        setProfileImagePreview(previewUrl);
+        return () => URL.revokeObjectURL(previewUrl);
+    }, [profileImage]);
+
+    const handleProfileImageChange = (event) => {
+        const file = event.target.files?.[0] || null;
+        setProfileImageError("");
+        setProfileImage(null);
+
+        if (!file) return;
+
+        const allowedExtensions = /\.(png|jpe?g)$/i;
+        const allowedTypes = ["image/png", "image/jpeg"];
+        if (!allowedExtensions.test(file.name) || !allowedTypes.includes(file.type)) {
+            setProfileImageError("Only PNG, JPG and JPEG images are allowed.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setProfileImageError("Profile image must be 5 MB or smaller.");
+            event.target.value = "";
+            return;
+        }
+
+        setProfileImage(file);
+    };
 
     // Handle input changes
     const handleInputChange = (event) => {
@@ -302,6 +344,11 @@ function StudentFormModal({
 
         setFormError("");
 
+        if (profileImageError) {
+            setFormError(profileImageError);
+            return;
+        }
+
         // Stop submission when frontend validation fails
         const isValid = validateForm();
 
@@ -352,32 +399,22 @@ function StudentFormModal({
             // CREATE STUDENT
             else {
 
-                await apiRequest(
-                    "/api/students/",
-                    {
-                        method: "POST",
+                const studentFormData = new FormData();
+                studentFormData.append("registrationNo", formData.registrationNo.trim());
+                studentFormData.append("firstName", formData.firstName.trim());
+                studentFormData.append("lastName", formData.lastName.trim());
+                studentFormData.append("email", formData.email.trim());
+                studentFormData.append("phoneNumber", formData.phoneNumber.trim());
+                studentFormData.append("password", formData.password);
 
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
+                if (profileImage) {
+                    studentFormData.append("profileImage", profileImage);
+                }
 
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim(),
-
-                            password:
-                                formData.password
-                        })
-                    }
-                );
+                await apiRequest("/api/students/", {
+                    method: "POST",
+                    body: studentFormData
+                });
             }
 
 
@@ -694,6 +731,40 @@ function StudentFormModal({
 
 
 
+                    {/* CR-010: Profile image upload is available when adding a student. */}
+                    {!editingStudent && (
+                        <div className="form-group profile-image-form-group">
+                            <label htmlFor="sf-profileImage">Profile Image (optional)</label>
+                            <input
+                                id="sf-profileImage"
+                                name="profileImage"
+                                type="file"
+                                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                                onChange={handleProfileImageChange}
+                                disabled={formLoading}
+                                aria-describedby="sf-profileImage-hint"
+                            />
+                            <span id="sf-profileImage-hint" className="field-hint">
+                                Supported formats: PNG, JPG, JPEG. Maximum size: 5 MB.
+                            </span>
+                            {profileImageError && (
+                                <span className="field-error-msg" role="alert">
+                                    {profileImageError}
+                                </span>
+                            )}
+                            {profileImagePreview && (
+                                <div className="profile-image-preview-wrap">
+                                    <img
+                                        className="profile-image-preview"
+                                        src={profileImagePreview}
+                                        alt="Selected student profile preview"
+                                    />
+                                    <span className="field-hint">{profileImage?.name}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Password - CREATE ONLY */}
                     {!editingStudent && (
                         <div className="form-group">
@@ -760,3 +831,5 @@ function StudentFormModal({
 }
 
 export default StudentFormModal;
+
+

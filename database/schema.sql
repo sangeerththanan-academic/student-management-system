@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS students (
 
     phone_number VARCHAR(20) NOT NULL,
 
+    profile_photo VARCHAR(255) NULL,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -66,3 +68,4 @@ CREATE TABLE IF NOT EXISTS students (
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
 -- ============================================================
+
