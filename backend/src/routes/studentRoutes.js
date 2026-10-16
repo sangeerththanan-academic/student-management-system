@@ -15,6 +15,7 @@ const {
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+const { uploadStudentImage } = require("../middleware/studentImageUpload");
 
 
 // STUDENT ROUTES
@@ -33,6 +34,7 @@ router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentImage,
     addStudent
 );
 
@@ -78,3 +80,5 @@ router.delete(
 
 
 module.exports = router;
+
+

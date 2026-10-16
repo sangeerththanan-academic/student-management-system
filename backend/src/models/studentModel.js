@@ -9,7 +9,8 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto = null
 ) => {
     const [result] = await connection.execute(
         `INSERT INTO students
@@ -19,16 +20,18 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_photo
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profilePhoto
         ]
     );
 
@@ -46,12 +49,14 @@ const getAllStudents = async () => {
             s.last_name,
             s.email,
             s.phone_number,
+            s.profile_photo,
             s.created_at,
             s.updated_at,
             u.last_login
         FROM students AS s
         LEFT JOIN users AS u
             ON u.user_id = s.user_id
+        ORDER BY s.student_id DESC`
         ORDER BY s.student_id DESC`
     );
 
@@ -69,12 +74,14 @@ const getStudentById = async (studentId) => {
             s.last_name,
             s.email,
             s.phone_number,
+            s.profile_photo,
             s.created_at,
             s.updated_at,
             u.last_login
         FROM students AS s
         LEFT JOIN users AS u
             ON u.user_id = s.user_id
+        WHERE s.student_id = ?
         WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
@@ -176,12 +183,14 @@ const getStudentByUserId = async (userId) => {
             s.last_name,
             s.email,
             s.phone_number,
+            s.profile_photo,
             s.created_at,
             s.updated_at,
             u.last_login
         FROM students AS s
         LEFT JOIN users AS u
             ON u.user_id = s.user_id
+        WHERE s.user_id = ?
         WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
@@ -198,3 +207,6 @@ module.exports = {
     updateStudent,
     deleteStudent
 };
+
+
+

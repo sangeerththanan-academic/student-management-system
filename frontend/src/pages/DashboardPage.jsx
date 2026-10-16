@@ -349,7 +349,10 @@ function DashboardPage() {
                             <table className="students-table">
                                 <thead>
                                     <tr>
-                                        <th>Registration No.</th>
+                                        <th>Image</th>
+                                        <th>
+                                            Registration No.
+                                        </th>
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
@@ -364,6 +367,20 @@ function DashboardPage() {
                                 <tbody>
                                     {filteredStudents.map((student) => (
                                         <tr key={student.student_id}>
+                                            <td>
+                                                <img
+                                                    className="student-list-profile-image"
+                                                    src={student.profile_photo
+                                                        ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${student.profile_photo}`
+                                                        : "/student-placeholder.svg"}
+                                                    alt={`${student.first_name} ${student.last_name} profile`}
+                                                    onError={(event) => {
+                                                        event.currentTarget.onerror = null;
+                                                        event.currentTarget.src = "/student-placeholder.svg";
+                                                    }}
+                                                />
+                                            </td>
+
                                             <td>
                                                 <strong>
                                                     {student.registration_no}
@@ -421,3 +438,5 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+
+
