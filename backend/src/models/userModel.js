@@ -1,4 +1,3 @@
-
 const pool = require("../config/db");
 
 // Find user by username for login.

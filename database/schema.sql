@@ -165,3 +165,4 @@ CREATE TABLE IF NOT EXISTS password_reset_otps (
     INDEX idx_reset_user (user_id),
     INDEX idx_reset_expiry (expires_at)
 );
+
