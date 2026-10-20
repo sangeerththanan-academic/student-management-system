@@ -1,4 +1,3 @@
-
 const pool = require("../config/db");
 
 // CREATE STUDENT
@@ -57,7 +56,6 @@ const getAllStudents = async () => {
         LEFT JOIN users AS u
             ON u.user_id = s.user_id
         ORDER BY s.student_id DESC`
-        ORDER BY s.student_id DESC`
     );
 
     return rows;
@@ -81,7 +79,6 @@ const getStudentById = async (studentId) => {
         FROM students AS s
         LEFT JOIN users AS u
             ON u.user_id = s.user_id
-        WHERE s.student_id = ?
         WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
@@ -121,8 +118,7 @@ const updateStudent = async (
     return result;
 };
 
-// DELETE STUDENT + LINKED USER ACCOUNT
-// Preserve the existing transaction and foreign-key behaviour.
+// DELETE STUDENT AND ITS LINKED USER ACCOUNT
 const deleteStudent = async (studentId) => {
     const connection = await pool.getConnection();
 
@@ -144,15 +140,13 @@ const deleteStudent = async (studentId) => {
 
         const userId = rows[0].user_id;
 
-        // Delete student first because the foreign key
-        // uses ON DELETE RESTRICT.
+        // Delete the student first because the foreign key uses ON DELETE RESTRICT.
         const [studentResult] = await connection.execute(
             `DELETE FROM students
             WHERE student_id = ?`,
             [studentId]
         );
 
-        // Delete the linked user account.
         await connection.execute(
             `DELETE FROM users
             WHERE user_id = ?`,
@@ -160,13 +154,10 @@ const deleteStudent = async (studentId) => {
         );
 
         await connection.commit();
-
         return studentResult;
-
     } catch (error) {
         await connection.rollback();
         throw error;
-
     } finally {
         connection.release();
     }
@@ -191,7 +182,6 @@ const getStudentByUserId = async (userId) => {
         LEFT JOIN users AS u
             ON u.user_id = s.user_id
         WHERE s.user_id = ?
-        WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
     );
@@ -207,6 +197,3 @@ module.exports = {
     updateStudent,
     deleteStudent
 };
-
-
-

@@ -239,8 +239,8 @@ function StudentDashboardPage() {
                     )
                 )}
 
-                {!loading && student && (
-                    <ChangeStudentPassword userId={student.user_id} />
+                {user?.role === "STUDENT" && user?.id && (
+                    <ChangeStudentPassword userId={user.id} />
                 )}
 
             </main>
