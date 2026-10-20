@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -15,6 +16,7 @@ const {
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+const { uploadStudentImage } = require("../middleware/studentImageUpload");
 
 
 // STUDENT ROUTES
@@ -27,12 +29,23 @@ router.get(
 );
 
 
+// Change the authenticated student's own password.
+// The controller verifies that :id matches req.user.userId.
+router.patch(
+    "/:id",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
+);
+
+
 // Create student
 // Administrator only
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentImage,
     addStudent
 );
 

@@ -1,46 +1,49 @@
+
 -- ============================================================
 -- Student Management System
--- Database Schema - Version 1.0
+-- Database Schema - Version 2.0
 -- Organization: ABC Institute
 -- Database: MySQL
 -- ============================================================
 
--- ============================================================
--- DATABASE
--- ============================================================
+DROP DATABASE IF EXISTS student_management;
 
-CREATE DATABASE IF NOT EXISTS student_management;
+CREATE DATABASE student_management;
 
 USE student_management;
 
-
 -- ============================================================
 -- 1. USERS TABLE
--- Stores authentication and role information
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
+
     user_id INT AUTO_INCREMENT PRIMARY KEY,
 
     username VARCHAR(100) NOT NULL UNIQUE,
+
+    email VARCHAR(150) NOT NULL UNIQUE,
 
     password_hash VARCHAR(255) NOT NULL,
 
     role ENUM('ADMIN', 'STUDENT') NOT NULL,
 
+    -- CR033: Last successful login date and time
+    last_login DATETIME NULL DEFAULT NULL,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
 );
 
-
 -- ============================================================
 -- 2. STUDENTS TABLE
--- Stores basic student information
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE students (
+
     student_id INT AUTO_INCREMENT PRIMARY KEY,
 
     user_id INT NOT NULL UNIQUE,
@@ -55,9 +58,13 @@ CREATE TABLE IF NOT EXISTS students (
 
     phone_number VARCHAR(20) NOT NULL,
 
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    profile_photo VARCHAR(255) NULL,
 
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_student_user
@@ -67,7 +74,7 @@ CREATE TABLE IF NOT EXISTS students (
         ON DELETE RESTRICT
 );
 
-
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
 -- ============================================================
+

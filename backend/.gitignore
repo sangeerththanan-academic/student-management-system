@@ -1,0 +1,5 @@
+.env
+node_modules
+# CR-010 uploaded student profile images (keep files out of source control)
+/uploads/students/*
+!/uploads/students/.gitkeep
