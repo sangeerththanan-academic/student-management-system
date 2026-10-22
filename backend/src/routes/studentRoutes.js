@@ -30,6 +30,8 @@ router.get(
     getMyProfile
 );
 
+
+
 router.patch(
     "/me/password",
     authenticate,
@@ -60,6 +62,8 @@ router.post(
 
 // Get all students
 router.get(
+
+    
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
