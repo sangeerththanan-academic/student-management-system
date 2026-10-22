@@ -10,6 +10,9 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
+import { triggerCsvDownload, generateStudentsCsv } from "../utils/csvExport";
 
 import "../styles/dashboard.css";
 
@@ -21,8 +24,25 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
+
+// CR033: Format last_login timestamp into a readable date/time string.
+// Returns "Never" for accounts that have not yet logged in (FR-006 fallback).
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) return "Never";
+    const date = new Date(lastLogin);
+    if (isNaN(date.getTime())) return "Never";
+    return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+};
+
 function DashboardPage() {
     const navigate = useNavigate();
+    const { theme } = useTheme("admin");
 
     const [user, setUser] = useState(getStoredUser());
 
@@ -33,9 +53,16 @@ function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useState(() => {
+        if (typeof window !== "undefined") {
+            return new URLSearchParams(window.location.search).get("showAddModal") === "true";
+        }
+        return false;
+    });
 
     const [editingStudent, setEditingStudent] = useState(null);
+    const [exporting, setExporting] = useState(false);
+    const [exportMessage, setExportMessage] = useState("");
 
     // Load current user
     useEffect(() => {
@@ -252,9 +279,68 @@ function DashboardPage() {
     };
 
 
+    // CR-015: Export student records to CSV
+    const handleExportCSV = async () => {
+        try {
+            setExporting(true);
+            setExportMessage("");
+            setError("");
+
+            const token = localStorage.getItem("token");
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+            let downloaded = false;
+
+            try {
+                const response = await fetch(`${apiUrl}/api/students/export/csv`, {
+                    method: "GET",
+                    headers: {
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+
+                if (response.status === 403) {
+                    setError("You do not have permission to export student records.");
+                    return;
+                }
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    triggerCsvDownload(blob, "students.csv");
+                    downloaded = true;
+                }
+            } catch (networkErr) {
+                console.warn("Backend export request failed, falling back to client-side export:", networkErr);
+            }
+
+            // Fallback to client-side CSV generation if backend didn't complete
+            if (!downloaded) {
+                const csvData = generateStudentsCsv(students);
+                triggerCsvDownload(csvData, "students.csv");
+            }
+
+            setExportMessage("Student records exported successfully to students.csv.");
+            setTimeout(() => {
+                setExportMessage("");
+            }, 4000);
+        } catch (err) {
+            console.error("Export students error:", err);
+            setError(err.message || "Failed to export student records.");
+        } finally {
+            setExporting(false);
+        }
+    };
+
+
     // Render
     return (
-        <div className="dashboard-page">
+        <div className={`dashboard-page ${theme}`} data-theme={theme}>
 
             <header className="dashboard-header">
 
@@ -280,6 +366,8 @@ function DashboardPage() {
                             {user?.role}
                         </span>
                     </div>
+
+                    <ThemeToggle section="admin" showLabel={true} />
 
                     <button
                         onClick={handleLogout}
@@ -310,14 +398,59 @@ function DashboardPage() {
                     </div>
 
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+                        <button
+                            type="button"
+                            className="export-student-button"
+                            id="export-csv-btn"
+                            onClick={handleExportCSV}
+                            disabled={exporting || loading}
+                            aria-label="Export student records to CSV"
+                            title="Export student records to CSV"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            {exporting ? "Exporting..." : "Export CSV"}
+                        </button>
+
+                        <button
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
 
                 </div>
+
+
+                {/* Export feedback (CR-015) */}
+                {exportMessage && (
+                    <div className="dashboard-export-feedback" role="status">
+                        <span>{exportMessage}</span>
+                        <button
+                            type="button"
+                            className="feedback-dismiss"
+                            onClick={() => setExportMessage("")}
+                            aria-label="Dismiss message"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                )}
 
 
                 {/* Error */}
@@ -421,6 +554,11 @@ function DashboardPage() {
 
                                 <thead>
                                     <tr>
+                                        {/* CR-010: Profile Image Column */}
+                                        <th>
+                                            Image
+                                        </th>
+
                                         <th>
                                             Registration No.
                                         </th>
@@ -437,6 +575,11 @@ function DashboardPage() {
                                             Phone
                                         </th>
 
+                                        {/* CR033: Last Login column (FR-005) */}
+                                        <th>
+                                            Last Login
+                                        </th>
+
                                         <th>
                                             Actions
                                         </th>
@@ -450,6 +593,31 @@ function DashboardPage() {
                                         <tr
                                             key={student.student_id}
                                         >
+
+                                            {/* CR-010: Profile Image / Placeholder */}
+                                            <td className="student-photo-cell">
+                                                {student.profile_photo ? (
+                                                    <img
+                                                        src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${student.profile_photo}`}
+                                                        alt={`${student.first_name} ${student.last_name}`}
+                                                        className="student-table-photo"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = "none";
+                                                            const fallback = e.currentTarget.parentElement?.querySelector(".student-table-photo-placeholder");
+                                                            if (fallback) fallback.style.display = "flex";
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div
+                                                    className="student-table-photo-placeholder"
+                                                    style={{ display: student.profile_photo ? "none" : "flex" }}
+                                                    title={`${student.first_name} ${student.last_name}`}
+                                                >
+                                                    <span>
+                                                        {(student.first_name?.charAt(0) || "S").toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            </td>
 
                                             <td>
                                                 <strong>
@@ -468,6 +636,11 @@ function DashboardPage() {
 
                                             <td>
                                                 {student.phone_number}
+                                            </td>
+
+                                            {/* CR033: Display formatted last login timestamp */}
+                                            <td className={!student.last_login ? "last-login-never" : ""}>
+                                                {formatLastLogin(student.last_login)}
                                             </td>
 
                                             <td>
@@ -506,6 +679,7 @@ function DashboardPage() {
                                 </tbody>
 
                             </table>
+
 
                         </div>
 

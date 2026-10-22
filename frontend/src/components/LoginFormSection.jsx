@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 function LoginFormSection({ onSubmit, loading, error }) {
@@ -49,7 +50,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     <div className="form-group">
 
                         <label htmlFor="username">
-                            Username
+                            Username or Email
                         </label>
 
                         <input
@@ -59,7 +60,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                             onChange={(event) =>
                                 setUsername(event.target.value)
                             }
-                            placeholder="Enter your username"
+                            placeholder="Enter username or email address"
                             autoComplete="username"
                             disabled={loading}
                             required
@@ -106,6 +107,16 @@ function LoginFormSection({ onSubmit, loading, error }) {
 
                     </div>
 
+                    {/* CR-026: Forgot Password link (FR-001, AC-001) */}
+                    <div className="login-forgot-wrapper">
+                        <Link
+                            to="/forgot-password"
+                            id="forgot-password-link"
+                            className="forgot-password-link"
+                        >
+                            Forgot Password?
+                        </Link>
+                    </div>
 
                     <button
                         type="submit"

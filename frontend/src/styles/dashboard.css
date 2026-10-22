@@ -136,6 +136,68 @@
     font-size: 14px;
 }
 
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.export-student-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.export-student-button:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.export-student-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.dashboard-export-feedback {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.feedback-dismiss {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 0 4px;
+}
+
+.feedback-dismiss:hover {
+    opacity: 1;
+}
+
 .add-student-button {
     border: none;
 
@@ -764,3 +826,407 @@
         max-height: 95vh;
     }
 }
+
+/* =========================================================
+   Dark Mode - Admin Dashboard & Modal (CR-012)
+   ========================================================= */
+
+.dashboard-page[data-theme="dark"],
+.dashboard-page.dark {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header,
+.dashboard-page.dark .dashboard-header {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header h1,
+.dashboard-page.dark .dashboard-header h1 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header p,
+.dashboard-page.dark .dashboard-header p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .admin-info strong,
+.dashboard-page.dark .admin-info strong {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .admin-info span,
+.dashboard-page.dark .admin-info span {
+    color: #60a5fa;
+}
+
+.dashboard-page[data-theme="dark"] .logout-button,
+.dashboard-page.dark .logout-button {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .logout-button:hover,
+.dashboard-page.dark .logout-button:hover {
+    background: rgba(239, 68, 68, 0.35);
+}
+
+.dashboard-page[data-theme="dark"] .students-heading h2,
+.dashboard-page.dark .students-heading h2 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .students-heading p,
+.dashboard-page.dark .students-heading p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-input,
+.dashboard-page.dark .students-search-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-input:focus,
+.dashboard-page.dark .students-search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-page[data-theme="dark"] .students-search-clear,
+.dashboard-page.dark .students-search-clear {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-clear:hover,
+.dashboard-page.dark .students-search-clear:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .students-result-count,
+.dashboard-page.dark .students-result-count {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-card,
+.dashboard-page.dark .students-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-page[data-theme="dark"] .students-table th,
+.dashboard-page.dark .students-table th {
+    background: #131c2e;
+    color: #94a3b8;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .students-table td,
+.dashboard-page.dark .students-table td {
+    color: #cbd5e1;
+    border-color: #243044;
+}
+
+.dashboard-page[data-theme="dark"] .students-table td strong,
+.dashboard-page.dark .students-table td strong {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .students-table tbody tr:hover,
+.dashboard-page.dark .students-table tbody tr:hover {
+    background: #182234;
+}
+
+.dashboard-page[data-theme="dark"] .edit-button,
+.dashboard-page.dark .edit-button {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.dashboard-page[data-theme="dark"] .edit-button:hover,
+.dashboard-page.dark .edit-button:hover {
+    background: rgba(59, 130, 246, 0.35);
+}
+
+.dashboard-page[data-theme="dark"] .delete-button,
+.dashboard-page.dark .delete-button {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .delete-button:hover,
+.dashboard-page.dark .delete-button:hover {
+    background: rgba(239, 68, 68, 0.35);
+}
+
+.dashboard-page[data-theme="dark"] .students-loading,
+.dashboard-page.dark .students-loading,
+.dashboard-page[data-theme="dark"] .students-empty p,
+.dashboard-page.dark .students-empty p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-empty h3,
+.dashboard-page.dark .students-empty h3 {
+    color: #f8fafc;
+}
+
+/* Modal Dark Mode in Admin Section */
+.dashboard-page[data-theme="dark"] .modal-overlay,
+.dashboard-page.dark .modal-overlay {
+    background: rgba(3, 7, 18, 0.75);
+}
+
+.dashboard-page[data-theme="dark"] .student-form-card,
+.dashboard-page.dark .student-form-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-page[data-theme="dark"] .form-card-header h3,
+.dashboard-page.dark .form-card-header h3 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .form-card-header p,
+.dashboard-page.dark .form-card-header p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .close-form-button,
+.dashboard-page.dark .close-form-button {
+    background: #0f172a;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+
+.dashboard-page[data-theme="dark"] .close-form-button:hover,
+.dashboard-page.dark .close-form-button:hover {
+    background: #334155;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .form-group label,
+.dashboard-page.dark .student-form .form-group label {
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .form-group input,
+.dashboard-page.dark .student-form .form-group input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .form-group input:focus,
+.dashboard-page.dark .student-form .form-group input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-page[data-theme="dark"] .cancel-button,
+.dashboard-page.dark .cancel-button {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .cancel-button:hover,
+.dashboard-page.dark .cancel-button:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-error,
+.dashboard-page.dark .dashboard-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+
+/* =========================================================
+   CR033: Last Login column
+   ========================================================= */
+
+.last-login-never {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.dashboard-page[data-theme="dark"] .last-login-never,
+.dashboard-page.dark .last-login-never {
+    color: #475569;
+}
+
+
+/* =========================================================
+   CR-010: Student Profile Image in Table and Form Modal
+   ========================================================= */
+
+.student-photo-cell {
+    width: 56px;
+    padding: 8px 12px !important;
+    text-align: center;
+}
+
+.student-table-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    display: block;
+}
+
+.student-table-photo-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    border: 2px solid #e0e7ff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.profile-image-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-image-upload-wrapper input[type="file"] {
+    font-size: 13px;
+    color: #475569;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.profile-image-upload-wrapper input[type="file"]:hover {
+    border-color: #3b82f6;
+    background: #f1f5f9;
+}
+
+.profile-image-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.profile-preview-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.remove-preview-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.remove-preview-btn:hover {
+    background: #fecaca;
+    color: #b91c1c;
+}
+
+/* Dark mode for CR-010 elements */
+.dashboard-page[data-theme="dark"] .student-table-photo,
+.dashboard-page.dark .student-table-photo {
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .student-table-photo-placeholder,
+.dashboard-page.dark .student-table-photo-placeholder {
+    background: linear-gradient(135deg, #1e293b 0%, #312e81 100%);
+    color: #a5b4fc;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .profile-image-upload-wrapper input[type="file"],
+.dashboard-page.dark .profile-image-upload-wrapper input[type="file"] {
+    background: #1e293b;
+    border-color: #475569;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .profile-image-upload-wrapper input[type="file"]:hover,
+.dashboard-page.dark .profile-image-upload-wrapper input[type="file"]:hover {
+    border-color: #60a5fa;
+    background: #0f172a;
+}
+
+.dashboard-page[data-theme="dark"] .profile-image-preview-item,
+.dashboard-page.dark .profile-image-preview-item {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .remove-preview-btn,
+.dashboard-page.dark .remove-preview-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .remove-preview-btn:hover,
+.dashboard-page.dark .remove-preview-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #ffffff;
+}
+
+/* Dark mode for CR-015 Export CSV */
+.dashboard-page[data-theme="dark"] .export-student-button,
+.dashboard-page.dark .export-student-button {
+    background: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+.dashboard-page[data-theme="dark"] .export-student-button:hover:not(:disabled),
+.dashboard-page.dark .export-student-button:hover:not(:disabled) {
+    background: #334155;
+    border-color: #64748b;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-export-feedback,
+.dashboard-page.dark .dashboard-export-feedback {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
+}
+

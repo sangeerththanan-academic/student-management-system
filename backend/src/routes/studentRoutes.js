@@ -5,14 +5,20 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
-    removeStudent
+    removeStudent,
+    exportStudentsCsv
 } = require("../controllers/studentController");
 
 const {
     authenticate,
     authorizeRoles
 } = require("../middleware/authMiddleware");
+
+const {
+    uploadStudentPhoto
+} = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -27,14 +33,25 @@ router.get(
 );
 
 
+// Change own password (CR-020)
+// Student must be logged in; no ADMIN role required
+router.put(
+    "/me/change-password",
+    authenticate,
+    changeMyPassword
+);
+
+
 // Create student
-// Administrator only
+// Administrator only (CR-010: supports profile photo upload)
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentPhoto,
     addStudent
 );
+
 
 
 // Get all students
@@ -44,6 +61,23 @@ router.get(
     authenticate,
     authorizeRoles("ADMIN"),
     getStudents
+);
+
+
+// Export all students to CSV (CR-015)
+// Administrator only
+router.get(
+    "/export/csv",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    exportStudentsCsv
+);
+
+router.get(
+    "/export",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    exportStudentsCsv
 );
 
 

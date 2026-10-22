@@ -4,14 +4,17 @@ const API_BASE_URL =
 const apiRequest = async (endpoint, options = {}) => {
     const token = localStorage.getItem("token");
 
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
     const headers = {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...options.headers
     };
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
+
 
     const response = await fetch(
         `${API_BASE_URL}${endpoint}`,
