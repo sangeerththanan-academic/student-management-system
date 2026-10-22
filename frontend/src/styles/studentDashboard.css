@@ -210,3 +210,73 @@
     overflow: hidden;
     flex-shrink: 0;
 }
+
+/* CSV student import section */
+.csv-import-section {
+    margin: 16px 0 22px;
+    padding: 16px;
+    border: 1px solid var(--border-color, #d1d5db);
+    border-radius: 10px;
+    background: var(--surface-color, #ffffff);
+    color: var(--text-color, #1f2937);
+}
+
+.csv-import-section h4 {
+    margin: 0 0 8px;
+}
+
+.csv-import-section p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.csv-import-section label {
+    display: block;
+    margin: 12px 0 6px;
+    font-weight: 600;
+}
+
+.csv-import-section input[type="file"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 8px;
+}
+
+.csv-format-help {
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.csv-import-error {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.csv-import-success {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.csv-student-navigation {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color, #d1d5db);
+}
+
+.csv-navigation-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.csv-navigation-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.image-validation-error {
+    color: #dc2626;
+    font-size: 0.9rem;
+}

@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -9,20 +5,12 @@ const fs = require("fs");
 // =====================================================
 // STUDENT PROFILE IMAGE UPLOAD DIRECTORY
 // =====================================================
-<<<<<<< HEAD
-
-=======
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 const uploadDirectory = path.join(
     __dirname,
     "../../uploads/students"
 );
 
-<<<<<<< HEAD
-// Create directory if it does not exist
-=======
-// Create upload directory automatically if it doesn't exist.
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
+// Create the upload directory automatically if it doesn't exist.
 if (!fs.existsSync(uploadDirectory)) {
     fs.mkdirSync(uploadDirectory, { recursive: true });
 }
@@ -30,10 +18,6 @@ if (!fs.existsSync(uploadDirectory)) {
 // =====================================================
 // FILE STORAGE CONFIGURATION
 // =====================================================
-<<<<<<< HEAD
-
-=======
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
         callback(null, uploadDirectory);
@@ -52,10 +36,6 @@ const storage = multer.diskStorage({
 // =====================================================
 // ALLOW PNG, JPG AND JPEG ONLY
 // =====================================================
-<<<<<<< HEAD
-
-=======
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 const fileFilter = (req, file, callback) => {
     const allowedMimeTypes = [
         "image/png",
@@ -87,33 +67,18 @@ const fileFilter = (req, file, callback) => {
 };
 
 // =====================================================
-<<<<<<< HEAD
 // MULTER CONFIGURATION
 // Maximum file size: 2 MB
 // =====================================================
-
 const uploadStudentImage = multer({
     storage,
     fileFilter,
-=======
-// MULTER UPLOAD CONFIGURATION
-// Maximum image size: 2 MB
-// =====================================================
-const uploadStudentImage = multer({
-    storage,
-    fileFilter,
-
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
     limits: {
         fileSize: 2 * 1024 * 1024,
         files: 1
     }
 });
 
-<<<<<<< HEAD
 // Export the Multer instance.
-// Do not add .single() here.
+// Use .single("profileImage") in the route.
 module.exports = uploadStudentImage;
-=======
-module.exports = uploadStudentImage;
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38

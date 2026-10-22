@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -51,7 +50,6 @@ app.get("/api/health", (req, res) => {
 });
 
 // =====================================================
-<<<<<<< HEAD
 // VALIDATE ROUTER IMPORTS
 // =====================================================
 
@@ -71,20 +69,12 @@ if (typeof studentRoutes !== "function") {
 // API ROUTES
 // =====================================================
 
-=======
-// API ROUTES
-// =====================================================
-
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 
 // =====================================================
 // 404 HANDLER
-<<<<<<< HEAD
-=======
 // Keep this after all valid routes.
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 // =====================================================
 
 app.use((req, res) => {
@@ -95,11 +85,7 @@ app.use((req, res) => {
 });
 
 // =====================================================
-<<<<<<< HEAD
 // GLOBAL ERROR HANDLER
-=======
-// EXPORT APP
->>>>>>> a3803ff97bc2415108026492f3744f55b3cd4c38
 // =====================================================
 
 app.use((err, req, res, next) => {
