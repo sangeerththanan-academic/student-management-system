@@ -292,6 +292,26 @@
     grid-column: 1 / -1;
 }
 
+.student-csv-add-row {
+    align-self: flex-start;
+    padding: 9px 12px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.student-csv-add-row:hover:not(:disabled) {
+    background: #dbeafe;
+}
+
+.student-csv-add-row:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .student-csv-batch-summary {
     margin-bottom: 10px;
     color: #475569;

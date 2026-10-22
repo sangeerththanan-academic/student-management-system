@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import apiRequest from "../services/api";
-import { parseStudentCsv } from "../utils/studentCsv";
+import { CSV_FIELD_LABELS, parseStudentCsv } from "../utils/studentCsv";
 
 function StudentFormModal({
     show,
@@ -110,6 +110,42 @@ function StudentFormModal({
         } finally {
             input.value = "";
         }
+    };
+
+    const handleAddBatchRow = () => {
+        setFormError("");
+        setBatchRows((previous) => {
+            if (previous.length === 0) {
+                return [{
+                    id: 0,
+                    data: { ...formData },
+                    profileImage,
+                    imageError: profileImageError,
+                    status: "pending",
+                    error: ""
+                }];
+            }
+
+            const nextId = Math.max(...previous.map((row) => row.id)) + 1;
+            return [
+                ...previous,
+                {
+                    id: nextId,
+                    data: {
+                        registrationNo: "",
+                        firstName: "",
+                        lastName: "",
+                        email: "",
+                        phoneNumber: "",
+                        password: ""
+                    },
+                    profileImage: null,
+                    imageError: "",
+                    status: "pending",
+                    error: ""
+                }
+            ];
+        });
     };
 
     const handleBatchFieldChange = (rowId, field, value) => {
@@ -785,11 +821,22 @@ function StudentFormModal({
                                 disabled={formLoading || batchRows.some((row) => row.status === "created")}
                                 aria-describedby="sf-csvImport-hint"
                             />
+                            <button
+                                type="button"
+                                className="student-csv-add-row"
+                                onClick={handleAddBatchRow}
+                                disabled={formLoading}
+                            >
+                                {batchRows.length === 0
+                                    ? "Enter multiple-student mode"
+                                    : "Add another student"}
+                            </button>
                             <span id="sf-csvImport-hint" className="field-hint">
-                                One student per row. Required columns: registrationNo, firstName,
-                                lastName, email, phoneNumber. Optional: password (enter each
-                                student&apos;s password below if omitted). Optional profile images
-                                can be selected per student after import.
+                                Add student rows here or import a CSV with one student per row.
+                                Required CSV columns: registrationNo, firstName, lastName, email,
+                                phoneNumber. Optional: password (enter each student&apos;s password
+                                below if omitted). Student IDs are generated automatically.
+                                Optional profile images can be selected per student.
                             </span>
                             {csvImportError && (
                                 <span className="field-error-msg" role="alert">

@@ -19,7 +19,7 @@ const REQUIRED_CSV_FIELDS = [
     "phoneNumber"
 ];
 
-const CSV_FIELD_LABELS = {
+export const CSV_FIELD_LABELS = {
     registrationNo: "Registration Number",
     firstName: "First Name",
     lastName: "Last Name",
