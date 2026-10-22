@@ -4,6 +4,8 @@ const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const courseRoutes = require("./routes/courseRoutes");
+const enrollmentRoutes = require("./routes/enrollmentRoutes");
 
 const app = express();
 
@@ -37,6 +39,13 @@ app.use("/api/auth", authRoutes);
 
 // Student routes
 app.use("/api/students", studentRoutes);
+
+// Course routes (CR-009)
+app.use("/api/courses", courseRoutes);
+
+// Enrollment routes (CR-009)
+app.use("/api/enrollments", enrollmentRoutes);
+
 
 
 // 404 Handler
