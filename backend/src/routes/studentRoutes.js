@@ -8,7 +8,8 @@ const {
     changeMyPassword,
     editStudent,
     removeStudent,
-    exportStudentsCsv
+    exportStudentsCsv,
+    bulkAddStudents
 } = require("../controllers/studentController");
 
 const {
@@ -50,6 +51,23 @@ router.post(
     authorizeRoles("ADMIN"),
     uploadStudentPhoto,
     addStudent
+);
+
+
+// Bulk import students (CR-022)
+// Administrator only
+router.post(
+    "/bulk",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    bulkAddStudents
+);
+
+router.post(
+    "/import",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    bulkAddStudents
 );
 
 

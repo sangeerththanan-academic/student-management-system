@@ -10,6 +10,7 @@ import {
 import apiRequest from "../services/api";
 
 import StudentFormModal from "../components/StudentFormModal";
+import StudentImportModal from "../components/StudentImportModal";
 import ThemeToggle from "../components/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { triggerCsvDownload, generateStudentsCsv } from "../utils/csvExport";
@@ -63,6 +64,16 @@ function DashboardPage() {
     const [editingStudent, setEditingStudent] = useState(null);
     const [exporting, setExporting] = useState(false);
     const [exportMessage, setExportMessage] = useState("");
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importSuccessMessage, setImportSuccessMessage] = useState("");
+
+    const handleImportSuccess = async (count, message) => {
+        await loadStudents();
+        setImportSuccessMessage(message || `Successfully imported ${count} student${count === 1 ? "" : "s"}.`);
+        setTimeout(() => {
+            setImportSuccessMessage("");
+        }, 5000);
+    };
 
     // Load current user
     useEffect(() => {
@@ -426,6 +437,34 @@ function DashboardPage() {
                             {exporting ? "Exporting..." : "Export CSV"}
                         </button>
 
+                        {/* CR-022: Import CSV Button near Export CSV */}
+                        <button
+                            type="button"
+                            className="import-student-button"
+                            id="import-csv-btn"
+                            onClick={() => setShowImportModal(true)}
+                            disabled={loading}
+                            aria-label="Import student records from CSV"
+                            title="Import student records from CSV"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            Import CSV
+                        </button>
+
                         <button
                             className="add-student-button"
                             onClick={openAddForm}
@@ -452,6 +491,21 @@ function DashboardPage() {
                     </div>
                 )}
 
+                {/* Import feedback (CR-022) */}
+                {importSuccessMessage && (
+                    <div className="dashboard-export-feedback dashboard-import-feedback" role="status">
+                        <span>{importSuccessMessage}</span>
+                        <button
+                            type="button"
+                            className="feedback-dismiss"
+                            onClick={() => setImportSuccessMessage("")}
+                            aria-label="Dismiss message"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                )}
+
 
                 {/* Error */}
 
@@ -469,6 +523,15 @@ function DashboardPage() {
                     editingStudent={editingStudent}
                     onClose={handleFormClose}
                     onSuccess={loadStudents}
+                    onAuthError={handleFormAuthError}
+                />
+
+                {/* Student import modal (CR-022) */}
+                <StudentImportModal
+                    show={showImportModal}
+                    existingStudents={students}
+                    onClose={() => setShowImportModal(false)}
+                    onSuccess={handleImportSuccess}
                     onAuthError={handleFormAuthError}
                 />
 

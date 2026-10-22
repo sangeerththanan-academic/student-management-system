@@ -491,6 +491,191 @@ const exportStudentsCsv = async (req, res) => {
 };
 
 
+// BULK IMPORT STUDENTS (CR-022)
+// POST /api/students/bulk or /api/students/import
+const bulkAddStudents = async (req, res) => {
+    const { students } = req.body;
+
+    if (!Array.isArray(students) || students.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "No student records provided for import"
+        });
+    }
+
+    if (students.length > 500) {
+        return res.status(400).json({
+            success: false,
+            message: "Import batch size exceeds maximum limit of 500 students per upload"
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        const createdStudents = [];
+        const errors = [];
+
+        // Check duplicates within the batch
+        const regNosSeen = new Set();
+        const emailsSeen = new Set();
+
+        for (let i = 0; i < students.length; i++) {
+            const rowNumber = i + 1;
+            const item = students[i];
+
+            const registrationNo = String(item.registrationNo || item.registration_no || "").trim();
+            const firstName = String(item.firstName || item.first_name || "").trim();
+            const lastName = String(item.lastName || item.last_name || "").trim();
+            const email = String(item.email || "").trim();
+            const phoneNumber = String(item.phoneNumber || item.phone_number || "").trim();
+            const password = item.password && String(item.password).trim() !== ""
+                ? String(item.password).trim()
+                : "Student@123";
+
+            const studentData = {
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                password
+            };
+
+            // CR-004 validation
+            const validation = validateStudentData(studentData, false);
+            if (!validation.isValid) {
+                errors.push({
+                    row: rowNumber,
+                    registrationNo,
+                    message: validation.firstError,
+                    details: validation.errors
+                });
+                continue;
+            }
+
+            // Duplicates within batch
+            if (regNosSeen.has(registrationNo.toLowerCase())) {
+                errors.push({
+                    row: rowNumber,
+                    registrationNo,
+                    message: `Duplicate registration number '${registrationNo}' found in import file.`
+                });
+                continue;
+            }
+            if (emailsSeen.has(email.toLowerCase())) {
+                errors.push({
+                    row: rowNumber,
+                    registrationNo,
+                    message: `Duplicate email '${email}' found in import file.`
+                });
+                continue;
+            }
+
+            // Check duplicate registrationNo / username in DB
+            const [existingUser] = await connection.execute(
+                `SELECT user_id FROM users WHERE username = ? LIMIT 1`,
+                [registrationNo]
+            );
+            if (existingUser.length > 0) {
+                errors.push({
+                    row: rowNumber,
+                    registrationNo,
+                    message: `Registration number '${registrationNo}' is already registered in database.`
+                });
+                continue;
+            }
+
+            // Check duplicate email in DB
+            const [existingStudent] = await connection.execute(
+                `SELECT student_id FROM students WHERE email = ? LIMIT 1`,
+                [email]
+            );
+            if (existingStudent.length > 0) {
+                errors.push({
+                    row: rowNumber,
+                    registrationNo,
+                    message: `Email address '${email}' is already registered in database.`
+                });
+                continue;
+            }
+
+            regNosSeen.add(registrationNo.toLowerCase());
+            emailsSeen.add(email.toLowerCase());
+
+            // Hash password
+            const passwordHash = await bcrypt.hash(password, 10);
+
+            // Insert user
+            const [userResult] = await connection.execute(
+                `INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'STUDENT')`,
+                [registrationNo, passwordHash]
+            );
+            const userId = userResult.insertId;
+
+            // Insert student
+            const studentId = await createStudent(
+                connection,
+                userId,
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                null
+            );
+
+            createdStudents.push({
+                studentId,
+                userId,
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber
+            });
+        }
+
+        // If there were any errors and no students created, rollback
+        if (createdStudents.length === 0 && errors.length > 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message: "No student records could be imported due to validation or duplicate errors.",
+                importedCount: 0,
+                failedCount: errors.length,
+                errors
+            });
+        }
+
+        // Commit successful insertions
+        await connection.commit();
+
+        return res.status(201).json({
+            success: true,
+            message: `Successfully imported ${createdStudents.length} student${createdStudents.length === 1 ? "" : "s"}.` +
+                (errors.length > 0 ? ` ${errors.length} record(s) failed.` : ""),
+            importedCount: createdStudents.length,
+            failedCount: errors.length,
+            errors,
+            students: createdStudents
+        });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error("Bulk import students error:", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Failed to import student records"
+        });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+
 module.exports = {
     addStudent,
     getStudents,
@@ -499,5 +684,6 @@ module.exports = {
     changeMyPassword,
     editStudent,
     removeStudent,
-    exportStudentsCsv
+    exportStudentsCsv,
+    bulkAddStudents
 };
