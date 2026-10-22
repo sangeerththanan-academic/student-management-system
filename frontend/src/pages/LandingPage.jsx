@@ -13,10 +13,13 @@ import {
 } from "lucide-react";
 
 
+import { useTheme } from "../context/ThemeContext";
+
 function LandingPage() {
+    const { theme } = useTheme("home");
 
     return (
-        <div className="landing-page">
+        <div className={`landing-page ${theme}`} data-theme={theme}>
 
             <Navbar />
 

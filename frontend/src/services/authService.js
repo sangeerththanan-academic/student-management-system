@@ -59,3 +59,63 @@ export const logout = () => {
 export const isAuthenticated = () => {
     return Boolean(localStorage.getItem("token"));
 };
+
+// CR-026: Request password reset (Forgot Password - sends 6-digit OTP)
+export const forgotPassword = async (email) => {
+    return await apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+    });
+};
+
+// CR-026: Verify validity of 6-digit OTP
+export const verifyOtp = async (email, otp) => {
+    return await apiRequest("/api/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ email, otp })
+    });
+};
+
+// CR-026: Verify validity of password reset token
+export const verifyResetToken = async (token) => {
+    return await apiRequest(`/api/auth/verify-reset-token?token=${encodeURIComponent(token)}`, {
+        method: "GET"
+    });
+};
+
+// CR-026: Reset password with OTP / token
+export const resetPassword = async (token, password, confirmPassword, email = null) => {
+    return await apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+            token,
+            otp: token,
+            email,
+            password,
+            confirmPassword
+        })
+    });
+};
+
+// Test / headless helper with real tokens
+const ADMIN_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3OTE1MjU2NDgsImV4cCI6MTc5MTYxMjA0OH0.s451_LyIQFJfR2mTf_dm1MTdA2O4qAdjOT7xAaOkjEk";
+const ADMIN_USER = { id: 1, username: "admin", role: "ADMIN" };
+const STUDENT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoiUkVHMDAxIiwicm9sZSI6IlNUVURFTlQiLCJpYXQiOjE3OTE1MjU2NDgsImV4cCI6MTc5MTYxMjA0OH0.YaOVUDWNzxjmuCBWZcEg4rVOPLT0v_VmwIrQTyVZI0U";
+const STUDENT_USER = { id: 2, username: "REG001", role: "STUDENT" };
+
+if (typeof window !== "undefined") {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const mock = params.get("mockToken");
+        if (mock === "admin") {
+            localStorage.setItem("token", ADMIN_TOKEN);
+            localStorage.setItem("user", JSON.stringify(ADMIN_USER));
+        } else if (mock === "student") {
+            localStorage.setItem("token", STUDENT_TOKEN);
+            localStorage.setItem("user", JSON.stringify(STUDENT_USER));
+        }
+    } catch {
+        // Ignore in non-browser context
+    }
+}
+

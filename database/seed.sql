@@ -75,7 +75,101 @@ VALUES
 
 
 -- ============================================================
--- 3. VERIFICATION QUERIES
+-- 3. COURSES (CR-009)
+-- ============================================================
+
+INSERT INTO courses (
+    course_code,
+    title,
+    description,
+    category,
+    level,
+    duration,
+    price,
+    status
+)
+VALUES
+(
+    'CS101',
+    'Introduction to Computer Science',
+    'Fundamental principles of computing, programming constructs, algorithms, and computational problem solving.',
+    'Computer Science',
+    'Beginner',
+    '8 Weeks',
+    150.00,
+    'AVAILABLE'
+),
+(
+    'WD201',
+    'Full Stack Web Development',
+    'Comprehensive modern web development covering React frontend, Node.js REST APIs, database integration, and deployment.',
+    'Web Development',
+    'Intermediate',
+    '12 Weeks',
+    250.00,
+    'AVAILABLE'
+),
+(
+    'DS301',
+    'Data Science and Machine Learning',
+    'Applied data analysis using Python, data visualization, statistical modelling, and practical machine learning algorithms.',
+    'Data Science',
+    'Advanced',
+    '10 Weeks',
+    300.00,
+    'AVAILABLE'
+),
+(
+    'MD202',
+    'Mobile Application Development',
+    'Cross-platform mobile app development with modern reactive frameworks, native device APIs, and UI/UX best practices.',
+    'Mobile Development',
+    'Intermediate',
+    '8 Weeks',
+    220.00,
+    'AVAILABLE'
+),
+(
+    'CY101',
+    'Cybersecurity Fundamentals',
+    'Core security concepts, network defense, threat analysis, cryptography principles, and secure software development.',
+    'Cyber Security',
+    'Beginner',
+    '6 Weeks',
+    180.00,
+    'AVAILABLE'
+),
+(
+    'CC201',
+    'Cloud Computing Essentials',
+    'Architecture and implementation of cloud-native systems, containerization, microservices, and serverless architectures.',
+    'Cloud Computing',
+    'Intermediate',
+    '8 Weeks',
+    200.00,
+    'AVAILABLE'
+);
+
+
+-- ============================================================
+-- 4. ENROLLMENTS (CR-009)
+-- ============================================================
+
+INSERT INTO enrollments (
+    student_id,
+    course_id,
+    status
+)
+VALUES
+(
+    1,
+    1,
+    'ENROLLED'
+);
+
+
+-- ============================================================
+-- 5. VERIFICATION QUERIES
 -- ============================================================
 
 -- View users
@@ -118,6 +212,34 @@ LEFT JOIN students s
     ON u.user_id = s.user_id;
 
 
+-- View courses (CR-009)
+SELECT
+    course_id,
+    course_code,
+    title,
+    category,
+    level,
+    duration,
+    price,
+    status
+FROM courses;
+
+
+-- View enrollments (CR-009)
+SELECT
+    e.enrollment_id,
+    s.registration_no,
+    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+    c.course_code,
+    c.title AS course_title,
+    e.status,
+    e.enrollment_date
+FROM enrollments e
+JOIN students s ON e.student_id = s.student_id
+JOIN courses c ON e.course_id = c.course_id;
+
+
 -- ============================================================
--- DATABASE SEED DATA - VERSION 1.0 COMPLETE
+-- DATABASE SEED DATA - VERSION 1.1 COMPLETE (CR-009)
 -- ============================================================
+

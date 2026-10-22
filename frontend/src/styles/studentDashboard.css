@@ -73,16 +73,22 @@
    ========================================================= */
 
 .student-dashboard-main {
-    max-width: 700px;
+    max-width: 1040px;
     margin: 40px auto;
-    padding: 0 20px;
+    padding: 0 24px;
+}
+
+.dashboard-section {
+    margin-bottom: 36px;
 }
 
 .section-title {
     color: #0f172a;
     font-size: 20px;
+    font-weight: 700;
     margin: 0 0 20px;
 }
+
 
 
 /* =========================================================
@@ -116,6 +122,17 @@
     font-size: 22px;
     font-weight: 700;
 }
+
+/* CR-010: Student profile image in student portal */
+.profile-avatar-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
 
 .profile-name h3 {
     color: #ffffff;
@@ -183,3 +200,943 @@
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+/* =========================================================
+   Dark Mode - Student Dashboard (CR-012)
+   ========================================================= */
+
+.student-dashboard-page[data-theme="dark"],
+.student-dashboard-page.dark {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-dashboard-header,
+.student-dashboard-page.dark .student-dashboard-header {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-dashboard-header h1,
+.student-dashboard-page.dark .student-dashboard-header h1 {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-dashboard-header p,
+.student-dashboard-page.dark .student-dashboard-header p {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .role-badge,
+.student-dashboard-page.dark .role-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.student-dashboard-page[data-theme="dark"] .section-title,
+.student-dashboard-page.dark .section-title {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-card,
+.student-dashboard-page.dark .profile-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-header,
+.student-dashboard-page.dark .profile-header {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-row,
+.student-dashboard-page.dark .detail-row {
+    border-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-label,
+.student-dashboard-page.dark .detail-label {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .detail-value,
+.student-dashboard-page.dark .detail-value {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-loading,
+.student-dashboard-page.dark .student-loading {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .student-error,
+.student-dashboard-page.dark .student-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+
+/* =========================================================
+   CR-020: Change Password Section
+   ========================================================= */
+
+.change-password-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 28px;
+    padding: 28px;
+}
+
+.change-password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.cp-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cp-label {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.cp-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.cp-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.cp-password-wrapper .cp-input {
+    width: 100%;
+    padding-right: 44px;
+}
+
+.cp-password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    line-height: 1;
+}
+
+.cp-password-toggle-btn:hover:not(:disabled) {
+    color: #1e293b;
+    background-color: #f1f5f9;
+}
+
+.cp-password-toggle-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
+}
+
+.cp-password-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.cp-eye-icon {
+    display: block;
+    pointer-events: none;
+}
+
+.cp-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    background: #ffffff;
+}
+
+.cp-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cp-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cp-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.cp-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cp-btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.cp-btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.cp-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.cp-btn-secondary:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+
+/* FR-004: Notification messages */
+.cp-notification {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.cp-success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.cp-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+
+/* =========================================================
+   CR-020: Dark Mode — Change Password
+   ========================================================= */
+
+.student-dashboard-page[data-theme="dark"] .change-password-card,
+.student-dashboard-page.dark .change-password-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-label,
+.student-dashboard-page.dark .cp-label {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-input,
+.student-dashboard-page.dark .cp-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-input:focus,
+.student-dashboard-page.dark .cp-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    background: #1e293b;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-btn-secondary,
+.student-dashboard-page.dark .cp-btn-secondary {
+    background: #334155;
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-btn-secondary:hover:not(:disabled),
+.student-dashboard-page.dark .cp-btn-secondary:hover:not(:disabled) {
+    background: #475569;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-success,
+.student-dashboard-page.dark .cp-success {
+    background: rgba(21, 128, 61, 0.15);
+    color: #86efac;
+    border-color: rgba(21, 128, 61, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-error,
+.student-dashboard-page.dark .cp-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-password-toggle-btn,
+.student-dashboard-page.dark .cp-password-toggle-btn {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-password-toggle-btn:hover:not(:disabled),
+.student-dashboard-page.dark .cp-password-toggle-btn:hover:not(:disabled) {
+    color: #f8fafc;
+    background-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .cp-password-toggle-btn:focus-visible,
+.student-dashboard-page.dark .cp-password-toggle-btn:focus-visible {
+    outline: 2px solid #3b82f6;
+}
+
+
+/* =========================================================
+   CR-009: Available Courses & Enrollment Section
+   ========================================================= */
+
+.student-courses-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.courses-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.courses-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.courses-title-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.courses-title-icon {
+    color: #2563eb;
+}
+
+.courses-title-badge .section-title {
+    margin: 0;
+    font-size: 22px;
+}
+
+.courses-subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0;
+}
+
+.courses-count-pill {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Feedback Alert Banners */
+.course-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.course-alert-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.course-alert-icon {
+    flex-shrink: 0;
+}
+
+.course-alert-success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.course-alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.course-alert-dismiss {
+    background: transparent;
+    border: none;
+    color: currentColor;
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: opacity 0.15s, background-color 0.15s;
+}
+
+.course-alert-dismiss:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Filter Bar & Search */
+.courses-filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.course-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.course-search-icon {
+    position: absolute;
+    left: 14px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.course-search-input {
+    width: 100%;
+    padding: 11px 40px 11px 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #f8fafc;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.course-search-input:focus {
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.course-search-clear {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.course-search-clear:hover {
+    color: #475569;
+    background: #e2e8f0;
+}
+
+.course-category-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.category-chip {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-chip:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.category-chip.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+/* Empty State */
+.courses-empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.empty-state-icon {
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.empty-state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 6px;
+}
+
+.empty-state-desc {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Course Grid */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 20px;
+}
+
+/* Course Card */
+.course-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+}
+
+.course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px -6px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+}
+
+.course-card.course-card-enrolled {
+    border-color: #bbf7d0;
+    background: #fafdfb;
+}
+
+.course-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    gap: 8px;
+}
+
+.course-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.course-category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.2px;
+}
+
+.course-level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.level-beginner {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.level-intermediate {
+    background: #fefce8;
+    color: #854d0e;
+}
+
+.level-advanced {
+    background: #faf5ff;
+    color: #6b21a8;
+}
+
+.course-code-pill {
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.course-title {
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
+.course-description {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.course-metadata-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 16px;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.course-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+}
+
+.meta-icon {
+    color: #64748b;
+}
+
+.meta-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.meta-value {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.course-price-tag {
+    color: #059669;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* Enroll Buttons */
+.course-card-actions {
+    margin-top: auto;
+}
+
+.course-enroll-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    transition: background-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+}
+
+.course-enroll-btn:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.course-enroll-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.course-enroll-btn.btn-enrolling {
+    background: #3b82f6;
+    opacity: 0.8;
+    cursor: wait;
+}
+
+.course-enroll-btn.enrolled-btn {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    cursor: default;
+    font-weight: 600;
+}
+
+.course-enroll-btn.enrolled-btn:hover {
+    background: #ecfdf5;
+    transform: none;
+}
+
+
+/* =========================================================
+   CR-009: Dark Mode — Available Courses
+   ========================================================= */
+
+.student-dashboard-page[data-theme="dark"] .student-courses-section,
+.student-dashboard-page.dark .student-courses-section {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .courses-title-icon,
+.student-dashboard-page.dark .courses-title-icon {
+    color: #60a5fa;
+}
+
+.student-dashboard-page[data-theme="dark"] .courses-subtitle,
+.student-dashboard-page.dark .courses-subtitle {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .courses-count-pill,
+.student-dashboard-page.dark .courses-count-pill {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.student-dashboard-page[data-theme="dark"] .course-alert-success,
+.student-dashboard-page.dark .course-alert-success {
+    background: rgba(21, 128, 61, 0.15);
+    color: #86efac;
+    border-color: rgba(21, 128, 61, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .course-alert-error,
+.student-dashboard-page.dark .course-alert-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.student-dashboard-page[data-theme="dark"] .course-search-input,
+.student-dashboard-page.dark .course-search-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-search-input:focus,
+.student-dashboard-page.dark .course-search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    background: #1e293b;
+}
+
+.student-dashboard-page[data-theme="dark"] .category-chip,
+.student-dashboard-page.dark .category-chip {
+    background: #334155;
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+.student-dashboard-page[data-theme="dark"] .category-chip:hover,
+.student-dashboard-page.dark .category-chip:hover {
+    background: #475569;
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .category-chip.active,
+.student-dashboard-page.dark .category-chip.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.student-dashboard-page[data-theme="dark"] .courses-empty-state,
+.student-dashboard-page.dark .courses-empty-state {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .empty-state-title,
+.student-dashboard-page.dark .empty-state-title {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .empty-state-desc,
+.student-dashboard-page.dark .empty-state-desc {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-card,
+.student-dashboard-page.dark .course-card {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-card:hover,
+.student-dashboard-page.dark .course-card:hover {
+    border-color: #475569;
+    box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.5);
+}
+
+.student-dashboard-page[data-theme="dark"] .course-card.course-card-enrolled,
+.student-dashboard-page.dark .course-card.course-card-enrolled {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: #0d1f1c;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-category-badge,
+.student-dashboard-page.dark .course-category-badge {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+}
+
+.student-dashboard-page[data-theme="dark"] .level-beginner,
+.student-dashboard-page.dark .level-beginner {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+
+.student-dashboard-page[data-theme="dark"] .level-intermediate,
+.student-dashboard-page.dark .level-intermediate {
+    background: rgba(234, 179, 8, 0.15);
+    color: #fde047;
+}
+
+.student-dashboard-page[data-theme="dark"] .level-advanced,
+.student-dashboard-page.dark .level-advanced {
+    background: rgba(168, 85, 247, 0.15);
+    color: #d8b4fe;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-code-pill,
+.student-dashboard-page.dark .course-code-pill {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-title,
+.student-dashboard-page.dark .course-title {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-description,
+.student-dashboard-page.dark .course-description {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-metadata-row,
+.student-dashboard-page.dark .course-metadata-row {
+    border-color: #1e293b;
+}
+
+.student-dashboard-page[data-theme="dark"] .meta-icon,
+.student-dashboard-page.dark .meta-icon,
+.student-dashboard-page[data-theme="dark"] .meta-label,
+.student-dashboard-page.dark .meta-label {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .meta-value,
+.student-dashboard-page.dark .meta-value {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-price-tag,
+.student-dashboard-page.dark .course-price-tag {
+    color: #34d399;
+}
+
+.student-dashboard-page[data-theme="dark"] .course-enroll-btn.enrolled-btn,
+.student-dashboard-page.dark .course-enroll-btn.enrolled-btn {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+

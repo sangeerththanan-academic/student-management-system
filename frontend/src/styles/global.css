@@ -1,4 +1,75 @@
 /* =========================================================
+   Theme Variables & System Tokens (CR-012)
+   ========================================================= */
+
+:root,
+[data-theme="light"],
+.theme-light {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-card-subtle: #f8fafc;
+    --bg-header: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-secondary: #475569;
+    --border-color: #e2e8f0;
+    --border-subtle: #f1f5f9;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    --primary-border: #bfdbfe;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-text: #0f172a;
+    --input-placeholder: #94a3b8;
+    --table-head-bg: #f8fafc;
+    --table-head-text: #64748b;
+    --table-row-hover: #f8fafc;
+    --table-border: #f1f5f9;
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+    --shadow-lg: 0 15px 40px rgba(15, 23, 42, 0.08);
+    --modal-overlay-bg: rgba(15, 23, 42, 0.5);
+    --toggle-bg: #f1f5f9;
+    --toggle-text: #334155;
+    --toggle-border: #cbd5e1;
+    --toggle-hover-bg: #e2e8f0;
+}
+
+[data-theme="dark"],
+.theme-dark {
+    --bg-main: #0b1120;
+    --bg-card: #1e293b;
+    --bg-card-subtle: #172033;
+    --bg-header: #0f172a;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-secondary: #cbd5e1;
+    --border-color: #334155;
+    --border-subtle: #1e293b;
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-light: rgba(59, 130, 246, 0.15);
+    --primary-border: #1d4ed8;
+    --input-bg: #0f172a;
+    --input-border: #334155;
+    --input-text: #f8fafc;
+    --input-placeholder: #64748b;
+    --table-head-bg: #131c2e;
+    --table-head-text: #94a3b8;
+    --table-row-hover: #182234;
+    --table-border: #243044;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.45);
+    --modal-overlay-bg: rgba(3, 7, 18, 0.75);
+    --toggle-bg: #1e293b;
+    --toggle-text: #f8fafc;
+    --toggle-border: #334155;
+    --toggle-hover-bg: #334155;
+}
+
+/* =========================================================
    Global
    ========================================================= */
 
@@ -18,10 +89,12 @@ body {
         Helvetica,
         sans-serif;
 
-    background: #f8fafc;
-    color: #0f172a;
+    background: var(--bg-main);
+    color: var(--text-main);
 
     line-height: 1.5;
+
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 button,
@@ -50,18 +123,84 @@ img {
 
 
 /* =========================================================
+   Reusable Theme Toggle Button (CR-012)
+   ========================================================= */
+
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 8px 14px;
+
+    border-radius: 9999px;
+    border: 1px solid var(--toggle-border);
+
+    background: var(--toggle-bg);
+    color: var(--toggle-text);
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+    user-select: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--toggle-hover-bg);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.theme-toggle-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.theme-toggle-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.theme-icon.sun-icon {
+    color: #fbbf24;
+}
+
+.theme-icon.moon-icon {
+    color: #3b82f6;
+}
+
+.theme-toggle-text {
+    font-size: 12px;
+    letter-spacing: 0.3px;
+}
+
+
+/* =========================================================
    Navbar
    ========================================================= */
 
 .navbar {
-    background: #ffffff;
+    background: var(--bg-header);
 
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
 
     position: sticky;
     top: 0;
 
     z-index: 100;
+
+    transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .navbar-container {
@@ -80,25 +219,27 @@ img {
 }
 
 .logo {
-    color: #0f172a;
+    color: var(--text-main);
 
     font-size: 18px;
     font-weight: 800;
+
+    transition: color 0.2s ease;
 }
 
 .logo:hover {
-    color: #2563eb;
+    color: var(--primary);
 }
 
 .nav-links {
     display: flex;
     align-items: center;
 
-    gap: 24px;
+    gap: 20px;
 }
 
 .nav-link {
-    color: #475569;
+    color: var(--text-secondary);
 
     font-size: 14px;
     font-weight: 600;
@@ -107,11 +248,11 @@ img {
 }
 
 .nav-link:hover {
-    color: #2563eb;
+    color: var(--primary);
 }
 
 .login-button {
-    background: #2563eb;
+    background: var(--primary);
     color: #ffffff;
 
     padding: 10px 18px;
@@ -127,7 +268,7 @@ img {
 }
 
 .login-button:hover {
-    background: #1d4ed8;
+    background: var(--primary-hover);
 
     transform: translateY(-1px);
 }
@@ -147,6 +288,15 @@ img {
     background: #0f172a;
 
     color: #cbd5e1;
+
+    transition: background-color 0.25s ease;
+}
+
+[data-theme="dark"] .footer,
+.landing-page.dark .footer {
+    background: #030712;
+    border-top: 1px solid var(--border-color);
+    color: #94a3b8;
 }
 
 .footer p {
@@ -182,3 +332,4 @@ button,
         color 0.2s ease,
         transform 0.2s ease;
 }
+

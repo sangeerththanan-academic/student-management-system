@@ -6,6 +6,8 @@ import {
 
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import DashboardPage from "../pages/DashboardPage";
 import StudentDashboardPage from "../pages/StudentDashboardPage";
 
@@ -26,6 +28,17 @@ function AppRoutes() {
                 <Route
                     path="/login"
                     element={<LoginPage />}
+                />
+
+                {/* CR-026: Forgot Password & Reset Password Routes */}
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
+
+                <Route
+                    path="/reset-password"
+                    element={<ResetPasswordPage />}
                 />
 
                 <Route

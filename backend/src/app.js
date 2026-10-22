@@ -1,8 +1,11 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const courseRoutes = require("./routes/courseRoutes");
+const enrollmentRoutes = require("./routes/enrollmentRoutes");
 
 const app = express();
 
@@ -10,6 +13,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static uploads (CR-010)
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 
 // Health check route
 app.get("/", (req, res) => {
@@ -32,6 +39,13 @@ app.use("/api/auth", authRoutes);
 
 // Student routes
 app.use("/api/students", studentRoutes);
+
+// Course routes (CR-009)
+app.use("/api/courses", courseRoutes);
+
+// Enrollment routes (CR-009)
+app.use("/api/enrollments", enrollmentRoutes);
+
 
 
 // 404 Handler
