@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -25,6 +26,16 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+
+// Change the authenticated student's own password.
+// The controller verifies that :id matches req.user.userId.
+router.patch(
+    "/:id",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
 );
 
 
@@ -80,5 +91,3 @@ router.delete(
 
 
 module.exports = router;
-
-

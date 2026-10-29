@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
 
 import {
     getStoredUser,
@@ -236,6 +237,10 @@ function StudentDashboardPage() {
                             No profile data found.
                         </div>
                     )
+                )}
+
+                {!loading && student && (
+                    <ChangeStudentPassword userId={student.user_id} />
                 )}
 
             </main>

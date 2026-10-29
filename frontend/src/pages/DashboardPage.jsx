@@ -43,6 +43,27 @@ const formatLastLogin = (value) => {
     }).format(date);
 };
 
+// Escape values according to CSV rules, including commas, quotes and newlines.
+const escapeCsvValue = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+const createStudentsCsv = (students) => {
+    const columns = [
+        ["Student ID", "student_id"],
+        ["Registration Number", "registration_no"],
+        ["First Name", "first_name"],
+        ["Last Name", "last_name"],
+        ["Email", "email"],
+        ["Phone Number", "phone_number"]
+    ];
+
+    return [
+        columns.map(([header]) => escapeCsvValue(header)).join(","),
+        ...students.map((student) =>
+            columns.map(([, field]) => escapeCsvValue(student[field])).join(",")
+        )
+    ].join("\r\n");
+};
+
 function DashboardPage() {
     const navigate = useNavigate();
 
@@ -162,6 +183,20 @@ function DashboardPage() {
         setSearchTerm("");
     };
 
+    const handleExportCsv = () => {
+        const csv = `\uFEFF${createStudentsCsv(students)}`;
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "students.csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
+
     // Add student
     const openAddForm = () => {
         setEditingStudent(null);
@@ -256,12 +291,22 @@ function DashboardPage() {
                         </p>
                     </div>
 
-                    <button
-                        className="add-student-button"
-                        onClick={openAddForm}
-                    >
-                        + Add Student
-                    </button>
+                    <div className="students-heading-actions">
+                        <button
+                            type="button"
+                            className="export-students-button"
+                            onClick={handleExportCsv}
+                            disabled={loading}
+                        >
+                            Export CSV
+                        </button>
+                        <button
+                            className="add-student-button"
+                            onClick={openAddForm}
+                        >
+                            + Add Student
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
