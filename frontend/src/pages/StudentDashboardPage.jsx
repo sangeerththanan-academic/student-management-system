@@ -23,6 +23,7 @@ function StudentDashboardPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [imageError, setImageError] = useState(false);
     const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
     const [profileForm, setProfileForm] = useState({
         email: "",
@@ -450,6 +451,8 @@ function StudentDashboardPage() {
                         </div>
                     </div>
                 )}
+
+                <ChangeStudentPassword />
 
             </main>
         </div>
