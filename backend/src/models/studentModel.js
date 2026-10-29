@@ -85,7 +85,7 @@ const getStudentById = async (studentId) => {
     return rows[0];
 };
 
-// UPDATE STUDENT PROFILE
+// EXISTING ADMIN STUDENT UPDATE
 const updateStudent = async (
     studentId,
     registrationNo,
@@ -113,6 +113,23 @@ const updateStudent = async (
             profilePhoto,
             studentId
         ]
+    );
+
+    return result;
+};
+
+// CR-019: UPDATE AUTHENTICATED STUDENT'S EMAIL AND PHONE
+const updateMyProfileByUserId = async (
+    userId,
+    email,
+    phoneNumber
+) => {
+    const [result] = await pool.execute(
+        `UPDATE students
+         SET email = ?,
+             phone_number = ?
+         WHERE user_id = ?`,
+        [email, phoneNumber, userId]
     );
 
     return result;
@@ -185,6 +202,7 @@ module.exports = {
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    updateMyProfileByUserId,
     deleteStudent,
     getPasswordHashByUserId,
     updatePasswordHash
