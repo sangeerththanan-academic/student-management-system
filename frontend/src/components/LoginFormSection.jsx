@@ -1,8 +1,11 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PasswordInput from "./PasswordInput";
+import "../styles/passwordRecovery.css";
 
 function LoginFormSection({ onSubmit, loading, error }) {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -31,22 +34,14 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     </div>
                 )}
 
-                <form
-                    className="login-form"
-                    onSubmit={handleSubmit}
-                >
+                <form className="login-form" onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="username">
-                            Username
-                        </label>
-
+                        <label htmlFor="username">Username</label>
                         <input
                             id="username"
                             type="text"
                             value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
+                            onChange={(event) => setUsername(event.target.value)}
                             placeholder="Enter your username"
                             autoComplete="username"
                             disabled={loading}
@@ -55,10 +50,7 @@ function LoginFormSection({ onSubmit, loading, error }) {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="password">
-                            Password
-                        </label>
-
+                        <label htmlFor="password">Password</label>
                         <div className="password-input-wrapper">
                             <PasswordInput
                                 id="password"
@@ -134,6 +126,14 @@ function LoginFormSection({ onSubmit, loading, error }) {
                         disabled={loading}
                     >
                         {loading ? "Signing in..." : "Sign In"}
+                    </button>
+                    <button
+                        type="button"
+                        className="forgot-password-button"
+                        onClick={() => navigate("/forgot-password")}
+                        disabled={loading}
+                    >
+                        Forgot Password?
                     </button>
                 </form>
             </div>

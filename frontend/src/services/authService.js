@@ -4,18 +4,13 @@ import apiRequest from "./api";
 export const login = async (username, password) => {
     const data = await apiRequest("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({
-            username,
-            password
-        })
+        body: JSON.stringify({ username, password })
     });
 
-    // Store JWT
     if (data.token) {
         localStorage.setItem("token", data.token);
     }
 
-    // Store user information
     if (data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
     }
@@ -23,6 +18,26 @@ export const login = async (username, password) => {
     return data;
 };
 
+// Request a password-reset OTP by email.
+export const forgotPassword = async (email) => {
+    return await apiRequest("/api/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email })
+    });
+};
+
+// Verify the emailed OTP and set the new password.
+export const resetPassword = async (email, otp, password, confirmPassword) => {
+    return await apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            otp,
+            password,
+            confirmPassword
+        })
+    });
+};
 
 // Get currently logged-in user
 export const getCurrentUser = async () => {
@@ -31,14 +46,11 @@ export const getCurrentUser = async () => {
     });
 };
 
-
 // Get stored user
 export const getStoredUser = () => {
     const user = localStorage.getItem("user");
 
-    if (!user) {
-        return null;
-    }
+    if (!user) return null;
 
     try {
         return JSON.parse(user);
@@ -47,13 +59,11 @@ export const getStoredUser = () => {
     }
 };
 
-
 // Logout
 export const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 };
-
 
 // Check whether a token exists
 export const isAuthenticated = () => {

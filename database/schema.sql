@@ -1,12 +1,14 @@
 
 -- ============================================================
 -- Student Management System
--- Database Schema - Version 1.0
+-- Database Schema - Version 2.0
 -- Organization: ABC Institute
 -- Database: MySQL
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS student_management;
+DROP DATABASE IF EXISTS student_management;
+
+CREATE DATABASE student_management;
 
 USE student_management;
 
@@ -14,10 +16,13 @@ USE student_management;
 -- 1. USERS TABLE
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
+
     user_id INT AUTO_INCREMENT PRIMARY KEY,
 
     username VARCHAR(100) NOT NULL UNIQUE,
+
+    email VARCHAR(150) NOT NULL UNIQUE,
 
     password_hash VARCHAR(255) NOT NULL,
 
@@ -28,7 +33,8 @@ CREATE TABLE IF NOT EXISTS users (
 
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP
 );
 
@@ -36,7 +42,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- 2. STUDENTS TABLE
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE students (
+
     student_id INT AUTO_INCREMENT PRIMARY KEY,
 
     user_id INT NOT NULL UNIQUE,
@@ -53,9 +60,11 @@ CREATE TABLE IF NOT EXISTS students (
 
     profile_photo VARCHAR(255) NULL,
 
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
 
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_student_user

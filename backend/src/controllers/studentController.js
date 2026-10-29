@@ -217,6 +217,25 @@ const removeUploadedImage = async (file) => {
 
 const addStudent = async (req, res) => {
 
+    const payload = {
+        registrationNo: req.body.registrationNo,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
+    };
+
+    const validationResult = validateStudentData(payload);
+
+    if (!validationResult.isValid) {
+        return res.status(400).json({
+            success: false,
+            message: validationResult.firstError,
+            errors: validationResult.errors
+        });
+    }
+
     const {
         registrationNo,
         firstName,
@@ -224,7 +243,14 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = req.body;
+    } = {
+        registrationNo: String(payload.registrationNo || "").trim(),
+        firstName: String(payload.firstName || "").trim(),
+        lastName: String(payload.lastName || "").trim(),
+        email: String(payload.email || "").trim(),
+        phoneNumber: String(payload.phoneNumber || "").trim(),
+        password: payload.password
+    };
 
     let connection;
 
@@ -958,4 +984,3 @@ module.exports = {
 
     removeStudent
 };
-
