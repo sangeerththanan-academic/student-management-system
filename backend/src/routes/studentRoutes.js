@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");

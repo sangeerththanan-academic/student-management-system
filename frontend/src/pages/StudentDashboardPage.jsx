@@ -13,6 +13,7 @@ import "../styles/studentDashboard.css";
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
+    // CR-019: Allow an authenticated student to update email and phone details.
     const [user, setUser] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -24,10 +25,10 @@ function StudentDashboardPage() {
                 setLoading(true);
                 setError("");
 
-                const data = await apiRequest(
-                    "/api/students/me",
-                    { method: "GET" }
-                );
+            const data = await apiRequest(
+                "/api/students/me",
+                { method: "GET" }
+            );
 
                 if (data.student) {
                     setStudent(data.student);
@@ -36,22 +37,145 @@ function StudentDashboardPage() {
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
-                if (err.status === 401) {
-                    logout();
-                    navigate("/login", { replace: true });
-                    return;
-                }
-
-                setError(
-                    err.message || "Failed to load your profile."
-                );
-            } finally {
-                setLoading(false);
+            if (err.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
             }
-        };
 
+            setError(
+                err.message || "Failed to load your profile."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         loadProfile();
     }, [navigate]);
+
+    const openProfileEditor = () => {
+        if (!student) return;
+
+        setProfileForm({
+            email: student.email || "",
+            phoneNumber: String(student.phone_number || "")
+        });
+        setProfileFormError("");
+        setProfileFormSuccess("");
+        setIsProfileEditorOpen(true);
+    };
+
+    const closeProfileEditor = () => {
+        setIsProfileEditorOpen(false);
+        setProfileForm({ email: "", phoneNumber: "" });
+        setProfileFormError("");
+        setProfileFormSuccess("");
+    };
+
+    const handleProfileFieldChange = (event) => {
+        const { name, value } = event.target;
+        const sanitizedValue =
+            name === "phoneNumber"
+                ? value.replace(/\D/g, "").slice(0, 10)
+                : value;
+
+        setProfileForm((previous) => ({
+            ...previous,
+            [name]: sanitizedValue
+        }));
+
+        setProfileFormError("");
+        setProfileFormSuccess("");
+    };
+
+    const validateProfileForm = () => {
+        const errors = {};
+
+        const email = profileForm.email.trim();
+        const phoneNumber = profileForm.phoneNumber.trim();
+
+        if (!email) {
+            errors.email = "Email address is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errors.email = "Please enter a valid email address.";
+        }
+
+        if (!phoneNumber) {
+            errors.phoneNumber = "Phone number is required.";
+        } else if (!/^\d{10}$/.test(phoneNumber)) {
+            errors.phoneNumber =
+                "Phone number must contain exactly 10 digits.";
+        }
+
+        return errors;
+    };
+
+    const handleProfileSubmit = async (event) => {
+        event.preventDefault();
+
+        const validationErrors = validateProfileForm();
+
+        if (Object.keys(validationErrors).length > 0) {
+            setProfileFormError(
+                "Please correct the validation errors before saving."
+            );
+            return;
+        }
+
+        try {
+            setSavingProfile(true);
+            setProfileFormError("");
+            setProfileFormSuccess("");
+
+            const response = await apiRequest(
+                "/api/students/me",
+                {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        email: profileForm.email.trim(),
+                        phoneNumber: profileForm.phoneNumber.trim()
+                    })
+                }
+            );
+
+            setStudent((currentStudent) =>
+                currentStudent
+                    ? {
+                          ...currentStudent,
+                          email: response.student?.email || currentStudent.email,
+                          phone_number:
+                              response.student?.phone_number ||
+                              currentStudent.phone_number
+                      }
+                    : currentStudent
+            );
+
+            setProfileFormSuccess(
+                response.message || "Profile updated successfully."
+            );
+
+            setTimeout(() => {
+                closeProfileEditor();
+                setProfileFormSuccess("");
+            }, 800);
+        } catch (err) {
+            console.error("Failed to update profile:", err);
+
+            if (err.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
+            }
+
+            setProfileFormError(
+                err.message || "Profile update failed."
+            );
+        } finally {
+            setSavingProfile(false);
+        }
+    };
 
     const handleLogout = () => {
         logout();

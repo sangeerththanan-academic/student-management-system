@@ -379,6 +379,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 };
