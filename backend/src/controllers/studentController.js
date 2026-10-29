@@ -595,6 +595,7 @@ const editStudent = async (req, res) => {
 
         const registrationNo =
             normalizeStudentValue(body.registrationNo);
+                      
         const firstName = normalizeStudentValue(body.firstName);
         const lastName = normalizeStudentValue(body.lastName);
         const email = normalizeStudentValue(body.email).toLowerCase();
