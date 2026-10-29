@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,26 +14,41 @@ import "../styles/studentDashboard.css";
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [email, setEmail] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [validationError, setValidationError] = useState("");
+
+    // Load the logged-in student's profile
+    const loadProfile = async () => {
+        const data = await apiRequest(
+            "/api/students/me",
+            { method: "GET" }
+        );
+
+        if (data.student) {
+            setStudent(data.student);
+            setEmail(data.student.email || "");
+            setPhoneNumber(data.student.phone_number || "");
+        }
+
+        return data.student;
+    };
 
     useEffect(() => {
-        const loadProfile = async () => {
+        const fetchProfile = async () => {
             try {
                 setLoading(true);
                 setError("");
 
-                const data = await apiRequest(
-                    "/api/students/me",
-                    { method: "GET" }
-                );
-
-                if (data.student) {
-                    setStudent(data.student);
-                }
-
+                await loadProfile();
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
@@ -50,9 +66,119 @@ function StudentDashboardPage() {
             }
         };
 
-        loadProfile();
+        fetchProfile();
     }, [navigate]);
 
+    // Open the edit form
+    const handleEdit = () => {
+        setEmail(student.email || "");
+        setPhoneNumber(student.phone_number || "");
+        setValidationError("");
+        setError("");
+        setSuccess("");
+        setIsEditing(true);
+    };
+
+    // Cancel editing
+    const handleCancel = () => {
+        setEmail(student.email || "");
+        setPhoneNumber(student.phone_number || "");
+        setValidationError("");
+        setError("");
+        setIsEditing(false);
+    };
+
+    // Save updated email and phone number
+    const handleSave = async (event) => {
+        event.preventDefault();
+
+        setError("");
+        setSuccess("");
+        setValidationError("");
+
+        const trimmedEmail = email.trim();
+        const trimmedPhone = phoneNumber.trim();
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phonePattern = /^\d{10}$/;
+
+        if (!emailPattern.test(trimmedEmail)) {
+            setValidationError(
+                "Please enter a valid email address."
+            );
+            return;
+        }
+
+        if (!phonePattern.test(trimmedPhone)) {
+            setValidationError(
+                "Phone number must contain exactly 10 digits."
+            );
+            return;
+        }
+
+        try {
+            setSaving(true);
+
+            const data = await apiRequest(
+                "/api/students/me",
+                {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        email: trimmedEmail,
+                        phoneNumber: trimmedPhone
+                    })
+                }
+            );
+
+            // Immediately show the updated profile returned by the API
+            if (data.student) {
+                setStudent(data.student);
+                setEmail(data.student.email || trimmedEmail);
+                setPhoneNumber(
+                    data.student.phone_number || trimmedPhone
+                );
+            }
+
+            setIsEditing(false);
+            setSuccess(
+                data.message || "Profile updated successfully."
+            );
+
+            // Refresh the profile from the server
+            try {
+                await loadProfile();
+            } catch (refreshError) {
+                console.error(
+                    "Profile refresh failed:",
+                    refreshError
+                );
+
+                // The update itself succeeded. Keep the updated data
+                // returned by the PUT request.
+                if (refreshError.status === 401) {
+                    logout();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error("Failed to update profile:", err);
+
+            if (err.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
+            }
+
+            setError(
+                err.message || "Failed to update your profile."
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Logout
     const handleLogout = () => {
         logout();
         navigate("/login", { replace: true });
@@ -70,7 +196,9 @@ function StudentDashboardPage() {
 
                 <div className="student-header-actions">
                     <span className="role-badge">STUDENT</span>
+
                     <button
+                        type="button"
                         className="logout-button"
                         onClick={handleLogout}
                     >
@@ -85,8 +213,17 @@ function StudentDashboardPage() {
                 <h2 className="section-title">My Profile</h2>
 
                 {error && (
-                    <div className="student-error">
+                    <div className="student-error" role="alert">
                         {error}
+                    </div>
+                )}
+
+                {success && (
+                    <div
+                        className="student-success"
+                        role="status"
+                    >
+                        {success}
                     </div>
                 )}
 
@@ -97,19 +234,127 @@ function StudentDashboardPage() {
                 ) : student ? (
                     <div className="profile-card">
 
+                        {/* Student Information */}
                         <div className="profile-header">
                             <div className="profile-avatar">
                                 {student.first_name?.charAt(0)}
                                 {student.last_name?.charAt(0)}
                             </div>
+
                             <div className="profile-name">
                                 <h3>
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </h3>
                                 <p>{student.registration_no}</p>
                             </div>
                         </div>
 
+                        {/* Edit Profile Button */}
+                        {!isEditing && (
+                            <div className="profile-actions">
+                                <button
+                                    type="button"
+                                    className="edit-profile-button"
+                                    onClick={handleEdit}
+                                >
+                                    Edit Profile
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Edit Form */}
+                        {isEditing && (
+                            <form
+                                className="profile-edit-form"
+                                onSubmit={handleSave}
+                            >
+                                <h3>Edit Profile</h3>
+
+                                <div className="form-group">
+                                    <label htmlFor="profileEmail">
+                                        Email Address
+                                    </label>
+
+                                    <input
+                                        id="profileEmail"
+                                        type="email"
+                                        value={email}
+                                        onChange={(event) => {
+                                            setEmail(event.target.value);
+                                            setValidationError("");
+                                            setError("");
+                                            setSuccess("");
+                                        }}
+                                        placeholder="Enter your email"
+                                        required
+                                        maxLength={254}
+                                        disabled={saving}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="profilePhone">
+                                        Phone Number
+                                    </label>
+
+                                    <input
+                                        id="profilePhone"
+                                        type="tel"
+                                        inputMode="numeric"
+                                        value={phoneNumber}
+                                        onChange={(event) => {
+                                            const value =
+                                                event.target.value;
+
+                                            if (/^\d{0,10}$/.test(value)) {
+                                                setPhoneNumber(value);
+                                            }
+
+                                            setValidationError("");
+                                            setError("");
+                                            setSuccess("");
+                                        }}
+                                        placeholder="Enter 10-digit phone number"
+                                        maxLength={10}
+                                        required
+                                        disabled={saving}
+                                    />
+                                </div>
+
+                                {validationError && (
+                                    <div
+                                        className="student-error"
+                                        role="alert"
+                                    >
+                                        {validationError}
+                                    </div>
+                                )}
+
+                                <div className="profile-form-actions">
+                                    <button
+                                        type="submit"
+                                        className="save-profile-button"
+                                        disabled={saving}
+                                    >
+                                        {saving
+                                            ? "Saving..."
+                                            : "Save Changes"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="cancel-profile-button"
+                                        onClick={handleCancel}
+                                        disabled={saving}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* Profile Details */}
                         <div className="profile-details">
 
                             <div className="detail-row">
@@ -126,7 +371,8 @@ function StudentDashboardPage() {
                                     Full Name
                                 </span>
                                 <span className="detail-value">
-                                    {student.first_name} {student.last_name}
+                                    {student.first_name}{" "}
+                                    {student.last_name}
                                 </span>
                             </div>
 
@@ -153,14 +399,15 @@ function StudentDashboardPage() {
                                     Member Since
                                 </span>
                                 <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
+                                    {student.created_at
+                                        ? new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()
+                                        : "N/A"}
                                 </span>
                             </div>
 
                         </div>
-
                     </div>
                 ) : (
                     !error && (
@@ -171,7 +418,6 @@ function StudentDashboardPage() {
                 )}
 
             </main>
-
         </div>
     );
 }

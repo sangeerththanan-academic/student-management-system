@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
@@ -7,7 +8,8 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateMyProfile: updateMyProfileModel
 } = require("../models/studentModel");
 
 // =====================================================
@@ -88,12 +90,14 @@ const validateStudentInput = ({
     if (!emailValue) {
         errors.email = "Email address is required.";
     } else if (!emailRegex.test(emailValue)) {
-        errors.email = "Please provide a valid email address.";
+        errors.email =
+            "Please provide a valid email address.";
     }
 
     // Phone number validation
     if (!phone) {
-        errors.phoneNumber = "Phone number is required.";
+        errors.phoneNumber =
+            "Phone number is required.";
     } else if (!/^\d+$/.test(phone)) {
         errors.phoneNumber =
             "Phone number must contain numbers only.";
@@ -181,7 +185,8 @@ const addStudent = async (req, res) => {
 
             return res.status(409).json({
                 success: false,
-                message: "Registration number is already registered."
+                message:
+                    "Registration number is already registered."
             });
         }
 
@@ -199,7 +204,8 @@ const addStudent = async (req, res) => {
 
             return res.status(409).json({
                 success: false,
-                message: "Email address is already registered."
+                message:
+                    "Email address is already registered."
             });
         }
 
@@ -217,7 +223,6 @@ const addStudent = async (req, res) => {
         const userId = userResult.insertId;
 
         // Create student profile
-        // This assumes createStudent accepts these arguments.
         const studentId = await createStudent(
             connection,
             userId,
@@ -232,7 +237,8 @@ const addStudent = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Student account and profile created successfully.",
+            message:
+                "Student account and profile created successfully.",
             student: {
                 studentId,
                 userId,
@@ -327,7 +333,7 @@ const getStudent = async (req, res) => {
 };
 
 // =====================================================
-// UPDATE STUDENT
+// UPDATE STUDENT - ADMIN ONLY
 // PUT /api/students/:id
 // =====================================================
 
@@ -355,12 +361,14 @@ const editStudent = async (req, res) => {
         if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
                 success: false,
-                message: "Please correct the validation errors.",
+                message:
+                    "Please correct the validation errors.",
                 errors: validationErrors
             });
         }
 
-        const existingStudent = await getStudentById(studentId);
+        const existingStudent =
+            await getStudentById(studentId);
 
         if (!existingStudent) {
             return res.status(404).json({
@@ -369,7 +377,6 @@ const editStudent = async (req, res) => {
             });
         }
 
-        // Duplicate arguments removed
         const result = await updateStudent(
             studentId,
             registrationNo.trim(),
@@ -382,7 +389,8 @@ const editStudent = async (req, res) => {
         if (result && result.affectedRows === 0) {
             return res.status(200).json({
                 success: true,
-                message: "No student data changes were needed.",
+                message:
+                    "No student data changes were needed.",
                 affectedRows: 0
             });
         }
@@ -415,7 +423,7 @@ const editStudent = async (req, res) => {
 };
 
 // =====================================================
-// DELETE STUDENT
+// DELETE STUDENT - ADMIN ONLY
 // DELETE /api/students/:id
 // =====================================================
 
@@ -456,13 +464,13 @@ const removeStudent = async (req, res) => {
 
 const getMyProfile = async (req, res) => {
     try {
-        // Assumes authenticate middleware sets req.user.userId
         const userId = req.user?.userId;
 
         if (!userId) {
             return res.status(401).json({
                 success: false,
-                message: "Authenticated user ID is missing."
+                message:
+                    "Authenticated user ID is missing."
             });
         }
 
@@ -490,6 +498,143 @@ const getMyProfile = async (req, res) => {
 };
 
 // =====================================================
+// UPDATE CURRENT STUDENT'S OWN PROFILE
+// PUT /api/students/me
+// =====================================================
+
+const updateMyProfile = async (req, res) => {
+    try {
+        // Identify student using the authenticated JWT
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message:
+                    "Authenticated user ID is missing."
+            });
+        }
+
+        // Accept only email and phoneNumber
+        const email =
+            typeof req.body.email === "string"
+                ? req.body.email.trim()
+                : "";
+
+        const phoneNumber =
+            typeof req.body.phoneNumber === "string"
+                ? req.body.phoneNumber.trim()
+                : "";
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Email address is required."
+            });
+        }
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Please provide a valid email address."
+            });
+        }
+
+        // Phone number validation
+        if (!phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "Phone number is required."
+            });
+        }
+
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Phone number must contain exactly 10 digits."
+            });
+        }
+
+        // Find the authenticated student's existing profile
+        const existingStudent =
+            await getStudentByUserId(userId);
+
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found."
+            });
+        }
+
+        // Check whether another student uses this email
+        const [existingEmail] = await pool.execute(
+            `SELECT student_id
+             FROM students
+             WHERE email = ?
+               AND user_id <> ?
+             LIMIT 1`,
+            [email, userId]
+        );
+
+        if (existingEmail.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Email address is already registered."
+            });
+        }
+
+        // Update only this authenticated student's record
+        await updateMyProfileModel(
+            userId,
+            email,
+            phoneNumber
+        );
+
+        // Retrieve the updated profile
+        const updatedStudent =
+            await getStudentByUserId(userId);
+
+        if (!updatedStudent) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Updated student profile could not be retrieved."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            student: updatedStudent
+        });
+    } catch (error) {
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Email address is already registered."
+            });
+        }
+
+        console.error(
+            "Update my profile error:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile."
+        });
+    }
+};
+
+// =====================================================
 // EXPORT CONTROLLERS
 // =====================================================
 
@@ -498,6 +643,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 };

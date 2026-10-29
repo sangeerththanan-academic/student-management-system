@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const {
@@ -5,6 +6,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -16,19 +18,31 @@ const {
 
 const router = express.Router();
 
-
-// STUDENT ROUTES
+// =====================================================
+// CURRENT STUDENT PROFILE
+// =====================================================
 
 // Get current student's own profile
 router.get(
     "/me",
     authenticate,
+    authorizeRoles("STUDENT"),
     getMyProfile
 );
 
+// Update current student's own profile
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
+);
+
+// =====================================================
+// ADMIN STUDENT MANAGEMENT
+// =====================================================
 
 // Create student
-// Administrator only
 router.post(
     "/",
     authenticate,
@@ -36,9 +50,7 @@ router.post(
     addStudent
 );
 
-
 // Get all students
-// Administrator only
 router.get(
     "/",
     authenticate,
@@ -46,9 +58,7 @@ router.get(
     getStudents
 );
 
-
 // Get student by ID
-// Administrator only
 router.get(
     "/:id",
     authenticate,
@@ -56,9 +66,7 @@ router.get(
     getStudent
 );
 
-
 // Update student
-// Administrator only
 router.put(
     "/:id",
     authenticate,
@@ -66,15 +74,12 @@ router.put(
     editStudent
 );
 
-
 // Delete student
-// Administrator only
 router.delete(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
     removeStudent
 );
-
 
 module.exports = router;

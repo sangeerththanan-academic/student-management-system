@@ -82,6 +82,22 @@ const getStudentById = async (studentId) => {
 };
 
 
+ // UPDATE OWN STUDENT PROFILE
+const updateMyProfile = async (userId, email, phoneNumber) => {
+
+    const [result] = await pool.execute(
+        `UPDATE students
+         SET email = ?, phone_number = ?
+         WHERE user_id = ?`,
+        [email, phoneNumber, userId]
+    );
+
+    return result;
+};
+
+
+
+
 // UPDATE STUDENT
 const updateStudent = async (
     studentId,
@@ -158,5 +174,6 @@ module.exports = {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateMyProfile
 };
