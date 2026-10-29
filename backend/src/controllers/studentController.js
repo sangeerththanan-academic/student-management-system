@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
 
 const pool = require("../config/db");
 
@@ -10,6 +11,11 @@ const {
     updateStudent,
     deleteStudent
 } = require("../models/studentModel");
+
+const {
+    findUserByIdWithPasswordHash,
+    updatePasswordHash
+} = require("../models/userModel");
 
 const { validateStudentData } = require("../utils/validation");
 
@@ -203,7 +209,32 @@ const validateStudentInput = ({
 // POST /api/students/
 // ============================================================
 
+const removeUploadedImage = async (file) => {
+    if (file?.path) {
+        await fs.promises.unlink(file.path).catch(() => {});
+    }
+};
+
 const addStudent = async (req, res) => {
+
+    const payload = {
+        registrationNo: req.body.registrationNo,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
+    };
+
+    const validationResult = validateStudentData(payload);
+
+    if (!validationResult.isValid) {
+        return res.status(400).json({
+            success: false,
+            message: validationResult.firstError,
+            errors: validationResult.errors
+        });
+    }
 
     const {
         registrationNo,
@@ -212,7 +243,14 @@ const addStudent = async (req, res) => {
         email,
         phoneNumber,
         password
-    } = req.body;
+    } = {
+        registrationNo: String(payload.registrationNo || "").trim(),
+        firstName: String(payload.firstName || "").trim(),
+        lastName: String(payload.lastName || "").trim(),
+        email: String(payload.email || "").trim(),
+        phoneNumber: String(payload.phoneNumber || "").trim(),
+        password: payload.password
+    };
 
     let connection;
 
@@ -236,6 +274,7 @@ const addStudent = async (req, res) => {
 
 
         if (Object.keys(validationErrors).length > 0) {
+            await removeUploadedImage(req.file);
 
             return res.status(400).json({
                 success: false,
@@ -274,7 +313,7 @@ const addStudent = async (req, res) => {
 
 
         if (existingUser.length > 0) {
-
+            await removeUploadedImage(req.file);
             await connection.rollback();
 
             return res.status(409).json({
@@ -302,7 +341,7 @@ const addStudent = async (req, res) => {
 
 
         if (existingStudent.length > 0) {
-
+            await removeUploadedImage(req.file);
             await connection.rollback();
 
             return res.status(409).json({
@@ -357,7 +396,8 @@ const addStudent = async (req, res) => {
                 firstName.trim(),
                 lastName.trim(),
                 email.trim(),
-                phoneNumber.trim()
+                phoneNumber.trim(),
+                req.file ? `/uploads/students/${req.file.filename}` : null
             );
 
 
@@ -392,6 +432,7 @@ const addStudent = async (req, res) => {
                     email.trim(),
                 phoneNumber:
                     phoneNumber.trim(),
+                profilePhoto: req.file ? `/uploads/students/${req.file.filename}` : null,
                 role: "STUDENT"
             }
         });
@@ -401,9 +442,10 @@ const addStudent = async (req, res) => {
 
         // Rollback if transaction started
         if (connection) {
-
-            await connection.rollback();
+            await connection.rollback().catch(() => {});
         }
+
+        await removeUploadedImage(req.file);
 
         console.error(
             "Create student error:",
@@ -674,64 +716,78 @@ const editStudent = async (req, res) => {
 // DELETE STUDENT
 // DELETE /api/students/:id
 // ============================================================
-
 const removeStudent = async (req, res) => {
+    let connection;
 
     try {
+        const studentId = req.params.id;
 
-        const studentId =
-            req.params.id;
+        connection = await pool.getConnection();
 
+        await connection.beginTransaction();
 
-        // Check student exists
-        const student =
-            await getStudentById(studentId);
+        // 1. Find the student and their linked user account
+        const [students] = await connection.execute(
+            `SELECT student_id, user_id
+             FROM students
+             WHERE student_id = ?`,
+            [studentId]
+        );
 
-
-        if (!student) {
+        if (students.length === 0) {
+            await connection.rollback();
 
             return res.status(404).json({
-
                 success: false,
-
-                message:
-                    "Student not found"
+                message: "Student not found"
             });
         }
 
+        const userId = students[0].user_id;
 
-        // Delete student
-        const result =
-            await deleteStudent(studentId);
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            message:
-                "Student deleted successfully",
-
-            affectedRows:
-                result.affectedRows
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Delete student error:",
-            error
+        // 2. Delete the student record first
+        await connection.execute(
+            `DELETE FROM students
+             WHERE student_id = ?`,
+            [studentId]
         );
 
+        // 3. Delete the linked student user account
+        await connection.execute(
+            `DELETE FROM users
+             WHERE user_id = ?
+             AND role = 'STUDENT'`,
+            [userId]
+        );
+
+        // 4. Save both deletions together
+        await connection.commit();
+
+        return res.status(200).json({
+            success: true,
+            message: "Student and linked user account deleted successfully"
+        });
+
+    } catch (error) {
+        if (connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error("Rollback error:", rollbackError);
+            }
+        }
+
+        console.error("Delete student error:", error);
 
         return res.status(500).json({
-
             success: false,
-
-            message:
-                "Failed to delete student"
+            message: "Failed to delete student"
         });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 };
 
@@ -789,15 +845,128 @@ const getMyProfile = async (req, res) => {
 };
 
 
+
 // ============================================================
-// UPDATE CURRENT STUDENT PROFILE
-// PUT /api/students/me
+// CHANGE CURRENT STUDENT PASSWORD
+// PATCH /api/students/:id
+// The authenticated user ID is authoritative; the URL ID must
+// match it and is never used to select another user's account.
 // ============================================================
 
-const updateMyProfile = async (req, res) => {
+const changeMyPassword = async (req, res) => {
+    const authenticatedUserId = req.user && req.user.userId;
+    const requestedUserId = req.params.id;
+    const {
+        currentPassword,
+        password,
+        confirmPassword
+    } = req.body || {};
 
     try {
+        if (
+            !authenticatedUserId ||
+            String(requestedUserId) !== String(authenticatedUserId)
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "You can change only your own password."
+            });
+        }
 
+        if (
+            typeof currentPassword !== "string" ||
+            typeof password !== "string" ||
+            typeof confirmPassword !== "string" ||
+            !currentPassword ||
+            !password ||
+            !confirmPassword
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password, new password, and confirmation are required."
+            });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and re-entered password do not match."
+            });
+        }
+
+        // Match the password complexity rules used during student creation.
+        const passwordErrors = [];
+        if (password.length < 8) passwordErrors.push("Password must contain at least 8 characters.");
+        if (!/[A-Z]/.test(password)) passwordErrors.push("Password must contain at least one uppercase letter.");
+        if (!/[a-z]/.test(password)) passwordErrors.push("Password must contain at least one lowercase letter.");
+        if (!/[0-9]/.test(password)) passwordErrors.push("Password must contain at least one number.");
+        if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]\/';+=~`]/.test(password)) {
+            passwordErrors.push("Password must contain at least one special character.");
+        }
+
+        if (passwordErrors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: passwordErrors[0]
+            });
+        }
+
+        const user = await findUserByIdWithPasswordHash(authenticatedUserId);
+
+        if (!user || user.role !== "STUDENT") {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found."
+            });
+        }
+
+        const currentPasswordMatches = await bcrypt.compare(
+            currentPassword,
+            user.password_hash
+        );
+
+        if (!currentPasswordMatches) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect."
+            });
+        }
+
+        if (await bcrypt.compare(password, user.password_hash)) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be different from the current password."
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const result = await updatePasswordHash(authenticatedUserId, passwordHash);
+
+        if (!result.affectedRows) {
+            return res.status(404).json({
+                success: false,
+                message: "Student account not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        // Do not log password values, request bodies, or password hashes.
+        console.error("Change student password error:", error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to change password. Please try again."
+        });
+    }
+};
+
+// Update the authenticated student's editable profile fields.
+const updateMyProfile = async (req, res) => {
+    try {
         const existingStudent = await getStudentByUserId(req.user.userId);
 
         if (!existingStudent) {
@@ -807,7 +976,7 @@ const updateMyProfile = async (req, res) => {
             });
         }
 
-        const { firstName, lastName, email, phoneNumber } = req.body;
+        const { firstName, lastName, email, phoneNumber } = req.body || {};
         const validationErrors = validateStudentInput({
             registrationNo: existingStudent.registration_no,
             firstName,
@@ -845,26 +1014,23 @@ const updateMyProfile = async (req, res) => {
             },
             affectedRows: result.affectedRows
         });
-
     } catch (error) {
-
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(409).json({
                 success: false,
-                message: error.message && error.message.toLowerCase().includes("email")
+                message: error.message?.toLowerCase().includes("email")
                     ? "Email address is already registered"
                     : "Profile information is already registered"
             });
         }
 
-        console.error("Update my profile error:", error);
+        console.error("Update my profile error:", error.message);
         return res.status(500).json({
             success: false,
             message: "Failed to update profile"
         });
     }
 };
-
 
 // ============================================================
 // EXPORTS
@@ -879,6 +1045,8 @@ module.exports = {
     getStudent,
 
     getMyProfile,
+
+    changeMyPassword,
 
     updateMyProfile,
 

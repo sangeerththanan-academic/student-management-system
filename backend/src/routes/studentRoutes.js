@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    changeMyPassword,
     updateMyProfile,
     editStudent,
     removeStudent
@@ -16,6 +17,7 @@ const {
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+const { uploadStudentImage } = require("../middleware/studentImageUpload");
 
 
 // STUDENT ROUTES
@@ -27,12 +29,21 @@ router.get(
     getMyProfile
 );
 
-// Update only the authenticated student's editable profile fields
 router.put(
     "/me",
     authenticate,
     authorizeRoles("STUDENT"),
     updateMyProfile
+);
+
+
+// Change the authenticated student's own password.
+// The controller verifies that :id matches req.user.userId.
+router.patch(
+    "/:id",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    changeMyPassword
 );
 
 
@@ -42,6 +53,7 @@ router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentImage,
     addStudent
 );
 

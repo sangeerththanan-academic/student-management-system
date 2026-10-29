@@ -96,106 +96,6 @@
     overflow: hidden;
 }
 
-.profile-edit-actions {
-    display: flex;
-    justify-content: flex-end;
-    padding: 16px 20px 0;
-}
-
-.profile-edit-button,
-.profile-cancel-button {
-    border: 0;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.profile-edit-button {
-    color: #ffffff;
-    background: #2563eb;
-}
-
-.profile-edit-button:hover {
-    background: #1d4ed8;
-}
-
-.profile-edit-button:disabled,
-.profile-cancel-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-}
-
-.profile-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    background: rgba(15, 23, 42, 0.55);
-}
-
-.profile-edit-modal {
-    width: min(100%, 480px);
-    max-height: calc(100vh - 40px);
-    overflow-y: auto;
-    padding: 28px;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
-}
-
-.profile-edit-modal h2 {
-    margin: 0;
-    color: #0f172a;
-    font-size: 21px;
-}
-
-.profile-edit-note {
-    margin: 7px 0 20px;
-    color: #64748b;
-    font-size: 13px;
-}
-
-.profile-edit-field {
-    display: block;
-    margin: 0 0 15px;
-    color: #334155;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.profile-edit-field input {
-    display: block;
-    width: 100%;
-    margin-top: 7px;
-    padding: 11px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 7px;
-    color: #0f172a;
-    font: inherit;
-    font-weight: 400;
-}
-
-.profile-edit-field input:focus {
-    outline: 2px solid #93c5fd;
-    border-color: #2563eb;
-}
-
-.profile-edit-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 22px;
-}
-
-.profile-cancel-button {
-    color: #334155;
-    background: #e2e8f0;
-}
-
 .profile-header {
     display: flex;
     align-items: center;
@@ -284,23 +184,267 @@
     border: 1px solid #fecaca;
 }
 
-@media (max-width: 520px) {
-    .profile-edit-modal {
-        padding: 22px;
-    }
 
-    .profile-details {
-        padding-right: 20px;
-        padding-left: 20px;
-    }
 
-    .detail-row {
-        align-items: flex-start;
-        gap: 12px;
-    }
+/* =========================================
+   CR-012: Global Theme - Student Dashboard
+   ========================================= */
 
-    .detail-value {
-        text-align: right;
-        overflow-wrap: anywhere;
+.student-dashboard-page {
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text-primary);
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Student header */
+.student-dashboard-page .student-dashboard-header {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.student-dashboard-page .student-dashboard-header h1 {
+    color: var(--text-primary);
+}
+
+.student-dashboard-page .student-dashboard-header p {
+    color: var(--text-secondary);
+}
+
+/* Main content */
+.student-dashboard-page .student-dashboard-main {
+    background: var(--page-bg);
+    color: var(--text-primary);
+}
+
+.student-dashboard-page .section-title {
+    color: var(--text-primary);
+}
+
+/* Student role badge */
+.student-dashboard-page .role-badge {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Profile card */
+.student-dashboard-page .profile-card {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+/* Profile heading */
+.student-dashboard-page .profile-header {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.student-dashboard-page .profile-name h3 {
+    color: var(--text-primary);
+}
+
+.student-dashboard-page .profile-name p {
+    color: var(--text-secondary);
+}
+
+/* Profile avatar */
+.student-dashboard-page .profile-avatar {
+    background: var(--primary-color);
+    color: var(--primary-text);
+}
+
+/* Profile details */
+.student-dashboard-page .profile-details {
+    background: var(--surface-bg);
+}
+
+.student-dashboard-page .detail-row {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.student-dashboard-page .detail-label {
+    color: var(--text-secondary);
+}
+
+.student-dashboard-page .detail-value {
+    color: var(--text-primary);
+}
+
+/* Loading state */
+.student-dashboard-page .student-loading {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Error message */
+.student-dashboard-page .student-error {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Input/button transitions */
+.student-dashboard-page button {
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+
+
+/* =========================================================
+   CR-020: Student Change Password
+   ========================================================= */
+.change-password-card {
+    margin-top: 28px;
+    padding: 26px 28px;
+    background: var(--surface-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-color, rgba(15, 23, 42, 0.06));
+}
+
+.change-password-heading h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    color: var(--text-primary, #0f172a);
+}
+
+.change-password-heading p {
+    margin: 0 0 20px;
+    color: var(--text-secondary, #64748b);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.change-password-form {
+    display: grid;
+    gap: 16px;
+}
+
+.password-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.password-field-group label {
+    color: var(--text-primary, #0f172a);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.password-field-group input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    background: var(--surface-bg, #ffffff);
+    color: var(--text-primary, #0f172a);
+    font: inherit;
+}
+
+.password-field-group input:focus {
+    outline: 2px solid var(--primary-color, #2563eb);
+    outline-offset: 1px;
+}
+
+.password-field-group small {
+    color: var(--text-secondary, #64748b);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.change-password-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.change-password-actions button {
+    min-height: 40px;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-password-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.change-password-button {
+    background: var(--primary-color, #2563eb);
+    color: var(--primary-text, #ffffff);
+}
+
+.clear-password-button {
+    background: var(--surface-secondary, #f1f5f9);
+    color: var(--text-primary, #0f172a);
+    border-color: var(--border-color, #cbd5e1) !important;
+}
+
+.password-notice {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.password-notice.success {
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.password-notice.error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+@media (max-width: 600px) {
+    .change-password-card {
+        padding: 20px 16px;
+    }
+    .change-password-actions {
+        flex-direction: column;
+    }
+    .change-password-actions button {
+        width: 100%;
     }
 }
+
+.profile-edit-actions { display: flex; justify-content: flex-end; padding: 16px 20px 0; }
+.profile-edit-button, .profile-cancel-button { border: 0; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.profile-edit-button { color: var(--primary-text, #ffffff); background: var(--primary-color, #2563eb); }
+.profile-cancel-button { color: var(--text-primary, #334155); background: var(--surface-secondary, #e2e8f0); }
+.profile-modal-overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(15, 23, 42, 0.55); }
+.profile-edit-modal { width: min(100%, 480px); max-height: calc(100vh - 40px); overflow-y: auto; padding: 28px; border: 1px solid var(--border-color, #e2e8f0); border-radius: 14px; color: var(--text-primary, #0f172a); background: var(--surface-bg, #ffffff); box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2); }
+.profile-edit-modal h2 { margin: 0; color: var(--text-primary, #0f172a); font-size: 21px; }
+.profile-edit-note { margin: 7px 0 20px; color: var(--text-secondary, #64748b); font-size: 13px; }
+.profile-edit-field { display: block; margin: 0 0 15px; color: var(--text-primary, #334155); font-size: 13px; font-weight: 600; }
+.profile-edit-field input { display: block; box-sizing: border-box; width: 100%; margin-top: 7px; padding: 11px 12px; border: 1px solid var(--border-color, #cbd5e1); border-radius: 7px; color: var(--text-primary, #0f172a); background: var(--surface-bg, #ffffff); font: inherit; font-weight: 400; }
+.profile-edit-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }

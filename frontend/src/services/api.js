@@ -1,13 +1,17 @@
-const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = "http://localhost:5000";
 
 const apiRequest = async (endpoint, options = {}) => {
     const token = localStorage.getItem("token");
 
     const headers = {
-        "Content-Type": "application/json",
         ...options.headers
     };
+
+    // Let the browser set the multipart boundary for FormData requests.
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+    if (!isFormData && options.body !== undefined && !headers["Content-Type"]) {
+        headers["Content-Type"] = "application/json";
+    }
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
@@ -47,3 +51,5 @@ const apiRequest = async (endpoint, options = {}) => {
 };
 
 export default apiRequest;
+
+

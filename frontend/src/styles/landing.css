@@ -436,3 +436,134 @@
         font-size: 28px;
     }
 }
+
+
+/* CR-012: Add/Edit Student modal dark theme */
+
+:root[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+:root[data-theme="dark"] .student-form-card {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+:root[data-theme="dark"] .form-card-header h3 {
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .form-card-header p {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .student-form .form-group label {
+    color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .student-form .form-group input {
+    background: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+}
+
+:root[data-theme="dark"] .student-form .form-group input::placeholder {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .student-form .form-group input:focus {
+    border-color: var(--primary-color);
+}
+
+:root[data-theme="dark"] .field-hint {
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .close-form-button,
+:root[data-theme="dark"] .cancel-button {
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+:root[data-theme="dark"] .close-form-button:hover,
+:root[data-theme="dark"] .cancel-button:hover {
+    background: var(--table-row-hover);
+}
+
+
+
+/* CR-012: Homepage Dark Theme Fix */
+
+:root[data-theme="dark"] .landing-page {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .hero-section {
+    background: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #1e293b 55%,
+        #172554 100%
+    );
+}
+
+:root[data-theme="dark"] .hero-content h1,
+:root[data-theme="dark"] .hero-card h2,
+:root[data-theme="dark"] .section-heading h2,
+:root[data-theme="dark"] .feature-card h3 {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .hero-content > p,
+:root[data-theme="dark"] .hero-card > p,
+:root[data-theme="dark"] .hero-card-stats span,
+:root[data-theme="dark"] .section-heading p,
+:root[data-theme="dark"] .feature-card p {
+    color: #cbd5e1;
+}
+
+:root[data-theme="dark"] .hero-card,
+:root[data-theme="dark"] .about-section,
+:root[data-theme="dark"] .feature-card {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .features-section {
+    background: #0f172a;
+}
+
+:root[data-theme="dark"] .hero-card-stats > div {
+    background: #334155;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .hero-card-icon,
+:root[data-theme="dark"] .feature-icon {
+    background: #334155;
+}
+
+:root[data-theme="dark"] .hero-badge {
+    background: #1e3a8a;
+    color: #dbeafe;
+}
+
+:root[data-theme="dark"] .secondary-button {
+    background: #1e293b;
+    color: #93c5fd;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .secondary-button:hover {
+    background: #334155;
+}
+
+:root[data-theme="dark"] .section-label {
+    color: #93c5fd;
+}
+

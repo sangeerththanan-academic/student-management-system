@@ -8,9 +8,9 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto = null
 ) => {
-
     const [result] = await connection.execute(
         `INSERT INTO students
         (
@@ -19,68 +19,73 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_photo
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profilePhoto
         ]
     );
 
     return result.insertId;
 };
 
-
 // GET ALL STUDENTS
 const getAllStudents = async () => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON u.user_id = s.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;
 };
 
-
 // GET STUDENT BY ID
 const getStudentById = async (studentId) => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE student_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON u.user_id = s.user_id
+        WHERE s.student_id = ?
         LIMIT 1`,
         [studentId]
     );
 
     return rows[0];
 };
-
 
 // UPDATE STUDENT
 const updateStudent = async (
@@ -91,7 +96,6 @@ const updateStudent = async (
     email,
     phoneNumber
 ) => {
-
     const [result] = await pool.execute(
         `UPDATE students
         SET
@@ -114,43 +118,76 @@ const updateStudent = async (
     return result;
 };
 
-
-// DELETE STUDENT
+// DELETE STUDENT AND ITS LINKED USER ACCOUNT
 const deleteStudent = async (studentId) => {
+    const connection = await pool.getConnection();
 
-    const [result] = await pool.execute(
-        `DELETE FROM students
-        WHERE student_id = ?`,
-        [studentId]
-    );
+    try {
+        await connection.beginTransaction();
 
-    return result;
+        const [rows] = await connection.execute(
+            `SELECT user_id
+            FROM students
+            WHERE student_id = ?
+            LIMIT 1`,
+            [studentId]
+        );
+
+        if (rows.length === 0) {
+            await connection.rollback();
+            return { affectedRows: 0 };
+        }
+
+        const userId = rows[0].user_id;
+
+        // Delete the student first because the foreign key uses ON DELETE RESTRICT.
+        const [studentResult] = await connection.execute(
+            `DELETE FROM students
+            WHERE student_id = ?`,
+            [studentId]
+        );
+
+        await connection.execute(
+            `DELETE FROM users
+            WHERE user_id = ?`,
+            [userId]
+        );
+
+        await connection.commit();
+        return studentResult;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
-
 
 // GET STUDENT BY USER ID
 const getStudentByUserId = async (userId) => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        WHERE user_id = ?
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students AS s
+        LEFT JOIN users AS u
+            ON u.user_id = s.user_id
+        WHERE s.user_id = ?
         LIMIT 1`,
         [userId]
     );
 
     return rows[0];
 };
-
 
 module.exports = {
     createStudent,

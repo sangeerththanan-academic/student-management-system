@@ -1,8 +1,80 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import apiRequest from "../services/api";
 
 import PasswordInput from "./PasswordInput";
+
+const MAX_CSV_SIZE = 1024 * 1024;
+const CSV_FIELDS = {
+    registrationno: "registrationNo",
+    registrationnumber: "registrationNo",
+    firstname: "firstName",
+    lastname: "lastName",
+    email: "email",
+    emailaddress: "email",
+    phonenumber: "phoneNumber",
+    phone: "phoneNumber"
+};
+const REQUIRED_CSV_FIELDS = ["registrationNo", "firstName", "lastName", "email", "phoneNumber"];
+
+const parseCsvRow = (line) => {
+    const values = [];
+    let value = "";
+    let quoted = false;
+
+    for (let index = 0; index < line.length; index += 1) {
+        const character = line[index];
+        if (character === '"') {
+            if (quoted && line[index + 1] === '"') {
+                value += '"';
+                index += 1;
+            } else {
+                quoted = !quoted;
+            }
+        } else if (character === "," && !quoted) {
+            values.push(value.trim());
+            value = "";
+        } else {
+            value += character;
+        }
+    }
+
+    if (quoted) throw new Error("The CSV contains an unclosed quoted value.");
+    values.push(value.trim());
+    return values;
+};
+
+const parseStudentCsv = (content) => {
+    const lines = content.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim());
+    if (lines.length < 2) throw new Error("The CSV must include a header row and at least one student row.");
+    if (lines.length > 101) throw new Error("A CSV can contain at most 100 student rows.");
+
+    const headers = parseCsvRow(lines[0]).map((header) => header.toLowerCase().replace(/[^a-z0-9]/g, ""));
+    if (headers.some((header) => !header)) throw new Error("Every CSV column needs a header.");
+    const mappedFields = headers.map((header) => CSV_FIELDS[header] || null);
+    const supportedFields = mappedFields.filter(Boolean);
+    if (new Set(supportedFields).size !== supportedFields.length) {
+        throw new Error("The CSV has more than one column mapped to the same student field.");
+    }
+
+    const missingFields = REQUIRED_CSV_FIELDS.filter((field) => !supportedFields.includes(field));
+    if (missingFields.length) {
+        const labels = { registrationNo: "Registration Number", firstName: "First Name", lastName: "Last Name", email: "Email", phoneNumber: "Phone Number" };
+        throw new Error(`Missing required CSV columns: ${missingFields.map((field) => labels[field]).join(", ")}.`);
+    }
+
+    return lines.slice(1).map((line, rowIndex) => {
+        const values = parseCsvRow(line);
+        if (values.length !== headers.length) {
+            throw new Error(`Student row ${rowIndex + 1} does not match the number of CSV columns.`);
+        }
+        const imported = {};
+        mappedFields.forEach((field, index) => {
+            if (field) imported[field] = values[index];
+        });
+        return imported;
+    });
+};
 
 function StudentFormModal({
     show,
@@ -21,9 +93,19 @@ function StudentFormModal({
         password: ""
     });
 
+    const [profileImage, setProfileImage] = useState(null);
+    const [profileImageError, setProfileImageError] = useState("");
+    const [profileImagePreview, setProfileImagePreview] = useState("");
+
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+    const [csvError, setCsvError] = useState("");
+    const [csvFileName, setCsvFileName] = useState("");
+    const [csvStatus, setCsvStatus] = useState("");
+    const [csvRecords, setCsvRecords] = useState([]);
+    const [csvRecordIndex, setCsvRecordIndex] = useState(0);
+    const csvInputRef = useRef(null);
 
 
     // Reset form when editingStudent changes or modal opens
@@ -54,8 +136,16 @@ function StudentFormModal({
             });
         }
 
+        setProfileImage(null);
+        setProfileImageError("");
+        setProfileImagePreview("");
         setFormError("");
         setFieldErrors({});
+        setCsvError("");
+        setCsvFileName("");
+        setCsvStatus("");
+        setCsvRecords([]);
+        setCsvRecordIndex(0);
 
     }, [editingStudent, show]);
 
@@ -125,6 +215,41 @@ function StudentFormModal({
     // ────────────────────────────────────────────────────────────
 
 
+    useEffect(() => {
+        if (!profileImage) {
+            setProfileImagePreview("");
+            return undefined;
+        }
+
+        const previewUrl = URL.createObjectURL(profileImage);
+        setProfileImagePreview(previewUrl);
+        return () => URL.revokeObjectURL(previewUrl);
+    }, [profileImage]);
+
+    const handleProfileImageChange = (event) => {
+        const file = event.target.files?.[0] || null;
+        setProfileImageError("");
+        setProfileImage(null);
+
+        if (!file) return;
+
+        const allowedExtensions = /\.(png|jpe?g)$/i;
+        const allowedTypes = ["image/png", "image/jpeg"];
+        if (!allowedExtensions.test(file.name) || !allowedTypes.includes(file.type)) {
+            setProfileImageError("Only PNG, JPG and JPEG images are allowed.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setProfileImageError("Profile image must be 5 MB or smaller.");
+            event.target.value = "";
+            return;
+        }
+
+        setProfileImage(file);
+    };
+
     // Handle input changes
     const handleInputChange = (event) => {
 
@@ -142,6 +267,59 @@ function StudentFormModal({
         }));
 
         setFormError("");
+    };
+
+    const handleCsvUpload = async (event) => {
+        const file = event.target.files?.[0];
+        setCsvError("");
+        setCsvStatus("");
+        setCsvFileName("");
+        setCsvRecords([]);
+        setCsvRecordIndex(0);
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            setCsvError("Choose a .csv file.");
+            event.target.value = "";
+            return;
+        }
+        if (file.size > MAX_CSV_SIZE) {
+            setCsvError("CSV files must be 1 MB or smaller.");
+            event.target.value = "";
+            return;
+        }
+        if (file.size === 0) {
+            setCsvError("The selected CSV file is empty.");
+            event.target.value = "";
+            return;
+        }
+
+        try {
+            const records = parseStudentCsv(await file.text());
+            setCsvRecords(records);
+            setCsvRecordIndex(0);
+            setFormData((previous) => ({ ...previous, ...records[0], password: "" }));
+            setFieldErrors({});
+            setFormError("");
+            setCsvFileName(file.name);
+            setCsvStatus("");
+        } catch (error) {
+            setCsvError(error.message || "Could not read this CSV file.");
+            setCsvFileName("");
+        }
+        event.target.value = "";
+    };
+
+    const clearCsvImport = () => {
+        setFormData({ registrationNo: "", firstName: "", lastName: "", email: "", phoneNumber: "", password: "" });
+        setFieldErrors({});
+        setFormError("");
+        setCsvError("");
+        setCsvFileName("");
+        setCsvStatus("");
+        setCsvRecords([]);
+        setCsvRecordIndex(0);
+        if (csvInputRef.current) csvInputRef.current.value = "";
     };
 
 
@@ -302,6 +480,11 @@ function StudentFormModal({
 
         setFormError("");
 
+        if (profileImageError) {
+            setFormError(profileImageError);
+            return;
+        }
+
         // Stop submission when frontend validation fails
         const isValid = validateForm();
 
@@ -352,39 +535,37 @@ function StudentFormModal({
             // CREATE STUDENT
             else {
 
-                await apiRequest(
-                    "/api/students/",
-                    {
-                        method: "POST",
+                const studentFormData = new FormData();
+                studentFormData.append("registrationNo", formData.registrationNo.trim());
+                studentFormData.append("firstName", formData.firstName.trim());
+                studentFormData.append("lastName", formData.lastName.trim());
+                studentFormData.append("email", formData.email.trim());
+                studentFormData.append("phoneNumber", formData.phoneNumber.trim());
+                studentFormData.append("password", formData.password);
 
-                        body: JSON.stringify({
-                            registrationNo:
-                                formData.registrationNo.trim(),
+                if (profileImage) {
+                    studentFormData.append("profileImage", profileImage);
+                }
 
-                            firstName:
-                                formData.firstName.trim(),
-
-                            lastName:
-                                formData.lastName.trim(),
-
-                            email:
-                                formData.email.trim(),
-
-                            phoneNumber:
-                                formData.phoneNumber.trim(),
-
-                            password:
-                                formData.password
-                        })
-                    }
-                );
+                await apiRequest("/api/students/", {
+                    method: "POST",
+                    body: studentFormData
+                });
             }
 
 
-            // Refresh student list
-            onSuccess();
+            // Create each CSV row through the same validated endpoint, one at a time.
+            if (!editingStudent && csvRecordIndex + 1 < csvRecords.length) {
+                const nextIndex = csvRecordIndex + 1;
+                setCsvRecordIndex(nextIndex);
+                setFormData({ ...csvRecords[nextIndex], password: "" });
+                setFieldErrors({});
+                setCsvStatus(`Student ${nextIndex} was created. Continue with student ${nextIndex + 1}.`);
+                onSuccess();
+                return;
+            }
 
-            // Close modal
+            onSuccess();
             handleClose();
 
 
@@ -455,42 +636,6 @@ function StudentFormModal({
 
     if (!show) return null;
 
-    // Helper: render one form field with inline error
-    const renderField = (label, name, type = "text", hint = "") => (
-        <div
-            key={name}
-            className={`form-group${touched[name] && fieldErrors[name] ? " field-error" : ""}`}
-        >
-            <label htmlFor={`sf-${name}`}>
-                {label}
-            </label>
-
-            <input
-                id={`sf-${name}`}
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                disabled={formLoading}
-                autoComplete={type === "password" ? "new-password" : "off"}
-                aria-describedby={`sf-${name}-hint`}
-                aria-invalid={!!(touched[name] && fieldErrors[name])}
-            />
-
-            {touched[name] && fieldErrors[name] ? (
-                <span id={`sf-${name}-hint`} className="field-error-msg">
-                    {fieldErrors[name]}
-                </span>
-            ) : hint ? (
-                <span id={`sf-${name}-hint`} className="field-hint">
-                    {hint}
-                </span>
-            ) : null}
-        </div>
-    );
-
-
     return (
         <div
             className="modal-overlay"
@@ -550,6 +695,25 @@ function StudentFormModal({
                     onSubmit={handleSubmit}
                     noValidate
                 >
+
+                    {!editingStudent && (
+                        <section className="student-csv-import" aria-label="Import student details from CSV">
+                            <label htmlFor="student-csv-file">Populate from CSV (optional)</label>
+                            <input
+                                ref={csvInputRef}
+                                id="student-csv-file"
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={handleCsvUpload}
+                                disabled={formLoading}
+                            />
+                            <small>Up to 100 students per file. Required headers: Registration Number, First Name, Last Name, Email, Phone Number. Review each row and enter its password before creating that student.</small>
+                            {csvFileName && <span className="student-csv-status" role="status">Loaded {csvFileName} ({csvRecords.length} students). Review student {csvRecordIndex + 1} of {csvRecords.length} below.</span>}
+                            {csvStatus && <span className="student-csv-status" role="status">{csvStatus}</span>}
+                            {csvError && <span className="student-csv-error" role="alert">{csvError}</span>}
+                            {csvFileName && <button type="button" className="students-search-clear" onClick={clearCsvImport} disabled={formLoading}>Clear imported values</button>}
+                        </section>
+                    )}
 
                     {/* Registration Number */}
                     <div className="form-group">
@@ -693,6 +857,40 @@ function StudentFormModal({
                     </div>
 
 
+
+                    {/* CR-010: Profile image upload is available when adding a student. */}
+                    {!editingStudent && (
+                        <div className="form-group profile-image-form-group">
+                            <label htmlFor="sf-profileImage">Profile Image (optional)</label>
+                            <input
+                                id="sf-profileImage"
+                                name="profileImage"
+                                type="file"
+                                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                                onChange={handleProfileImageChange}
+                                disabled={formLoading}
+                                aria-describedby="sf-profileImage-hint"
+                            />
+                            <span id="sf-profileImage-hint" className="field-hint">
+                                Supported formats: PNG, JPG, JPEG. Maximum size: 5 MB.
+                            </span>
+                            {profileImageError && (
+                                <span className="field-error-msg" role="alert">
+                                    {profileImageError}
+                                </span>
+                            )}
+                            {profileImagePreview && (
+                                <div className="profile-image-preview-wrap">
+                                    <img
+                                        className="profile-image-preview"
+                                        src={profileImagePreview}
+                                        alt="Selected student profile preview"
+                                    />
+                                    <span className="field-hint">{profileImage?.name}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Password - CREATE ONLY */}
                     {!editingStudent && (
