@@ -138,6 +138,121 @@
     padding: 10px 28px 28px;
 }
 
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 18px 28px 0;
+}
+
+.profile-edit-button,
+.profile-save-button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.profile-edit-button:hover,
+.profile-save-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.profile-edit-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin: 20px 28px 0;
+    padding: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.profile-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.profile-edit-field label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.profile-edit-field input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+}
+
+.profile-edit-field input:focus {
+    outline: 2px solid #93c5fd;
+    border-color: #2563eb;
+}
+
+.profile-edit-field input[aria-invalid="true"] {
+    border-color: #dc2626;
+}
+
+.profile-field-error {
+    color: #b91c1c;
+    font-size: 12px;
+}
+
+.profile-form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.profile-cancel-button {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-cancel-button:hover:not(:disabled) {
+    background: #f1f5f9;
+}
+
+.profile-save-button:disabled,
+.profile-cancel-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.profile-form-message {
+    margin: 16px 28px 0;
+}
+
+.student-success {
+    background: #f0fdf4;
+    color: #15803d;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #bbf7d0;
+}
+
 .detail-row {
     display: flex;
     justify-content: space-between;
@@ -182,6 +297,31 @@
     margin-bottom: 20px;
     font-size: 14px;
     border: 1px solid #fecaca;
+}
+
+@media (max-width: 600px) {
+    .profile-header {
+        padding: 22px;
+    }
+
+    .profile-edit-form {
+        grid-template-columns: 1fr;
+        margin: 16px 18px 0;
+        padding: 16px;
+    }
+
+    .profile-actions {
+        padding: 16px 18px 0;
+    }
+
+    .profile-details {
+        padding: 10px 18px 22px;
+    }
+
+    .profile-form-message {
+        margin-right: 18px;
+        margin-left: 18px;
+    }
 }
 
 

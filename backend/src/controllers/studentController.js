@@ -8,6 +8,7 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    updateStudentProfileByUserId,
     deleteStudent
 } = require("../models/studentModel");
 
@@ -755,6 +756,106 @@ const getMyProfile = async (req, res) => {
 
 
 // =====================================================
+// UPDATE CURRENT STUDENT'S CONTACT DETAILS
+// =====================================================
+
+const updateMyProfile = async (req, res) => {
+
+    const {
+        email,
+        phoneNumber
+    } = req.body;
+
+    const cleanEmail =
+        typeof email === "string" ? email.trim() : "";
+
+    const cleanPhoneNumber =
+        typeof phoneNumber === "string" ? phoneNumber.trim() : "";
+
+    const emailError = validateEmail(cleanEmail);
+    const phoneError = validatePhoneNumber(cleanPhoneNumber);
+    const validationErrors = {};
+
+    if (emailError) {
+        validationErrors.email = emailError;
+    }
+
+    if (phoneError) {
+        validationErrors.phoneNumber = phoneError;
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Please correct the validation errors.",
+            errors: validationErrors
+        });
+    }
+
+    try {
+        const student = await getStudentByUserId(req.user.userId);
+
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        const [duplicateEmail] = await pool.execute(
+            `SELECT student_id
+             FROM students
+             WHERE email = ?
+             AND user_id != ?
+             LIMIT 1`,
+            [
+                cleanEmail,
+                req.user.userId
+            ]
+        );
+
+        if (duplicateEmail.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+        await updateStudentProfileByUserId(
+            req.user.userId,
+            cleanEmail,
+            cleanPhoneNumber
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            student: {
+                ...student,
+                email: cleanEmail,
+                phone_number: cleanPhoneNumber
+            }
+        });
+
+    } catch (error) {
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+        console.error("Update my profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile"
+        });
+    }
+};
+
+
+// =====================================================
 // EXPORT CONTROLLERS
 // =====================================================
 
@@ -763,6 +864,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 };
