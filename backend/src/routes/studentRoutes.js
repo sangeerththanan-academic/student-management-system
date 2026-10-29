@@ -1,3 +1,174 @@
+// const express = require("express");
+
+// const {
+//     addStudent,
+//     getStudents,
+//     getStudent,
+//     getMyProfile,
+//     editStudent,
+//     removeStudent
+// } = require("../controllers/studentController");
+
+// const {
+//     authenticate,
+//     authorizeRoles
+// } = require("../middleware/authMiddleware");
+
+// const router = express.Router();
+
+
+// // STUDENT ROUTES
+
+// // Get current student's own profile
+// router.get(
+//     "/me",
+//     authenticate,
+//     getMyProfile
+// );
+
+
+// // Create student
+// // Administrator only
+// router.post(
+//     "/",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     addStudent
+// );
+
+
+// // Get all students
+// // Administrator only
+// router.get(
+//     "/",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     getStudents
+// );
+
+
+// // Get student by ID
+// // Administrator only
+// router.get(
+//     "/:id",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     getStudent
+// );
+
+
+// // Update student
+// // Administrator only
+// router.put(
+//     "/:id",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     editStudent
+// );
+
+
+// // Delete student
+// // Administrator only
+// router.delete(
+//     "/:id",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     removeStudent
+// );
+
+
+// module.exports = router;
+
+
+
+// const express = require("express");
+// const router = express.Router();
+
+// const {
+//     addStudent,
+//     getStudents,
+//     getStudent,
+//     getMyProfile,
+//     updateMyProfileController,
+//     editStudent,
+//     removeStudent,
+//     changeMyPassword,
+//     importStudents
+// } = require("../controllers/studentController");
+
+// const { authenticate } = require("../middleware/authMiddleware");
+
+// const uploadStudentImage =
+//     require("../middleware/studentUploadMiddleware");
+
+// // ==========================================
+// // STUDENT ROUTES
+// // ==========================================
+
+// // Get current student's own profile
+// router.get(
+//     "/me",
+//     authenticate,
+//     authorizeRoles("STUDENT"),
+//     getMyProfile
+// );
+
+// // Update current student's own profile
+// router.put(
+//     "/me",
+//     authenticate,
+//     authorizeRoles("STUDENT"),
+//     updateMyProfileController
+// );
+
+
+// // ==========================================
+// // ADMIN ROUTES
+// // ==========================================
+
+// // Create student - ADMIN only
+// router.post(
+//     "/",
+//     authenticate,
+//     uploadStudentImage.single("profileImage"),
+//     addStudent
+// );
+
+// // Get all students - ADMIN only
+// router.get(
+//     "/",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     getStudents
+// );
+
+// // Get student by ID - ADMIN only
+// router.get(
+//     "/:id",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     getStudent
+// );
+
+// // Update student by ID - ADMIN only
+// router.put(
+//     "/:id",
+//     authenticate,
+//     uploadStudentImage.single("profileImage"),
+//     editStudent
+// );
+
+// // Delete student - ADMIN only
+// router.delete(
+//     "/:id",
+//     authenticate,
+//     authorizeRoles("ADMIN"),
+//     removeStudent
+// );
+
+// module.exports = router;
+
+
 const express = require("express");
 const router = express.Router();
 
@@ -6,50 +177,84 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfileController,
     editStudent,
     removeStudent,
     changeMyPassword,
     importStudents
 } = require("../controllers/studentController");
 
-const { authenticate } = require("../middleware/authMiddleware");
+const {
+    authenticate,
+    authorizeRoles
+} = require("../middleware/authMiddleware");
 
-const uploadStudentImage =
-    require("../middleware/studentUploadMiddleware");
+const uploadStudentImage = require("../middleware/studentUploadMiddleware");
 
-// Student profile
-router.get("/me", authenticate, getMyProfile);
+// ==========================================
+// STUDENT ROUTES
+// ==========================================
 
-// Change student password
-router.patch("/me/password", authenticate, changeMyPassword);
+// Get current student's own profile
+router.get(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    getMyProfile
+);
 
-// Get all students for the dashboard
-router.get("/", authenticate, getStudents);
+// Update current student's own email and phone
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfileController
+);
 
-// Import multiple students from CSV
-// IMPORTANT: Keep this route before router.get("/:id").
-router.post("/import-csv", authenticate, importStudents);
+// ==========================================
+// ADMIN ROUTES
+// ==========================================
 
-// Add one student manually
+// Create student - ADMIN only
 router.post(
     "/",
     authenticate,
+    authorizeRoles("ADMIN"),
     uploadStudentImage.single("profileImage"),
     addStudent
 );
 
-// Get one student
-router.get("/:id", authenticate, getStudent);
+// Get all students - ADMIN only
+router.get(
+    "/",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    getStudents
+);
 
-// Edit a student
+// Get student by ID - ADMIN only
+router.get(
+    "/:id",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    getStudent
+);
+
+// Update student by ID - ADMIN only
 router.put(
     "/:id",
     authenticate,
+    authorizeRoles("ADMIN"),
     uploadStudentImage.single("profileImage"),
     editStudent
 );
 
-// Delete a student
-router.delete("/:id", authenticate, removeStudent);
+// Delete student - ADMIN only
+router.delete(
+    "/:id",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    removeStudent
+);
 
 module.exports = router;
