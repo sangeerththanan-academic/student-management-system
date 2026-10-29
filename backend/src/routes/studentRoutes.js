@@ -6,6 +6,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent,
     changeMyPassword,
@@ -19,10 +20,9 @@ const {
 
 const router = express.Router();
 
-// ============================================
 // STUDENT SELF-SERVICE ROUTES
-// ============================================
 
+// Retrieve the authenticated student's profile.
 router.get(
     "/me",
     authenticate,
@@ -30,8 +30,15 @@ router.get(
     getMyProfile
 );
 
+// CR-019: Update the authenticated student's email and phone.
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
+);
 
-
+// Existing CR-020 password-change route.
 router.patch(
     "/me/password",
     authenticate,
@@ -39,12 +46,9 @@ router.patch(
     changeMyPassword
 );
 
-// ============================================
 // ADMIN-ONLY ROUTES
-// ============================================
 
-// CR-015: Import multiple student records from CSV.
-// Keep this route before "/:id".
+// CR-015: Import CSV before the /:id route.
 router.post(
     "/import-csv",
     authenticate,
@@ -52,7 +56,6 @@ router.post(
     importStudents
 );
 
-// Create student
 router.post(
     "/",
     authenticate,
@@ -60,17 +63,13 @@ router.post(
     addStudent
 );
 
-// Get all students
 router.get(
-
-    
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
     getStudents
 );
 
-// Get student by ID
 router.get(
     "/:id",
     authenticate,
@@ -78,7 +77,7 @@ router.get(
     getStudent
 );
 
-// Update student profile
+// Existing administrator update route remains unchanged.
 router.put(
     "/:id",
     authenticate,
@@ -86,7 +85,6 @@ router.put(
     editStudent
 );
 
-// Delete student
 router.delete(
     "/:id",
     authenticate,
@@ -95,3 +93,17 @@ router.delete(
 );
 
 module.exports = router;
+
+
+
+
+const updateMyStudentContact = async (userId, email, phoneNumber) => {
+    const [result] = await pool.execute(
+        `UPDATE students
+         SET email = ?, phone_number = ?
+         WHERE user_id = ?`,
+        [email, phoneNumber, userId]
+    );
+
+    return result;
+};

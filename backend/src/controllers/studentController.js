@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
 
@@ -8,7 +7,8 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    updateMyStudentContact
 } = require("../models/studentModel");
 
 const {
@@ -26,13 +26,11 @@ const normalizeStudentValue = (value) => {
     if (typeof value !== "string") {
         return "";
     }
-
     return value.trim();
 };
 
 const isValidRegistrationNumber = (value) => {
     const normalized = normalizeStudentValue(value);
-
     return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(normalized);
 };
 
@@ -132,7 +130,6 @@ const importStudents = async (req, res) => {
     let imported = 0;
     let rejected = 0;
 
-    // Detect duplicates inside the uploaded file as well as in MySQL.
     const seenRegistrationNumbers = new Set();
     const seenEmails = new Set();
 
@@ -500,7 +497,10 @@ const addStudent = async (req, res) => {
             try {
                 await connection.rollback();
             } catch (rollbackError) {
-                console.error("Transaction rollback error:", rollbackError.message);
+                console.error(
+                    "Transaction rollback error:",
+                    rollbackError.message
+                );
             }
         }
 
@@ -721,6 +721,101 @@ const getMyProfile = async (req, res) => {
 };
 
 // =====================================================
+// CR-019: UPDATE LOGGED-IN STUDENT PROFILE
+// PUT /api/students/me
+// Students can update only their own email and phone number.
+// =====================================================
+
+const updateMyProfile = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const body = req.body || {};
+        const fields = Object.keys(body);
+        const allowedFields = ["email", "phoneNumber"];
+
+        if (
+            fields.length !== 2 ||
+            !allowedFields.every((field) => fields.includes(field))
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Only email and phoneNumber can be updated."
+            });
+        }
+
+        const email = normalizeStudentValue(body.email);
+        const phoneNumber = normalizeStudentValue(body.phoneNumber);
+
+        const emailError = validateEmail(email);
+
+        if (emailError) {
+            return res.status(400).json({
+                success: false,
+                message: emailError
+            });
+        }
+
+        const phoneError = validatePhoneNumber(phoneNumber);
+
+        if (phoneError) {
+            return res.status(400).json({
+                success: false,
+                message: phoneError
+            });
+        }
+
+        const student = await getStudentByUserId(userId);
+
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found."
+            });
+        }
+
+        const [duplicates] = await pool.execute(
+            `SELECT student_id
+             FROM students
+             WHERE LOWER(email) = LOWER(?)
+               AND user_id <> ?
+             LIMIT 1`,
+            [email, userId]
+        );
+
+        if (duplicates.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered."
+            });
+        }
+
+        await updateMyStudentContact(userId, email, phoneNumber);
+
+        const updatedStudent = await getStudentByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            student: updatedStudent
+        });
+    } catch (error) {
+        console.error("Update my profile error:", error.message);
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered."
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update your profile."
+        });
+    }
+};
+
+// =====================================================
 // CR-020: CHANGE STUDENT PASSWORD
 // =====================================================
 
@@ -828,6 +923,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent,
     changeMyPassword,
