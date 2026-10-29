@@ -1,849 +1,840 @@
-
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const pool = require("../config/db");
 
-const {
-    createStudent,
-    getAllStudents,
-    getStudentById,
-    getStudentByUserId,
-    updateStudent,
-    deleteStudent
-} = require("../models/studentModel");
-
-const {
-    getPasswordHashByUserId,
-    updatePasswordHash
-} = require("../models/userModel");
-
-// =====================================================
-// COMMON VALIDATION HELPERS
-// =====================================================
-
 const normalizeStudentValue = (value) => {
-    return typeof value === "string" ? value.trim() : "";
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
 };
 
-const isValidRegistrationNumber = (value) => {
-    return /^[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+)*$/.test(
-        normalizeStudentValue(value)
-    );
+const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const validatePhoneNumber = (phoneNumber) =>
+  /^\d{10}$/.test(phoneNumber);
+
+const validateStudentData = (payload, isEdit = false) => {
+  const errors = {};
+
+  const registrationNo = normalizeStudentValue(
+    payload.registrationNo || payload.registration_no
+  );
+  const firstName = normalizeStudentValue(
+    payload.firstName || payload.first_name
+  );
+  const lastName = normalizeStudentValue(
+    payload.lastName || payload.last_name
+  );
+  const email = normalizeStudentValue(payload.email);
+  const phoneNumber = normalizeStudentValue(
+    payload.phoneNumber || payload.phone_number
+  );
+  const password = normalizeStudentValue(payload.password);
+
+  if (!registrationNo) errors.registrationNo = "Registration number is required.";
+  if (!firstName) errors.firstName = "First name is required.";
+  if (!lastName) errors.lastName = "Last name is required.";
+
+  if (!email) {
+    errors.email = "Email is required.";
+  } else if (!validateEmail(email)) {
+    errors.email = "Please enter a valid email address.";
+  }
+
+  if (!phoneNumber) {
+    errors.phoneNumber = "Phone number is required.";
+  } else if (!validatePhoneNumber(phoneNumber)) {
+    errors.phoneNumber = "Phone number must contain exactly 10 digits.";
+  }
+
+  if (!isEdit && !password) {
+    errors.password = "Password is required.";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    firstError: Object.values(errors)[0] || null,
+    errors,
+  };
 };
 
-const validateName = (name, fieldName) => {
-    if (typeof name !== "string" || !name.trim()) {
-        return `${fieldName} is required`;
-    }
+const findDuplicateEmail = async (
+  email,
+  excludeUserId = null,
+  executor = pool
+) => {
+  let sql = "SELECT student_id FROM students WHERE email = ?";
+  const params = [email];
 
-    if (name.trim().length < 3) {
-        return `${fieldName} must contain at least 3 characters`;
-    }
+  if (excludeUserId !== null && excludeUserId !== undefined) {
+    sql += " AND user_id <> ?";
+    params.push(excludeUserId);
+  }
 
-    if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(name.trim())) {
-        return `${fieldName} must contain only letters and spaces`;
-    }
+  sql += " LIMIT 1";
 
-    return null;
+  const [rows] = await executor.execute(sql, params);
+  return rows.length > 0;
 };
 
-const validateEmail = (email) => {
-    if (typeof email !== "string" || !email.trim()) {
-        return "Email address is required";
-    }
+const getStudentByUserId = async (userId, executor = pool) => {
+  const [rows] = await executor.execute(
+    `SELECT student_id, user_id, registration_no, first_name, last_name,
+            email, phone_number, profile_photo
+     FROM students
+     WHERE user_id = ?
+     LIMIT 1`,
+    [userId]
+  );
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-        return "Please enter a valid email address";
-    }
-
-    return null;
+  return rows[0] || null;
 };
 
-const validatePhoneNumber = (phoneNumber) => {
-    const phone = String(phoneNumber ?? "").trim();
-
-    if (!phone) {
-        return "Phone number is required";
-    }
-
-    if (!/^\d{10}$/.test(phone)) {
-        return "Phone number must contain exactly 10 digits";
-    }
-
-    return null;
-};
-
-const validatePassword = (password) => {
-    if (typeof password !== "string" || !password) {
-        return "Password is required";
-    }
-
-    if (password.length < 8) {
-        return "Password must be at least 8 characters";
-    }
-
-    if (!/[A-Z]/.test(password)) {
-        return "Password must contain at least one uppercase letter";
-    }
-
-    if (!/[a-z]/.test(password)) {
-        return "Password must contain at least one lowercase letter";
-    }
-
-    if (!/\d/.test(password)) {
-        return "Password must contain at least one number";
-    }
-
-    if (!/[^A-Za-z0-9]/.test(password)) {
-        return "Password must contain at least one special character";
-    }
-
-    return null;
-};
-
-// This helper is used by Add Student and Edit Student.
-const validateStudentData = (payload, isEditing = false) => {
-    const errors = [];
-
-    if (!isValidRegistrationNumber(payload.registrationNo)) {
-        errors.push(
-            "Registration number must contain only letters, numbers, hyphens, or underscores."
-        );
-    }
-
-    const firstNameError = validateName(
-        payload.firstName,
-        "First name"
-    );
-
-    const lastNameError = validateName(
-        payload.lastName,
-        "Last name"
-    );
-
-    const emailError = validateEmail(payload.email);
-    const phoneError = validatePhoneNumber(payload.phoneNumber);
-
-    if (firstNameError) errors.push(firstNameError);
-    if (lastNameError) errors.push(lastNameError);
-    if (emailError) errors.push(emailError);
-    if (phoneError) errors.push(phoneError);
-
-    if (!isEditing) {
-        const passwordError = validatePassword(payload.password);
-
-        if (passwordError) errors.push(passwordError);
-    }
-
-    return {
-        isValid: errors.length === 0,
-        firstError: errors[0] || null,
-        errors
-    };
-};
-
-// =====================================================
-// CR-022: IMPORT STUDENTS FROM CSV
-// POST /api/students/import-csv
-// =====================================================
-
-const importStudents = async (req, res) => {
-    const students = req.body?.students;
-
-    if (!Array.isArray(students) || students.length === 0) {
-        return res.status(400).json({
-            success: false,
-            message: "Provide at least one student record."
-        });
-    }
-
-    if (students.length > 500) {
-        return res.status(400).json({
-            success: false,
-            message: "A maximum of 500 students can be imported per request."
-        });
-    }
-
-    const results = [];
-    let imported = 0;
-    let rejected = 0;
-
-    const seenRegistrationNumbers = new Set();
-    const seenEmails = new Set();
-
-    for (let index = 0; index < students.length; index++) {
-        const row = students[index];
-        const rowNumber = index + 2;
-        let connection;
-
-        let registrationNo = "";
-
-        try {
-            if (
-                !row ||
-                typeof row !== "object" ||
-                Array.isArray(row)
-            ) {
-                results.push({
-                    row: rowNumber,
-                    status: "rejected",
-                    errors: ["Invalid student record."]
-                });
-
-                rejected++;
-                continue;
-            }
-
-            registrationNo = normalizeStudentValue(
-                row.registrationNo
-            );
-
-            const firstName = normalizeStudentValue(row.firstName);
-            const lastName = normalizeStudentValue(row.lastName);
-            const email = normalizeStudentValue(row.email);
-            const phoneNumber = normalizeStudentValue(row.phoneNumber);
-
-            // A missing or blank CSV password is allowed.
-            const suppliedPassword =
-                typeof row.password === "string" && row.password.trim()
-                    ? row.password
-                    : null;
-
-            const errors = [];
-
-            if (!isValidRegistrationNumber(registrationNo)) {
-                errors.push(
-                    "Registration number must contain letters, numbers, hyphens, or underscores."
-                );
-            }
-
-            const firstNameError = validateName(firstName, "First name");
-            const lastNameError = validateName(lastName, "Last name");
-            const emailError = validateEmail(email);
-            const phoneError = validatePhoneNumber(phoneNumber);
-
-            if (firstNameError) errors.push(firstNameError);
-            if (lastNameError) errors.push(lastNameError);
-            if (emailError) errors.push(emailError);
-            if (phoneError) errors.push(phoneError);
-
-            // Validate password only when one was supplied.
-            if (suppliedPassword !== null) {
-                const passwordError = validatePassword(suppliedPassword);
-
-                if (passwordError) {
-                    errors.push(passwordError);
-                }
-            }
-
-            const registrationKey = registrationNo.toLowerCase();
-            const emailKey = email.toLowerCase();
-
-            if (
-                registrationKey &&
-                seenRegistrationNumbers.has(registrationKey)
-            ) {
-                errors.push(
-                    "Registration number is duplicated in this CSV file."
-                );
-            }
-
-            if (emailKey && seenEmails.has(emailKey)) {
-                errors.push(
-                    "Email address is duplicated in this CSV file."
-                );
-            }
-
-            if (registrationKey) {
-                seenRegistrationNumbers.add(registrationKey);
-            }
-
-            if (emailKey) {
-                seenEmails.add(emailKey);
-            }
-
-            if (errors.length > 0) {
-                results.push({
-                    row: rowNumber,
-                    registrationNo,
-                    status: "rejected",
-                    errors
-                });
-
-                rejected++;
-                continue;
-            }
-
-            connection = await pool.getConnection();
-            await connection.beginTransaction();
-
-            const [existingUser] = await connection.execute(
-                `SELECT user_id
-                 FROM users
-                 WHERE username = ?
-                 LIMIT 1`,
-                [registrationNo]
-            );
-
-            if (existingUser.length > 0) {
-                await connection.rollback();
-
-                results.push({
-                    row: rowNumber,
-                    registrationNo,
-                    status: "rejected",
-                    errors: [
-                        "Registration number is already registered."
-                    ]
-                });
-
-                rejected++;
-                continue;
-            }
-
-            const [existingStudent] = await connection.execute(
-                `SELECT student_id
-                 FROM students
-                 WHERE email = ?
-                 LIMIT 1`,
-                [email]
-            );
-
-            if (existingStudent.length > 0) {
-                await connection.rollback();
-
-                results.push({
-                    row: rowNumber,
-                    registrationNo,
-                    status: "rejected",
-                    errors: [
-                        "Email address is already registered."
-                    ]
-                });
-
-                rejected++;
-                continue;
-            }
-
-            // Create a random temporary password when CSV password is absent.
-            // It is shown to the authorized administrator only once in the
-            // import response. Deliver it securely to the student.
-            const temporaryPassword =
-                suppliedPassword === null
-                    ? `${crypto.randomBytes(16).toString("hex")}Aa1!`
-                    : null;
-
-            const passwordToHash =
-                suppliedPassword ?? temporaryPassword;
-
-            const passwordHash = await bcrypt.hash(passwordToHash, 10);
-
-            const [userResult] = await connection.execute(
-                `INSERT INTO users (username, password_hash, role)
-                 VALUES (?, ?, 'STUDENT')`,
-                [registrationNo, passwordHash]
-            );
-
-            const studentId = await createStudent(
-                connection,
-                userResult.insertId,
-                registrationNo,
-                firstName,
-                lastName,
-                email,
-                phoneNumber
-            );
-
-            await connection.commit();
-
-            results.push({
-                row: rowNumber,
-                registrationNo,
-                studentId,
-                status: "imported",
-                message: "Student created successfully.",
-                ...(temporaryPassword
-                    ? { temporaryPassword }
-                    : {})
-            });
-
-            imported++;
-        } catch (error) {
-            if (connection) {
-                try {
-                    await connection.rollback();
-                } catch (rollbackError) {
-                    console.error(
-                        "CSV import rollback error:",
-                        rollbackError.message
-                    );
-                }
-            }
-
-            console.error(
-                `CSV import error on row ${rowNumber}:`,
-                error.message
-            );
-
-            results.push({
-                row: rowNumber,
-                registrationNo,
-                status: "rejected",
-                errors: [
-                    error.code === "ER_DUP_ENTRY"
-                        ? "Registration number or email is already registered."
-                        : "The student could not be imported."
-                ]
-            });
-
-            rejected++;
-        } finally {
-            if (connection) {
-                connection.release();
-            }
-        }
-    }
-
-    return res.status(200).json({
-        success: imported > 0,
-        message: `Import completed: ${imported} imported, ${rejected} rejected.`,
-        summary: {
-            total: students.length,
-            imported,
-            rejected
-        },
-        results
-    });
-};
-
-// =====================================================
-// CREATE STUDENT
-// POST /api/students
-// =====================================================
-
+// Add student
 const addStudent = async (req, res) => {
-    const payload = {
-        registrationNo: normalizeStudentValue(req.body?.registrationNo),
-        firstName: normalizeStudentValue(req.body?.firstName),
-        lastName: normalizeStudentValue(req.body?.lastName),
-        email: normalizeStudentValue(req.body?.email),
-        phoneNumber: normalizeStudentValue(req.body?.phoneNumber),
-        password: req.body?.password
-    };
+  let connection;
 
-    const {
+  try {
+    const validation = validateStudentData(req.body, false);
+
+    if (!validation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: validation.firstError,
+        errors: validation.errors,
+      });
+    }
+
+    const registrationNo = normalizeStudentValue(
+      req.body.registrationNo || req.body.registration_no
+    );
+    const firstName = normalizeStudentValue(
+      req.body.firstName || req.body.first_name
+    );
+    const lastName = normalizeStudentValue(
+      req.body.lastName || req.body.last_name
+    );
+    const email = normalizeStudentValue(req.body.email).toLowerCase();
+    const phoneNumber = normalizeStudentValue(
+      req.body.phoneNumber || req.body.phone_number
+    );
+    const password = normalizeStudentValue(req.body.password);
+    const profilePhoto =
+      req.body.profilePhoto || req.body.profile_photo || null;
+
+    const [existingRegistration] = await pool.execute(
+      "SELECT student_id FROM students WHERE registration_no = ? LIMIT 1",
+      [registrationNo]
+    );
+
+    if (existingRegistration.length) {
+      return res.status(409).json({
+        success: false,
+        message: "Registration number already exists.",
+      });
+    }
+
+    if (await findDuplicateEmail(email)) {
+      return res.status(409).json({
+        success: false,
+        message: "Email address already exists.",
+      });
+    }
+
+    const [existingUser] = await pool.execute(
+      "SELECT user_id FROM users WHERE username = ? LIMIT 1",
+      [email]
+    );
+
+    if (existingUser.length) {
+      return res.status(409).json({
+        success: false,
+        message: "Email address is already registered as a username.",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [userResult] = await connection.execute(
+      "INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'STUDENT')",
+      [email, passwordHash]
+    );
+
+    const userId = userResult.insertId;
+
+    const [studentResult] = await connection.execute(
+      `INSERT INTO students
+       (user_id, registration_no, first_name, last_name, email, phone_number, profile_photo)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
         registrationNo,
         firstName,
         lastName,
         email,
         phoneNumber,
-        password
-    } = payload;
+        profilePhoto,
+      ]
+    );
 
-    let connection;
+    await connection.commit();
 
-    try {
-        const validation = validateStudentData(payload, false);
+    return res.status(201).json({
+      success: true,
+      message: "Student created successfully.",
+      student: {
+        student_id: studentResult.insertId,
+        user_id: userId,
+        registration_no: registrationNo,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone_number: phoneNumber,
+        profile_photo: profilePhoto,
+      },
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
 
-        if (!validation.isValid) {
-            return res.status(400).json({
-                success: false,
-                message: validation.firstError,
-                errors: validation.errors
-            });
-        }
+    console.error("Add student error:", error);
 
-        connection = await pool.getConnection();
-        await connection.beginTransaction();
-
-        const [existingUser] = await connection.execute(
-            `SELECT user_id
-             FROM users
-             WHERE username = ?
-             LIMIT 1`,
-            [registrationNo]
-        );
-
-        if (existingUser.length > 0) {
-            await connection.rollback();
-
-            return res.status(409).json({
-                success: false,
-                message: "Registration number is already registered"
-            });
-        }
-
-        const [existingStudent] = await connection.execute(
-            `SELECT student_id
-             FROM students
-             WHERE email = ?
-             LIMIT 1`,
-            [email]
-        );
-
-        if (existingStudent.length > 0) {
-            await connection.rollback();
-
-            return res.status(409).json({
-                success: false,
-                message: "Email address is already registered"
-            });
-        }
-
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        const [userResult] = await connection.execute(
-            `INSERT INTO users (username, password_hash, role)
-             VALUES (?, ?, 'STUDENT')`,
-            [registrationNo, passwordHash]
-        );
-
-        const studentId = await createStudent(
-            connection,
-            userResult.insertId,
-            registrationNo,
-            firstName,
-            lastName,
-            email,
-            phoneNumber
-        );
-
-        await connection.commit();
-
-        return res.status(201).json({
-            success: true,
-            message: "Student account and profile created successfully",
-            student: {
-                studentId,
-                userId: userResult.insertId,
-                registrationNo,
-                firstName,
-                lastName,
-                email,
-                phoneNumber,
-                role: "STUDENT"
-            }
-        });
-    } catch (error) {
-        if (connection) {
-            try {
-                await connection.rollback();
-            } catch (rollbackError) {
-                console.error(
-                    "Transaction rollback error:",
-                    rollbackError.message
-                );
-            }
-        }
-
-        console.error("Create student error:", error.message);
-
-        if (error.code === "ER_DUP_ENTRY") {
-            return res.status(409).json({
-                success: false,
-                message: "Registration number or email is already registered"
-            });
-        }
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to create student"
-        });
-    } finally {
-        if (connection) connection.release();
+    if (error.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({
+        success: false,
+        message: "A student with the provided details already exists.",
+      });
     }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create student.",
+    });
+  } finally {
+    if (connection) connection.release();
+  }
 };
 
-// =====================================================
-// GET ALL STUDENTS
-// =====================================================
+// Get all students
+const getAllStudents = async (req, res) => {
+  try {
+    const [students] = await pool.execute(
+      `SELECT student_id, user_id, registration_no, first_name, last_name,
+              email, phone_number, profile_photo
+       FROM students
+       ORDER BY student_id DESC`
+    );
 
-const getStudents = async (req, res) => {
-    try {
-        const students = await getAllStudents();
+    return res.status(200).json({
+      success: true,
+      students,
+    });
+  } catch (error) {
+    console.error("Get all students error:", error);
 
-        return res.status(200).json({
-            success: true,
-            count: students.length,
-            students
-        });
-    } catch (error) {
-        console.error("Get students error:", error.message);
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to retrieve students"
-        });
-    }
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve students.",
+    });
+  }
 };
 
-// =====================================================
-// GET STUDENT BY ID
-// =====================================================
+// Get student by ID
+const getStudentById = async (req, res) => {
+  try {
+    const [students] = await pool.execute(
+      `SELECT student_id, user_id, registration_no, first_name, last_name,
+              email, phone_number, profile_photo
+       FROM students
+       WHERE student_id = ?
+       LIMIT 1`,
+      [req.params.id]
+    );
 
-const getStudent = async (req, res) => {
-    try {
-        const student = await getStudentById(req.params.id);
-
-        if (!student) {
-            return res.status(404).json({
-                success: false,
-                message: "Student not found"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            student
-        });
-    } catch (error) {
-        console.error("Get student error:", error.message);
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to retrieve student"
-        });
+    if (!students.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found.",
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      student: students[0],
+    });
+  } catch (error) {
+    console.error("Get student by ID error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve student.",
+    });
+  }
 };
 
-// =====================================================
-// UPDATE STUDENT
-// =====================================================
-
-const editStudent = async (req, res) => {
-    try {
-        const studentId = req.params.id;
-
-        const payload = {
-            registrationNo: normalizeStudentValue(req.body?.registrationNo),
-            firstName: normalizeStudentValue(req.body?.firstName),
-            lastName: normalizeStudentValue(req.body?.lastName),
-            email: normalizeStudentValue(req.body?.email),
-            phoneNumber: normalizeStudentValue(req.body?.phoneNumber)
-        };
-
-        const validation = validateStudentData(payload, true);
-
-        if (!validation.isValid) {
-            return res.status(400).json({
-                success: false,
-                message: validation.firstError,
-                errors: validation.errors
-            });
-        }
-
-        const existingStudent = await getStudentById(studentId);
-
-        if (!existingStudent) {
-            return res.status(404).json({
-                success: false,
-                message: "Student not found"
-            });
-        }
-
-        const result = await updateStudent(
-            studentId,
-            payload.registrationNo,
-            payload.firstName,
-            payload.lastName,
-            payload.email,
-            payload.phoneNumber
-        );
-
-        return res.status(200).json({
-            success: true,
-            message: "Student updated successfully",
-            affectedRows: result.affectedRows
-        });
-    } catch (error) {
-        console.error("Update student error:", error.message);
-
-        if (error.code === "ER_DUP_ENTRY") {
-            return res.status(409).json({
-                success: false,
-                message: "Email address or registration number is already registered"
-            });
-        }
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to update student"
-        });
-    }
-};
-
-// =====================================================
-// DELETE STUDENT
-// =====================================================
-
-const removeStudent = async (req, res) => {
-    try {
-        const studentId = req.params.id;
-        const student = await getStudentById(studentId);
-
-        if (!student) {
-            return res.status(404).json({
-                success: false,
-                message: "Student not found"
-            });
-        }
-
-        const result = await deleteStudent(studentId);
-
-        return res.status(200).json({
-            success: true,
-            message: "Student deleted successfully",
-            affectedRows: result.affectedRows
-        });
-    } catch (error) {
-        console.error("Delete student error:", error.message);
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to delete student"
-        });
-    }
-};
-
-// =====================================================
-// GET LOGGED-IN STUDENT PROFILE
-// =====================================================
-
+// Get logged-in student's profile
 const getMyProfile = async (req, res) => {
-    try {
-        const student = await getStudentByUserId(req.user.userId);
+  try {
+    const student = await getStudentByUserId(req.user.userId);
 
-        if (!student) {
-            return res.status(404).json({
-                success: false,
-                message: "Student profile not found"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            student
-        });
-    } catch (error) {
-        console.error("Get my profile error:", error.message);
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to retrieve profile"
-        });
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student profile not found.",
+      });
     }
+
+    return res.status(200).json({
+      success: true,
+      student,
+    });
+  } catch (error) {
+    console.error("Get my profile error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve your profile.",
+    });
+  }
 };
 
-// =====================================================
-// CR-020: CHANGE STUDENT PASSWORD
-// =====================================================
+// CR-019: Update logged-in student's profile
+const updateMyProfile = async (req, res) => {
+  let connection;
 
-const changeMyPassword = async (req, res) => {
-    try {
-        const {
-            currentPassword,
-            newPassword,
-            confirmPassword
-        } = req.body || {};
+  try {
+    const userId = req.user.userId;
+    const email = normalizeStudentValue(req.body.email).toLowerCase();
+    const phoneNumber = normalizeStudentValue(
+      req.body.phoneNumber || req.body.phone_number
+    );
 
-        if (
-            typeof currentPassword !== "string" ||
-            !currentPassword ||
-            typeof newPassword !== "string" ||
-            !newPassword ||
-            typeof confirmPassword !== "string" ||
-            !confirmPassword
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "All password fields are required"
-            });
-        }
-
-        const passwordError = validatePassword(newPassword);
-
-        if (passwordError) {
-            return res.status(400).json({
-                success: false,
-                message: passwordError
-            });
-        }
-
-        if (newPassword !== confirmPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "New password and confirmation password do not match"
-            });
-        }
-
-        if (currentPassword === newPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "New password must be different from current password"
-            });
-        }
-
-        const userId = req.user.userId;
-        const account = await getPasswordHashByUserId(userId);
-
-        if (!account) {
-            return res.status(404).json({
-                success: false,
-                message: "Student account not found"
-            });
-        }
-
-        const matches = await bcrypt.compare(
-            currentPassword,
-            account.password_hash
-        );
-
-        if (!matches) {
-            return res.status(401).json({
-                success: false,
-                message: "Current password is incorrect"
-            });
-        }
-
-        const newPasswordHash = await bcrypt.hash(newPassword, 10);
-
-        const result = await updatePasswordHash(
-            userId,
-            newPasswordHash
-        );
-
-        if (!result.affectedRows) {
-            return res.status(500).json({
-                success: false,
-                message: "Password could not be updated"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Password changed successfully"
-        });
-    } catch (error) {
-        console.error("Change student password error:", error.message);
-
-        return res.status(500).json({
-            success: false,
-            message: "Failed to change password"
-        });
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
     }
+
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address.",
+      });
+    }
+
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required.",
+      });
+    }
+
+    if (!validatePhoneNumber(phoneNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must contain exactly 10 digits.",
+      });
+    }
+
+    const existingStudent = await getStudentByUserId(userId);
+
+    if (!existingStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student profile not found.",
+      });
+    }
+
+    if (await findDuplicateEmail(email, userId)) {
+      return res.status(409).json({
+        success: false,
+        message: "This email address is already used by another student.",
+      });
+    }
+
+    const [duplicateUsername] = await pool.execute(
+      "SELECT user_id FROM users WHERE username = ? AND user_id <> ? LIMIT 1",
+      [email, userId]
+    );
+
+    if (duplicateUsername.length) {
+      return res.status(409).json({
+        success: false,
+        message: "This email address is already used by another account.",
+      });
+    }
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    await connection.execute(
+      "UPDATE students SET email = ?, phone_number = ? WHERE user_id = ?",
+      [email, phoneNumber, userId]
+    );
+
+    // The users table uses username, not email.
+    await connection.execute(
+      "UPDATE users SET username = ? WHERE user_id = ?",
+      [email, userId]
+    );
+
+    await connection.commit();
+
+    const updatedStudent = await getStudentByUserId(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      student: updatedStudent,
+    });
+  } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error("Profile update rollback error:", rollbackError);
+      }
+    }
+
+    console.error("Update my profile error:", error);
+
+    if (error.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({
+        success: false,
+        message: "This email address is already in use.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update your profile.",
+    });
+  } finally {
+    if (connection) connection.release();
+  }
 };
 
-// =====================================================
-// EXPORT CONTROLLERS
-// =====================================================
+// Admin: edit student
+const editStudent = async (req, res) => {
+  let connection;
+
+  try {
+    const studentId = req.params.id;
+    const validation = validateStudentData(req.body, true);
+
+    if (!validation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: validation.firstError,
+        errors: validation.errors,
+      });
+    }
+
+    const registrationNo = normalizeStudentValue(
+      req.body.registrationNo || req.body.registration_no
+    );
+    const firstName = normalizeStudentValue(
+      req.body.firstName || req.body.first_name
+    );
+    const lastName = normalizeStudentValue(
+      req.body.lastName || req.body.last_name
+    );
+    const email = normalizeStudentValue(req.body.email).toLowerCase();
+    const phoneNumber = normalizeStudentValue(
+      req.body.phoneNumber || req.body.phone_number
+    );
+    const password = normalizeStudentValue(req.body.password);
+    const profilePhoto =
+      req.body.profilePhoto || req.body.profile_photo || null;
+
+    const [found] = await pool.execute(
+      "SELECT student_id, user_id FROM students WHERE student_id = ? LIMIT 1",
+      [studentId]
+    );
+
+    if (!found.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found.",
+      });
+    }
+
+    const userId = found[0].user_id;
+
+    const [duplicateRegistration] = await pool.execute(
+      "SELECT student_id FROM students WHERE registration_no = ? AND student_id <> ? LIMIT 1",
+      [registrationNo, studentId]
+    );
+
+    if (duplicateRegistration.length) {
+      return res.status(409).json({
+        success: false,
+        message: "Registration number already exists.",
+      });
+    }
+
+    if (await findDuplicateEmail(email, userId)) {
+      return res.status(409).json({
+        success: false,
+        message: "Email address already exists.",
+      });
+    }
+
+    const [duplicateUsername] = await pool.execute(
+      "SELECT user_id FROM users WHERE username = ? AND user_id <> ? LIMIT 1",
+      [email, userId]
+    );
+
+    if (duplicateUsername.length) {
+      return res.status(409).json({
+        success: false,
+        message: "Email address is already registered.",
+      });
+    }
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    await connection.execute(
+      `UPDATE students
+       SET registration_no = ?, first_name = ?, last_name = ?, email = ?,
+           phone_number = ?, profile_photo = ?
+       WHERE student_id = ?`,
+      [
+        registrationNo,
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        profilePhoto,
+        studentId,
+      ]
+    );
+
+    await connection.execute(
+      "UPDATE users SET username = ? WHERE user_id = ?",
+      [email, userId]
+    );
+
+    if (password) {
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      await connection.execute(
+        "UPDATE users SET password_hash = ? WHERE user_id = ?",
+        [passwordHash, userId]
+      );
+    }
+
+    await connection.commit();
+
+    const student = await getStudentByUserId(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Student updated successfully.",
+      student,
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
+
+    console.error("Edit student error:", error);
+
+    if (error.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({
+        success: false,
+        message: "The provided details already exist.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update student.",
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Admin: delete student
+const deleteStudent = async (req, res) => {
+  let connection;
+
+  try {
+    const [students] = await pool.execute(
+      "SELECT student_id, user_id FROM students WHERE student_id = ? LIMIT 1",
+      [req.params.id]
+    );
+
+    if (!students.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found.",
+      });
+    }
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    await connection.execute(
+      "DELETE FROM students WHERE student_id = ?",
+      [req.params.id]
+    );
+
+    await connection.execute(
+      "DELETE FROM users WHERE user_id = ?",
+      [students[0].user_id]
+    );
+
+    await connection.commit();
+
+    return res.status(200).json({
+      success: true,
+      message: "Student deleted successfully.",
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
+
+    console.error("Delete student error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete student.",
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+// Change logged-in student's password
+const changeStudentPassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const currentPassword = normalizeStudentValue(req.body.currentPassword);
+    const newPassword = normalizeStudentValue(req.body.newPassword);
+    const confirmPassword = normalizeStudentValue(req.body.confirmPassword);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All password fields are required.",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 8 characters long.",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password and confirmation do not match.",
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from the current password.",
+      });
+    }
+
+    const [users] = await pool.execute(
+      "SELECT password_hash FROM users WHERE user_id = ? LIMIT 1",
+      [userId]
+    );
+
+    if (!users.length) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    const valid = await bcrypt.compare(
+      currentPassword,
+      users[0].password_hash
+    );
+
+    if (!valid) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect.",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await pool.execute(
+      "UPDATE users SET password_hash = ? WHERE user_id = ?",
+      [passwordHash, userId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+  } catch (error) {
+    console.error("Change student password error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to change password.",
+    });
+  }
+};
+
+// Import students
+const importStudents = async (req, res) => {
+  const students = req.body.students;
+
+  if (!Array.isArray(students) || students.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide a non-empty students array.",
+    });
+  }
+
+  let connection;
+
+  const results = {
+    imported: 0,
+    failed: 0,
+    errors: [],
+  };
+
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    for (let index = 0; index < students.length; index += 1) {
+      const item = students[index];
+
+      const registrationNo = normalizeStudentValue(
+        item.registrationNo || item.registration_no
+      );
+      const firstName = normalizeStudentValue(
+        item.firstName || item.first_name
+      );
+      const lastName = normalizeStudentValue(
+        item.lastName || item.last_name
+      );
+      const email = normalizeStudentValue(item.email).toLowerCase();
+      const phoneNumber = normalizeStudentValue(
+        item.phoneNumber || item.phone_number
+      );
+      const password = normalizeStudentValue(item.password);
+
+      const validation = validateStudentData(
+        {
+          registrationNo,
+          firstName,
+          lastName,
+          email,
+          phoneNumber,
+          password,
+        },
+        false
+      );
+
+      if (!validation.isValid) {
+        results.failed += 1;
+        results.errors.push({
+          row: index + 1,
+          registrationNo,
+          message: validation.firstError,
+        });
+        continue;
+      }
+
+      const [existingRegistration] = await connection.execute(
+        "SELECT student_id FROM students WHERE registration_no = ? LIMIT 1",
+        [registrationNo]
+      );
+
+      const [existingEmail] = await connection.execute(
+        "SELECT student_id FROM students WHERE email = ? LIMIT 1",
+        [email]
+      );
+
+      const [existingUsername] = await connection.execute(
+        "SELECT user_id FROM users WHERE username = ? LIMIT 1",
+        [email]
+      );
+
+      if (
+        existingRegistration.length ||
+        existingEmail.length ||
+        existingUsername.length
+      ) {
+        results.failed += 1;
+        results.errors.push({
+          row: index + 1,
+          registrationNo,
+          message: "Registration number or email already exists.",
+        });
+        continue;
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const [userResult] = await connection.execute(
+        "INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'STUDENT')",
+        [email, passwordHash]
+      );
+
+      await connection.execute(
+        `INSERT INTO students
+         (user_id, registration_no, first_name, last_name, email, phone_number, profile_photo)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userResult.insertId,
+          registrationNo,
+          firstName,
+          lastName,
+          email,
+          phoneNumber,
+          item.profilePhoto || item.profile_photo || null,
+        ]
+      );
+
+      results.imported += 1;
+    }
+
+    await connection.commit();
+
+    return res.status(200).json({
+      success: true,
+      message: "Student import completed.",
+      results,
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
+
+    console.error("Import students error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to import students.",
+      results,
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+};
 
 module.exports = {
-    addStudent,
-    getStudents,
-    getStudent,
-    getMyProfile,
-    editStudent,
-    removeStudent,
-    changeMyPassword,
-    importStudents
+  addStudent,
+  getAllStudents,
+  getStudentById,
+  getMyProfile,
+  updateMyProfile,
+  editStudent,
+  deleteStudent,
+  changeStudentPassword,
+  importStudents,
 };

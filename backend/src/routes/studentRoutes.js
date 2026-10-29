@@ -3,12 +3,13 @@ const express = require("express");
 
 const {
     addStudent,
-    getStudents,
-    getStudent,
+    getAllStudents,
+    getStudentById,
     getMyProfile,
+    updateMyProfile,
     editStudent,
-    removeStudent,
-    changeMyPassword,
+    deleteStudent,
+    changeStudentPassword,
     importStudents
 } = require("../controllers/studentController");
 
@@ -23,6 +24,7 @@ const router = express.Router();
 // STUDENT SELF-SERVICE ROUTES
 // ============================================
 
+// Get authenticated student's profile
 router.get(
     "/me",
     authenticate,
@@ -30,11 +32,20 @@ router.get(
     getMyProfile
 );
 
+// CR-019: Update authenticated student's own profile
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
+);
+
+// CR-020: Change authenticated student's password
 router.patch(
     "/me/password",
     authenticate,
     authorizeRoles("STUDENT"),
-    changeMyPassword
+    changeStudentPassword
 );
 
 // ============================================
@@ -63,7 +74,7 @@ router.get(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
-    getStudents
+    getAllStudents
 );
 
 // Get student by ID
@@ -71,10 +82,10 @@ router.get(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
-    getStudent
+    getStudentById
 );
 
-// Update student profile
+// Existing ADMIN-only student update
 router.put(
     "/:id",
     authenticate,
@@ -87,7 +98,7 @@ router.delete(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
-    removeStudent
+    deleteStudent
 );
 
 module.exports = router;
