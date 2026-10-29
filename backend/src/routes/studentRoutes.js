@@ -27,6 +27,14 @@ router.get(
     getMyProfile
 );
 
+// CR-019: Students can update only their own email address and phone number.
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
+);
+
 
 // Create student
 // Administrator only

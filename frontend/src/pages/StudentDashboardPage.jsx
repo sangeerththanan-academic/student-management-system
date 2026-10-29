@@ -14,10 +14,18 @@ function StudentDashboardPage() {
     const navigate = useNavigate();
 
     // CR-019: Allow an authenticated student to update email and phone details.
-    const [user, setUser] = useState(getStoredUser());
+    const user = getStoredUser();
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        email: "",
+        phoneNumber: ""
+    });
+    const [profileFormError, setProfileFormError] = useState("");
+    const [profileFormSuccess, setProfileFormSuccess] = useState("");
+    const [savingProfile, setSavingProfile] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -25,33 +33,31 @@ function StudentDashboardPage() {
                 setLoading(true);
                 setError("");
 
-            const data = await apiRequest(
-                "/api/students/me",
-                { method: "GET" }
-            );
+                const data = await apiRequest(
+                    "/api/students/me",
+                    { method: "GET" }
+                );
 
                 if (data.student) {
                     setStudent(data.student);
                 }
-
             } catch (err) {
                 console.error("Failed to load profile:", err);
 
-            if (err.status === 401) {
-                logout();
-                navigate("/login", { replace: true });
-                return;
+                if (err.status === 401) {
+                    logout();
+                    navigate("/login", { replace: true });
+                    return;
+                }
+
+                setError(
+                    err.message || "Failed to load your profile."
+                );
+            } finally {
+                setLoading(false);
             }
+        };
 
-            setError(
-                err.message || "Failed to load your profile."
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
         loadProfile();
     }, [navigate]);
 
@@ -206,7 +212,17 @@ function StudentDashboardPage() {
             {/* Main Content */}
             <main className="student-dashboard-main">
 
-                <h2 className="section-title">My Profile</h2>
+                <div className="profile-header-actions">
+                    <h2 className="section-title">My Profile</h2>
+                    <button
+                        type="button"
+                        className="edit-profile-button"
+                        onClick={openProfileEditor}
+                        disabled={!student || savingProfile}
+                    >
+                        Edit Profile
+                    </button>
+                </div>
 
                 {error && (
                     <div className="student-error">
@@ -292,6 +308,118 @@ function StudentDashboardPage() {
                             No profile data found.
                         </div>
                     )
+                )}
+
+                {isProfileEditorOpen && (
+                    <div
+                        className="profile-modal-overlay"
+                        onMouseDown={(event) => {
+                            if (event.target === event.currentTarget) {
+                                closeProfileEditor();
+                            }
+                        }}
+                    >
+                        <div
+                            className="profile-modal"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="profile-modal-title"
+                        >
+                            <div className="profile-modal-header">
+                                <div>
+                                    <h3 id="profile-modal-title">
+                                        Edit Profile
+                                    </h3>
+                                    <p>
+                                        Update your email address and phone number.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="profile-modal-close"
+                                    onClick={closeProfileEditor}
+                                    disabled={savingProfile}
+                                    aria-label="Close profile editor"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {profileFormError && (
+                                <div
+                                    className="profile-form-message error"
+                                    role="alert"
+                                >
+                                    {profileFormError}
+                                </div>
+                            )}
+                            {profileFormSuccess && (
+                                <div
+                                    className="profile-form-message success"
+                                    role="status"
+                                >
+                                    {profileFormSuccess}
+                                </div>
+                            )}
+
+                            <form
+                                className="profile-edit-form"
+                                onSubmit={handleProfileSubmit}
+                            >
+                                <div className="profile-field">
+                                    <label htmlFor="student-email-field">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        id="student-email-field"
+                                        name="email"
+                                        type="email"
+                                        value={profileForm.email}
+                                        onChange={handleProfileFieldChange}
+                                        autoComplete="email"
+                                        required
+                                        disabled={savingProfile}
+                                    />
+                                </div>
+                                <div className="profile-field">
+                                    <label htmlFor="student-phone-field">
+                                        Phone Number
+                                    </label>
+                                    <input
+                                        id="student-phone-field"
+                                        name="phoneNumber"
+                                        type="text"
+                                        value={profileForm.phoneNumber}
+                                        onChange={handleProfileFieldChange}
+                                        inputMode="numeric"
+                                        maxLength={10}
+                                        autoComplete="tel"
+                                        required
+                                        disabled={savingProfile}
+                                    />
+                                </div>
+                                <div className="profile-form-actions">
+                                    <button
+                                        type="button"
+                                        className="profile-cancel-button"
+                                        onClick={closeProfileEditor}
+                                        disabled={savingProfile}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="profile-submit-button"
+                                        disabled={savingProfile}
+                                    >
+                                        {savingProfile
+                                            ? "Saving..."
+                                            : "Save Changes"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 )}
 
             </main>

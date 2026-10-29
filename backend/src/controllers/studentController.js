@@ -373,6 +373,139 @@ const getMyProfile = async (req, res) => {
     }
 };
 
+// CR-019: Update the authenticated student's own email and phone number.
+const updateMyProfile = async (req, res) => {
+    const email =
+        typeof req.body?.email === "string"
+            ? req.body.email.trim().toLowerCase()
+            : "";
+    const phoneNumber =
+        typeof req.body?.phoneNumber === "string"
+            ? req.body.phoneNumber.trim()
+            : "";
+    const errors = {};
+
+    if (!email) {
+        errors.email = "Email address is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.email = "Please enter a valid email address.";
+    }
+
+    if (!phoneNumber) {
+        errors.phoneNumber = "Phone number is required.";
+    } else if (!/^\d{10}$/.test(phoneNumber)) {
+        errors.phoneNumber =
+            "Phone number must contain exactly 10 digits.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Please correct the validation errors.",
+            errors
+        });
+    }
+
+    let connection;
+    let transactionStarted = false;
+
+    try {
+        const userId = req.user.userId;
+        const existingStudent = await getStudentByUserId(userId);
+
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found."
+            });
+        }
+
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+        transactionStarted = true;
+
+        const [existingUsers] = await connection.execute(
+            `SELECT user_id
+             FROM users
+             WHERE email = ?
+               AND user_id <> ?`,
+            [email, userId]
+        );
+        const [existingStudents] = await connection.execute(
+            `SELECT student_id
+             FROM students
+             WHERE email = ?
+               AND student_id <> ?`,
+            [email, existingStudent.student_id]
+        );
+
+        if (existingUsers.length > 0 || existingStudents.length > 0) {
+            await connection.rollback();
+            transactionStarted = false;
+
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered.",
+                errors: {
+                    email: "Email address is already registered."
+                }
+            });
+        }
+
+        await connection.execute(
+            `UPDATE users
+             SET email = ?
+             WHERE user_id = ?`,
+            [email, userId]
+        );
+        await connection.execute(
+            `UPDATE students
+             SET email = ?, phone_number = ?
+             WHERE student_id = ?`,
+            [email, phoneNumber, existingStudent.student_id]
+        );
+
+        await connection.commit();
+        transactionStarted = false;
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            student: {
+                ...existingStudent,
+                email,
+                phone_number: phoneNumber
+            }
+        });
+    } catch (error) {
+        if (connection && transactionStarted) {
+            try {
+                await connection.rollback();
+            } catch (rollbackError) {
+                console.error("Profile update rollback error:", rollbackError);
+            }
+        }
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered."
+            });
+        }
+
+        console.error("Update my profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile."
+        });
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
 
 module.exports = {
     addStudent,
