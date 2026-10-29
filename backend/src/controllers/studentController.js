@@ -790,6 +790,83 @@ const getMyProfile = async (req, res) => {
 
 
 // ============================================================
+// UPDATE CURRENT STUDENT PROFILE
+// PUT /api/students/me
+// ============================================================
+
+const updateMyProfile = async (req, res) => {
+
+    try {
+
+        const existingStudent = await getStudentByUserId(req.user.userId);
+
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        const { firstName, lastName, email, phoneNumber } = req.body;
+        const validationErrors = validateStudentInput({
+            registrationNo: existingStudent.registration_no,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
+        });
+
+        if (Object.keys(validationErrors).length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: Object.values(validationErrors)[0],
+                errors: validationErrors
+            });
+        }
+
+        const result = await updateStudent(
+            existingStudent.student_id,
+            existingStudent.registration_no,
+            firstName.trim(),
+            lastName.trim(),
+            email.trim(),
+            phoneNumber.trim()
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            student: {
+                ...existingStudent,
+                first_name: firstName.trim(),
+                last_name: lastName.trim(),
+                email: email.trim(),
+                phone_number: phoneNumber.trim()
+            },
+            affectedRows: result.affectedRows
+        });
+
+    } catch (error) {
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: error.message && error.message.toLowerCase().includes("email")
+                    ? "Email address is already registered"
+                    : "Profile information is already registered"
+            });
+        }
+
+        console.error("Update my profile error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile"
+        });
+    }
+};
+
+
+// ============================================================
 // EXPORTS
 // ============================================================
 
@@ -802,6 +879,8 @@ module.exports = {
     getStudent,
 
     getMyProfile,
+
+    updateMyProfile,
 
     editStudent,
 

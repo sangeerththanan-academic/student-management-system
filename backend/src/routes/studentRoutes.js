@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -24,6 +25,14 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+// Update only the authenticated student's editable profile fields
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
 );
 
 
