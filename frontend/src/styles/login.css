@@ -272,6 +272,75 @@
     opacity: 0.65;
 }
 
+.forgot-password-button {
+    border: 0;
+    padding: 4px;
+    background: transparent;
+    color: #2563eb;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.forgot-password-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.forgot-password-link {
+    align-self: flex-end;
+    margin-top: -12px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #2563eb;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.forgot-password-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.forgot-password-link:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.login-success {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 14px;
+}
+
+.reset-code-next-step {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.reset-code-next-step button {
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #2563eb;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 /* =========================================================
    Responsive
    ========================================================= */
@@ -322,4 +391,202 @@
     .login-heading h2 {
         font-size: 25px;
     }
+}
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+    display: none;
+}
+
+.password-input-wrapper input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+}
+
+.password-toggle-button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #666;
+}
+
+.password-toggle-button:hover {
+    color: #222;
+}
+
+.password-toggle-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.password-toggle-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.password-toggle-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+
+/* =========================================================
+   CR-012: LOGIN PAGE DARK MODE
+   ========================================================= */
+
+/* Full login screen */
+html[data-theme="dark"] .login-page,
+html[data-theme="dark"] .login-container {
+    background: #0b1220 !important;
+    color: #f1f5f9;
+}
+
+/* Login information side */
+html[data-theme="dark"] .login-info {
+    background: linear-gradient(
+        135deg,
+        #172554,
+        #1e3a8a,
+        #1e40af
+    );
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .login-info-content h1 {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .login-info-content p {
+    color: #dbeafe !important;
+}
+
+html[data-theme="dark"] .back-button {
+    color: #ffffff;
+}
+
+/* Form section background */
+html[data-theme="dark"] .login-form-section {
+    background: #0b1220 !important;
+    color: #f1f5f9 !important;
+}
+
+/* Login card */
+html[data-theme="dark"] .login-card {
+    background: #111c2e !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Login heading */
+html[data-theme="dark"] .login-heading h2 {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .login-heading p {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .login-heading > span {
+    color: #93c5fd !important;
+}
+
+/* Labels */
+html[data-theme="dark"] .login-form .form-group label {
+    color: #e2e8f0 !important;
+}
+
+/* Input fields */
+html[data-theme="dark"] .login-form .form-group input {
+    background: #0b1220 !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .login-form .form-group input::placeholder {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .login-form .form-group input:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+}
+
+/* Password visibility button */
+html[data-theme="dark"] .password-toggle-button {
+    color: #cbd5e1 !important;
+    background: transparent !important;
+}
+
+html[data-theme="dark"] .password-toggle-button:hover {
+    color: #ffffff !important;
+}
+
+/* Login error message remains readable */
+html[data-theme="dark"] .login-error {
+    background: #451a1a !important;
+    color: #fecaca !important;
+    border-color: #7f1d1d !important;
+}
+
+html[data-theme="dark"] .login-success {
+    background: #052e16;
+    color: #bbf7d0;
+    border-color: #166534;
+}
+
+html[data-theme="dark"] .forgot-password-link {
+    color: #93c5fd;
+}
+
+html[data-theme="dark"] .reset-code-next-step {
+    color: #cbd5e1;
+}
+
+/* Submit button */
+html[data-theme="dark"] .login-submit-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .login-submit-button:hover:not(:disabled) {
+    background: #3b82f6;
+}
+
+/* Smooth transition */
+.login-page,
+.login-info,
+.login-form-section,
+.login-card,
+.login-form input {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
 }

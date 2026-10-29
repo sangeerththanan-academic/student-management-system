@@ -1,3 +1,4 @@
+
 const express = require("express");
 
 const {
@@ -7,7 +8,9 @@ const {
     getMyProfile,
     updateMyProfile,
     editStudent,
-    removeStudent
+    removeStudent,
+    changeMyPassword,
+    bulkImportStudents
 } = require("../controllers/studentController");
 
 const {
@@ -15,10 +18,9 @@ const {
     authorizeRoles
 } = require("../middleware/authMiddleware");
 
+const { uploadStudentImage } = require("../middleware/studentUploadMiddleware");
+
 const router = express.Router();
-
-
-// STUDENT ROUTES
 
 // Get current student's own profile
 router.get(
@@ -36,18 +38,16 @@ router.put(
 );
 
 
-// Create student
-// Administrator only
+// Create student - Administrator only
 router.post(
     "/",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentImage.single("profileImage"),
     addStudent
 );
 
-
-// Get all students
-// Administrator only
+// Get all students - Administrator only
 router.get(
     "/",
     authenticate,
@@ -55,9 +55,7 @@ router.get(
     getStudents
 );
 
-
-// Get student by ID
-// Administrator only
+// Get student by ID - Administrator only
 router.get(
     "/:id",
     authenticate,
@@ -65,24 +63,29 @@ router.get(
     getStudent
 );
 
-
-// Update student
-// Administrator only
+// Update student - Administrator only
 router.put(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
+    uploadStudentImage.single("profileImage"),
     editStudent
 );
 
-
-// Delete student
-// Administrator only
+// Delete student - Administrator only
 router.delete(
     "/:id",
     authenticate,
     authorizeRoles("ADMIN"),
     removeStudent
+);
+
+
+router.post(
+    "/bulk-import",
+    authenticate,
+    authorizeRoles("ADMIN"),
+    bulkImportStudents
 );
 
 

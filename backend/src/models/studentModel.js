@@ -1,3 +1,4 @@
+
 const pool = require("../config/db");
 
 // CREATE STUDENT
@@ -8,9 +9,9 @@ const createStudent = async (
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto = null
 ) => {
-
     const [result] = await connection.execute(
         `INSERT INTO students
         (
@@ -19,48 +20,50 @@ const createStudent = async (
             first_name,
             last_name,
             email,
-            phone_number
+            phone_number,
+            profile_photo
         )
-        VALUES (?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
             userId,
             registrationNo,
             firstName,
             lastName,
             email,
-            phoneNumber
+            phoneNumber,
+            profilePhoto
         ]
     );
 
     return result.insertId;
 };
 
-
 // GET ALL STUDENTS
+// CR-006: Include last login timestamp
 const getAllStudents = async () => {
-
     const [rows] = await pool.execute(
         `SELECT
-            student_id,
-            user_id,
-            registration_no,
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            created_at,
-            updated_at
-        FROM students
-        ORDER BY student_id DESC`
+            s.student_id,
+            s.user_id,
+            s.registration_no,
+            s.first_name,
+            s.last_name,
+            s.email,
+            s.phone_number,
+            s.profile_photo,
+            s.created_at,
+            s.updated_at,
+            u.last_login
+        FROM students s
+        LEFT JOIN users u ON s.user_id = u.user_id
+        ORDER BY s.student_id DESC`
     );
 
     return rows;
 };
 
-
 // GET STUDENT BY ID
 const getStudentById = async (studentId) => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -70,6 +73,7 @@ const getStudentById = async (studentId) => {
             last_name,
             email,
             phone_number,
+            profile_photo,
             created_at,
             updated_at
         FROM students
@@ -81,43 +85,67 @@ const getStudentById = async (studentId) => {
     return rows[0];
 };
 
-
 // UPDATE STUDENT
+// Preserve the existing image when no new image is uploaded.
 const updateStudent = async (
     studentId,
     registrationNo,
     firstName,
     lastName,
     email,
-    phoneNumber
+    phoneNumber,
+    profilePhoto
 ) => {
+    let query;
+    let values;
 
-    const [result] = await pool.execute(
-        `UPDATE students
-        SET
-            registration_no = ?,
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            phone_number = ?
-        WHERE student_id = ?`,
-        [
+    if (profilePhoto !== undefined) {
+        query = `UPDATE students
+            SET
+                registration_no = ?,
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone_number = ?,
+                profile_photo = ?
+            WHERE student_id = ?`;
+
+        values = [
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            profilePhoto,
+            studentId
+        ];
+    } else {
+        query = `UPDATE students
+            SET
+                registration_no = ?,
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                phone_number = ?
+            WHERE student_id = ?`;
+
+        values = [
             registrationNo,
             firstName,
             lastName,
             email,
             phoneNumber,
             studentId
-        ]
-    );
+        ];
+    }
+
+    const [result] = await pool.execute(query, values);
 
     return result;
 };
 
-
 // DELETE STUDENT
 const deleteStudent = async (studentId) => {
-
     const [result] = await pool.execute(
         `DELETE FROM students
         WHERE student_id = ?`,
@@ -127,10 +155,8 @@ const deleteStudent = async (studentId) => {
     return result;
 };
 
-
 // GET STUDENT BY USER ID
 const getStudentByUserId = async (userId) => {
-
     const [rows] = await pool.execute(
         `SELECT
             student_id,
@@ -140,6 +166,7 @@ const getStudentByUserId = async (userId) => {
             last_name,
             email,
             phone_number,
+            profile_photo,
             created_at,
             updated_at
         FROM students
@@ -152,11 +179,38 @@ const getStudentByUserId = async (userId) => {
 };
 
 
+// CR-020: Get password hash for authenticated user
+const getPasswordHashByUserId = async (userId) => {
+    const [rows] = await pool.execute(
+        `SELECT password_hash
+         FROM users
+         WHERE user_id = ?
+         LIMIT 1`,
+        [userId]
+    );
+
+    return rows[0] || null;
+};
+
+// CR-020: Update password hash
+const updatePasswordHash = async (userId, passwordHash) => {
+    const [result] = await pool.execute(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE user_id = ?`,
+        [passwordHash, userId]
+    );
+
+    return result;
+};
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    getPasswordHashByUserId,
+    updatePasswordHash,
     deleteStudent
 };

@@ -436,3 +436,203 @@
         font-size: 28px;
     }
 }
+
+
+
+
+/* =========================================================
+   LANDING PAGE - DARK MODE
+   ========================================================= */
+
+html[data-theme="dark"] .landing-page {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* Hero section */
+html[data-theme="dark"] .hero-section {
+    background: linear-gradient(
+        135deg,
+        #0f172a 0%,
+        #111827 55%,
+        #172554 100%
+    );
+}
+
+html[data-theme="dark"] .hero-content h1,
+html[data-theme="dark"] .hero-card h2,
+html[data-theme="dark"] .section-heading h2,
+html[data-theme="dark"] .feature-card h3 {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .hero-content > p,
+html[data-theme="dark"] .hero-card > p,
+html[data-theme="dark"] .section-heading p,
+html[data-theme="dark"] .feature-card p {
+    color: #cbd5e1;
+}
+
+/* Hero badge */
+html[data-theme="dark"] .hero-badge {
+    background: #1e3a8a;
+    color: #bfdbfe;
+}
+
+/* Hero card */
+html[data-theme="dark"] .hero-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .hero-card-icon,
+html[data-theme="dark"] .feature-icon {
+    background: #1e3a5f;
+    color: #bfdbfe;
+}
+
+html[data-theme="dark"] .hero-card-stats > div {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .hero-card-stats span {
+    color: #cbd5e1;
+}
+
+/* About and Features sections */
+html[data-theme="dark"] .about-section {
+    background: #0f172a;
+}
+
+html[data-theme="dark"] .features-section {
+    background: #111827;
+}
+
+html[data-theme="dark"] .feature-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .feature-card:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
+
+/* Section labels */
+html[data-theme="dark"] .section-label {
+    color: #93c5fd;
+}
+
+/* Buttons */
+html[data-theme="dark"] .secondary-button {
+    background: #1e293b;
+    color: #bfdbfe;
+    border-color: #475569;
+}
+
+html[data-theme="dark"] .secondary-button:hover {
+    background: #334155;
+}
+
+/* Links and text inside the landing page */
+html[data-theme="dark"] .landing-page a:not(.primary-button):not(.secondary-button) {
+    color: #93c5fd;
+}
+
+/* Smooth transition */
+.landing-page,
+.landing-page .hero-section,
+.landing-page .about-section,
+.landing-page .features-section,
+.landing-page .hero-card,
+.landing-page .feature-card {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+
+/* Landing page theme toggle */
+.landing-page {
+    position: relative;
+    min-height: 100vh;
+}
+
+.landing-theme-toggle {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    z-index: 1000;
+}
+
+.landing-theme-toggle .theme-toggle {
+    position: static;
+    margin: 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .landing-theme-toggle {
+        top: 12px;
+        right: 12px;
+    }
+}
+
+
+
+
+/* Theme toggle alignment on landing page */
+.landing-theme-bar {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 0;
+
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Keep the toggle in normal layout */
+.landing-theme-bar .theme-toggle {
+    position: static;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* Responsive alignment */
+@media (max-width: 768px) {
+    .landing-theme-bar {
+        width: 94%;
+        padding: 10px 0;
+    }
+}
+
+
+.landing-theme-bar {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.landing-theme-bar .theme-toggle {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .landing-theme-bar {
+        width: 94%;
+        padding: 10px 0;
+    }
+}

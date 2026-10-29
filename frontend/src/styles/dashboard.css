@@ -317,6 +317,46 @@
         0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* ── CR-004: Inline field validation ── */
+
+.student-form .form-group.field-error input {
+    border-color: #dc2626;
+
+    box-shadow:
+        0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.student-form .form-group.field-error input:focus {
+    border-color: #dc2626;
+}
+
+.field-error-msg {
+    color: #dc2626;
+
+    font-size: 11.5px;
+
+    font-weight: 600;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+}
+
+.field-error-msg::before {
+    content: "⚠";
+
+    font-size: 11px;
+}
+
+.field-hint {
+    color: #94a3b8;
+
+    font-size: 11.5px;
+}
+
+
 .form-actions {
     grid-column: 1 / -1;
 
@@ -330,7 +370,8 @@
 }
 
 .cancel-button,
-.save-button {
+.save-button,
+.submit-button {
     border: none;
 
     padding: 11px 18px;
@@ -358,6 +399,15 @@
 }
 
 .save-button:hover {
+    background: #1d4ed8;
+}
+
+.submit-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.submit-button:hover:not(:disabled) {
     background: #1d4ed8;
 }
 
@@ -672,4 +722,561 @@
     .modal-content {
         max-height: 95vh;
     }
+}
+
+
+
+
+/* Fix header alignment and theme toggle overlap */
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dashboard-header-actions .theme-toggle {
+    position: static !important;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.dashboard-header-actions .logout-button {
+    position: static;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        align-items: flex-start;
+    }
+
+    .dashboard-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+}
+
+
+
+
+
+/* =========================================
+   FULL SCREEN DARK MODE
+   ========================================= */
+
+:root[data-theme="dark"],
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root {
+    min-height: 100%;
+    background: #0b1120;
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] body {
+    min-height: 100vh;
+}
+
+:root[data-theme="dark"] #root {
+    min-height: 100vh;
+}
+
+/* Entire dashboard */
+:root[data-theme="dark"] .dashboard-page {
+    min-height: 100vh;
+    background: #0b1120;
+    color: #e2e8f0;
+}
+
+/* Header */
+:root[data-theme="dark"] .dashboard-header {
+    background: #111827;
+    border-bottom-color: #334155;
+}
+
+:root[data-theme="dark"] .dashboard-header h1,
+:root[data-theme="dark"] .dashboard-header .admin-info strong,
+:root[data-theme="dark"] .students-heading h2 {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .dashboard-header p,
+:root[data-theme="dark"] .students-heading p {
+    color: #cbd5e1;
+}
+
+/* Main content */
+:root[data-theme="dark"] .dashboard-content {
+    background: transparent;
+}
+
+/* Cards and tables */
+:root[data-theme="dark"] .students-card,
+:root[data-theme="dark"] .student-form-card {
+    background: #172033;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-table th {
+    background: #263449;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .students-table td {
+    background: #172033;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .students-table td strong {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .students-table tbody tr:hover td {
+    background: #263449;
+}
+
+/* Search and form fields */
+:root[data-theme="dark"] .students-search-input,
+:root[data-theme="dark"] .student-form .form-group input {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .students-search-input::placeholder {
+    color: #94a3b8;
+}
+
+:root[data-theme="dark"] .student-form .form-group label,
+:root[data-theme="dark"] .form-card-header h3 {
+    color: #e2e8f0;
+}
+
+/* Empty and loading messages */
+:root[data-theme="dark"] .students-loading,
+:root[data-theme="dark"] .students-empty h3 {
+    color: #f8fafc;
+}
+
+:root[data-theme="dark"] .students-empty p,
+:root[data-theme="dark"] .students-result-count,
+:root[data-theme="dark"] .form-card-header p {
+    color: #cbd5e1;
+}
+
+/* Modal */
+:root[data-theme="dark"] .modal-content {
+    background: #172033;
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .close-form-button,
+:root[data-theme="dark"] .cancel-button,
+:root[data-theme="dark"] .students-search-clear {
+    background: #334155;
+    color: #f8fafc;
+}
+
+/* Smooth transition */
+body,
+#root,
+.dashboard-page,
+.dashboard-header,
+.students-card,
+.student-form-card {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+
+/* CR-020: Change Password Section */
+
+.change-password-section {
+    margin-top: 24px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.change-password-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.change-password-intro h3 {
+    margin: 0 0 8px;
+    color: #0f172a;
+    font-size: 17px;
+}
+
+.change-password-intro p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.open-password-modal,
+.password-submit-button {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.open-password-modal:hover,
+.password-submit-button:hover {
+    background: #1d4ed8;
+}
+
+/* Modal overlay */
+
+.password-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.password-modal {
+    width: 100%;
+    max-width: 480px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.password-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.password-modal-header h2 {
+    margin: 0 0 8px;
+    font-size: 21px;
+    color: #0f172a;
+}
+
+.password-modal-header p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #64748b;
+}
+
+.password-modal-close {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.password-change-form {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+}
+
+.password-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.password-field label {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.password-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 14px;
+    outline: none;
+}
+
+.password-field input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.password-field input:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.password-hint {
+    margin: -4px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.password-message {
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.password-message.success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.password-message.error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.password-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 5px;
+}
+
+.password-clear-button,
+.password-cancel-button {
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.password-clear-button:hover,
+.password-cancel-button:hover {
+    background: #f1f5f9;
+}
+
+.password-submit-button:disabled,
+.password-clear-button:disabled,
+.password-cancel-button:disabled,
+.password-modal-close:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Dark theme */
+
+html[data-theme="dark"] .change-password-section {
+    background: #111827;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .change-password-intro h3,
+html[data-theme="dark"] .password-modal-header h2 {
+    color: #e2e8f0;
+}
+
+html[data-theme="dark"] .change-password-intro p,
+html[data-theme="dark"] .password-modal-header p,
+html[data-theme="dark"] .password-hint {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .password-modal {
+    background: #111827;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+}
+
+html[data-theme="dark"] .password-field label {
+    color: #e2e8f0;
+}
+
+html[data-theme="dark"] .password-field input {
+    background: #0b1120;
+    color: #e2e8f0;
+    border-color: #475569;
+}
+
+html[data-theme="dark"] .password-clear-button,
+html[data-theme="dark"] .password-cancel-button {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #475569;
+}
+
+html[data-theme="dark"] .password-clear-button:hover,
+html[data-theme="dark"] .password-cancel-button:hover {
+    background: #334155;
+}
+
+/* Mobile responsive */
+
+@media (max-width: 480px) {
+    .change-password-section {
+        padding: 18px;
+    }
+
+    .open-password-modal {
+        width: 100%;
+    }
+
+    .password-modal {
+        padding: 20px;
+    }
+
+    .password-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .password-submit-button {
+        grid-column: 1 / -1;
+    }
+}
+
+
+
+/* CR-015: CSV export button */
+
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.export-csv-button {
+    padding: 12px 18px;
+    border: 1px solid #16a34a;
+    border-radius: 8px;
+    background: #16a34a;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.export-csv-button:hover:not(:disabled) {
+    background: #15803d;
+}
+
+.export-csv-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.export-csv-message {
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .students-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .students-heading-actions button {
+        max-width: 100%;
+    }
+}
+
+
+/* CR-002: CSV import panel */
+.csv-import-panel {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.csv-import-panel h4 {
+    margin: 0 0 8px;
+    color: #1e293b;
+}
+
+.csv-import-panel p {
+    overflow-wrap: anywhere;
+}
+
+.csv-import-panel label {
+    display: block;
+    margin: 12px 0 8px;
+    font-weight: 600;
+}
+
+.csv-import-panel input[type="file"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 8px;
+}
+
+.csv-import-panel .cancel-button {
+    margin-top: 10px;
+}
+
+.csv-import-success {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    background: #ecfdf5;
+    color: #065f46;
+    overflow-wrap: anywhere;
+}
+
+.csv-import-panel .dashboard-error {
+    margin-top: 10px;
+    overflow-wrap: anywhere;
 }
