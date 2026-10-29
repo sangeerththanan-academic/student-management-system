@@ -283,3 +283,121 @@
         right: 8px;
     }
 }
+
+
+/* Profile success message */
+.student-success {
+    background-color: #e8f7ed;
+    color: #176534;
+    border: 1px solid #a8dfb8;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+}
+
+/* Edit Profile button area */
+.profile-edit-action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.profile-edit-button,
+.profile-save-button,
+.profile-cancel-button {
+    border: none;
+    border-radius: 6px;
+    padding: 11px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.profile-edit-button,
+.profile-save-button {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.profile-edit-button:hover,
+.profile-save-button:hover {
+    background-color: #1d4ed8;
+}
+
+.profile-cancel-button {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.profile-cancel-button:hover {
+    background-color: #d1d5db;
+}
+
+.profile-edit-form {
+    margin-top: 24px;
+}
+
+.profile-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.profile-form-group label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.profile-form-group input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+}
+
+.profile-form-group input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.profile-field-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin: 0;
+}
+
+.profile-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.profile-save-button:disabled,
+.profile-cancel-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .profile-edit-action {
+        justify-content: stretch;
+    }
+
+    .profile-edit-button {
+        width: 100%;
+    }
+
+    .profile-form-actions {
+        flex-direction: column;
+    }
+
+    .profile-save-button,
+    .profile-cancel-button {
+        width: 100%;
+    }
+}
