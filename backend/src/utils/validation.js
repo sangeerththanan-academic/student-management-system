@@ -1,5 +1,5 @@
 /**
- * Validation utilities for Student Input Data (CR-004)
+ * Validation utilities for Student Input Data (CR-004, CR-019)
  */
 
 const validateRegistrationNo = (registrationNo) => {
@@ -118,11 +118,37 @@ const validateStudentData = (data, isEdit = false) => {
     };
 };
 
+/**
+ * Validation utility for Student Self Profile Update (CR-019)
+ */
+const validateStudentProfileData = (data) => {
+    const {
+        email,
+        phoneNumber
+    } = data || {};
+
+    const errors = {};
+
+    const emailError = validateEmail(email);
+    if (emailError) errors.email = emailError;
+
+    const phoneError = validatePhoneNumber(phoneNumber);
+    if (phoneError) errors.phoneNumber = phoneError;
+
+    const errorKeys = Object.keys(errors);
+    return {
+        isValid: errorKeys.length === 0,
+        errors,
+        firstError: errorKeys.length > 0 ? errors[errorKeys[0]] : null
+    };
+};
+
 module.exports = {
     validateRegistrationNo,
     validateName,
     validateEmail,
     validatePhoneNumber,
     validatePassword,
-    validateStudentData
+    validateStudentData,
+    validateStudentProfileData
 };

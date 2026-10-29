@@ -9,7 +9,9 @@ import {
     AlertCircle,
     X,
     Search,
-    Check
+    Check,
+    Edit2,
+    Save
 } from "lucide-react";
 
 import {
@@ -32,6 +34,120 @@ function StudentDashboardPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // CR-019: Profile Editing State
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [profileFormData, setProfileFormData] = useState({
+        email: "",
+        phoneNumber: ""
+    });
+    const [profileValidationErrors, setProfileValidationErrors] = useState({});
+    const [profileUpdating, setProfileUpdating] = useState(false);
+    const [profileUpdateSuccess, setProfileUpdateSuccess] = useState("");
+    const [profileUpdateError, setProfileUpdateError] = useState("");
+
+    // CR-019: Start Editing Profile
+    const handleStartEditProfile = () => {
+        if (!student) return;
+        setProfileFormData({
+            email: student.email || "",
+            phoneNumber: student.phone_number || ""
+        });
+        setProfileValidationErrors({});
+        setProfileUpdateError("");
+        setProfileUpdateSuccess("");
+        setIsEditingProfile(true);
+    };
+
+    // CR-019: Cancel Editing Profile
+    const handleCancelEditProfile = () => {
+        setIsEditingProfile(false);
+        setProfileValidationErrors({});
+        setProfileUpdateError("");
+    };
+
+    // CR-019: Form Input Change Handler
+    const handleProfileInputChange = (e) => {
+        const { name, value } = e.target;
+        setProfileFormData((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+        if (profileValidationErrors[name]) {
+            setProfileValidationErrors((prev) => ({
+                ...prev,
+                [name]: ""
+            }));
+        }
+    };
+
+    // CR-019: Client-Side Validation
+    const validateProfileForm = () => {
+        const errors = {};
+        const emailTrimmed = (profileFormData.email || "").trim();
+        const phoneTrimmed = (profileFormData.phoneNumber || "").trim();
+
+        if (!emailTrimmed) {
+            errors.email = "Email address is required";
+        } else {
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(emailTrimmed)) {
+                errors.email = "Email must follow a valid email format";
+            }
+        }
+
+        if (!phoneTrimmed) {
+            errors.phoneNumber = "Phone number is required";
+        } else if (!/^\d+$/.test(phoneTrimmed)) {
+            errors.phoneNumber = "Phone number must contain numeric characters only";
+        } else if (phoneTrimmed.length !== 10) {
+            errors.phoneNumber = "Phone number must contain exactly 10 digits";
+        }
+
+        return errors;
+    };
+
+    // CR-019: Submit Profile Updates
+    const handleSaveProfile = async (e) => {
+        e.preventDefault();
+        setProfileUpdateError("");
+        setProfileUpdateSuccess("");
+
+        const validationErrors = validateProfileForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setProfileValidationErrors(validationErrors);
+            return;
+        }
+
+        try {
+            setProfileUpdating(true);
+
+            const payload = {
+                email: profileFormData.email.trim(),
+                phoneNumber: profileFormData.phoneNumber.trim()
+            };
+
+            const data = await apiRequest("/api/students/me", {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
+
+            if (data.student) {
+                setStudent(data.student);
+            }
+            setProfileUpdateSuccess(data.message || "Profile updated successfully.");
+            setIsEditingProfile(false);
+            setProfileValidationErrors({});
+        } catch (err) {
+            console.error("Profile update failed:", err);
+            setProfileUpdateError(err.message || "Failed to update profile.");
+            if (err.data?.errors) {
+                setProfileValidationErrors(err.data.errors);
+            }
+        } finally {
+            setProfileUpdating(false);
+        }
+    };
 
     // CR-009: Courses & Enrollment State
     const [courses, setCourses] = useState([]);
@@ -186,8 +302,53 @@ function StudentDashboardPage() {
             {/* Main Content */}
             <main className="student-dashboard-main">
                 {/* Profile Section */}
-                <section className="dashboard-section">
-                    <h2 className="section-title">My Profile</h2>
+                <section className="dashboard-section profile-section">
+                    <div className="section-header-row">
+                        <h2 className="section-title">My Profile</h2>
+                        {!isEditingProfile && student && (
+                            <button
+                                type="button"
+                                className="edit-profile-btn"
+                                onClick={handleStartEditProfile}
+                                id="edit-profile-btn"
+                            >
+                                <Edit2 size={16} />
+                                <span>Edit Profile</span>
+                            </button>
+                        )}
+                    </div>
+
+                    {profileUpdateSuccess && (
+                        <div className="course-alert course-alert-success profile-alert" role="alert">
+                            <div className="course-alert-content">
+                                <CheckCircle2 size={18} className="course-alert-icon" />
+                                <span>{profileUpdateSuccess}</span>
+                            </div>
+                            <button
+                                className="course-alert-dismiss"
+                                onClick={() => setProfileUpdateSuccess("")}
+                                aria-label="Dismiss alert"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    )}
+
+                    {profileUpdateError && (
+                        <div className="course-alert course-alert-error profile-alert" role="alert">
+                            <div className="course-alert-content">
+                                <AlertCircle size={18} className="course-alert-icon" />
+                                <span>{profileUpdateError}</span>
+                            </div>
+                            <button
+                                className="course-alert-dismiss"
+                                onClick={() => setProfileUpdateError("")}
+                                aria-label="Dismiss alert"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="student-error">
@@ -230,54 +391,140 @@ function StudentDashboardPage() {
                                 </div>
                             </div>
 
-                            <div className="profile-details">
-                                <div className="detail-row">
-                                    <span className="detail-label">
-                                        Registration No
-                                    </span>
-                                    <span className="detail-value">
-                                        {student.registration_no}
-                                    </span>
-                                </div>
+                            {!isEditingProfile ? (
+                                <div className="profile-details">
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Registration No
+                                        </span>
+                                        <span className="detail-value">
+                                            {student.registration_no}
+                                        </span>
+                                    </div>
 
-                                <div className="detail-row">
-                                    <span className="detail-label">
-                                        Full Name
-                                    </span>
-                                    <span className="detail-value">
-                                        {student.first_name} {student.last_name}
-                                    </span>
-                                </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Full Name
+                                        </span>
+                                        <span className="detail-value">
+                                            {student.first_name} {student.last_name}
+                                        </span>
+                                    </div>
 
-                                <div className="detail-row">
-                                    <span className="detail-label">
-                                        Email
-                                    </span>
-                                    <span className="detail-value">
-                                        {student.email}
-                                    </span>
-                                </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Email
+                                        </span>
+                                        <span className="detail-value">
+                                            {student.email}
+                                        </span>
+                                    </div>
 
-                                <div className="detail-row">
-                                    <span className="detail-label">
-                                        Phone
-                                    </span>
-                                    <span className="detail-value">
-                                        {student.phone_number}
-                                    </span>
-                                </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Phone
+                                        </span>
+                                        <span className="detail-value">
+                                            {student.phone_number}
+                                        </span>
+                                    </div>
 
-                                <div className="detail-row">
-                                    <span className="detail-label">
-                                        Member Since
-                                    </span>
-                                    <span className="detail-value">
-                                        {new Date(
-                                            student.created_at
-                                        ).toLocaleDateString()}
-                                    </span>
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Member Since
+                                        </span>
+                                        <span className="detail-value">
+                                            {new Date(
+                                                student.created_at
+                                            ).toLocaleDateString()}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <form
+                                    className="profile-edit-form"
+                                    id="profile-edit-form"
+                                    onSubmit={handleSaveProfile}
+                                    noValidate
+                                >
+                                    <div className="profile-edit-info-banner">
+                                        <div className="info-item">
+                                            <span className="info-label">Registration No</span>
+                                            <span className="info-value">{student.registration_no}</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="info-label">Full Name</span>
+                                            <span className="info-value">{student.first_name} {student.last_name}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="profile-edit-group">
+                                        <label htmlFor="profile-email-input" className="profile-edit-label">
+                                            Email Address <span className="profile-required">*</span>
+                                        </label>
+                                        <input
+                                            id="profile-email-input"
+                                            name="email"
+                                            type="email"
+                                            className={`profile-edit-input ${profileValidationErrors.email ? "input-error" : ""}`}
+                                            value={profileFormData.email}
+                                            onChange={handleProfileInputChange}
+                                            placeholder="Enter your email address"
+                                            disabled={profileUpdating}
+                                            required
+                                        />
+                                        {profileValidationErrors.email && (
+                                            <span className="profile-error-text" role="alert">
+                                                {profileValidationErrors.email}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="profile-edit-group">
+                                        <label htmlFor="profile-phone-input" className="profile-edit-label">
+                                            Phone Number <span className="profile-required">*</span>
+                                        </label>
+                                        <input
+                                            id="profile-phone-input"
+                                            name="phoneNumber"
+                                            type="tel"
+                                            className={`profile-edit-input ${profileValidationErrors.phoneNumber ? "input-error" : ""}`}
+                                            value={profileFormData.phoneNumber}
+                                            onChange={handleProfileInputChange}
+                                            placeholder="Enter 10-digit phone number"
+                                            disabled={profileUpdating}
+                                            required
+                                        />
+                                        {profileValidationErrors.phoneNumber && (
+                                            <span className="profile-error-text" role="alert">
+                                                {profileValidationErrors.phoneNumber}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="profile-edit-actions">
+                                        <button
+                                            type="submit"
+                                            className="profile-save-btn"
+                                            disabled={profileUpdating}
+                                            id="profile-save-btn"
+                                        >
+                                            <Save size={16} />
+                                            <span>{profileUpdating ? "Saving..." : "Save Changes"}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="profile-cancel-btn"
+                                            onClick={handleCancelEditProfile}
+                                            disabled={profileUpdating}
+                                            id="profile-cancel-btn"
+                                        >
+                                            <X size={16} />
+                                            <span>Cancel</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     ) : (
                         !error && (

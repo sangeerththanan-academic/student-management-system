@@ -1139,4 +1139,245 @@
     border-color: rgba(16, 185, 129, 0.3);
 }
 
-
+
+
+
+/* =========================================================
+   CR-019: Profile Editing Section & Form
+   ========================================================= */
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header-row .section-title {
+    margin: 0;
+}
+
+.edit-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.edit-profile-btn:hover {
+    background: #1d4ed8;
+}
+
+.edit-profile-btn:active {
+    transform: translateY(1px);
+}
+
+.profile-alert {
+    margin-bottom: 20px;
+}
+
+.profile-edit-form {
+    padding: 24px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-edit-info-banner {
+    display: flex;
+    gap: 30px;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2563eb;
+}
+
+.profile-edit-info-banner .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-edit-info-banner .info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-edit-info-banner .info-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.profile-edit-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.profile-edit-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.profile-required {
+    color: #ef4444;
+}
+
+.profile-edit-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.profile-edit-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.profile-edit-input.input-error {
+    border-color: #ef4444;
+    background: #fff5f5;
+}
+
+.profile-edit-input.input-error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.profile-error-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: #dc2626;
+    margin-top: 2px;
+}
+
+.profile-edit-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.profile-save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profile-save-btn:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.profile-save-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.profile-cancel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.profile-cancel-btn:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.profile-cancel-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Dark Mode Overrides for CR-019 */
+.student-dashboard-page[data-theme="dark"] .profile-edit-info-banner,
+.student-dashboard-page.dark .profile-edit-info-banner {
+    background: #0f172a;
+    border-color: #334155;
+    border-left-color: #3b82f6;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-edit-info-banner .info-label,
+.student-dashboard-page.dark .profile-edit-info-banner .info-label {
+    color: #94a3b8;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-edit-info-banner .info-value,
+.student-dashboard-page.dark .profile-edit-info-banner .info-value {
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-edit-label,
+.student-dashboard-page.dark .profile-edit-label {
+    color: #cbd5e1;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-edit-input,
+.student-dashboard-page.dark .profile-edit-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-edit-input:focus,
+.student-dashboard-page.dark .profile-edit-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-edit-input.input-error,
+.student-dashboard-page.dark .profile-edit-input.input-error {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: #ef4444;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-cancel-btn,
+.student-dashboard-page.dark .profile-cancel-btn {
+    background: #334155;
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+.student-dashboard-page[data-theme="dark"] .profile-cancel-btn:hover:not(:disabled),
+.student-dashboard-page.dark .profile-cancel-btn:hover:not(:disabled) {
+    background: #475569;
+    color: #f8fafc;
+}

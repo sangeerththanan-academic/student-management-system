@@ -10,10 +10,11 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    updateStudentProfile,
     deleteStudent
 } = require("../models/studentModel");
 
-const { validateStudentData } = require("../utils/validation");
+const { validateStudentData, validateStudentProfileData } = require("../utils/validation");
 const { generateStudentsCsv } = require("../utils/csvExport");
 
 
@@ -421,6 +422,87 @@ const getMyProfile = async (req, res) => {
 };
 
 
+// UPDATE CURRENT STUDENT'S OWN PROFILE (CR-019)
+// PUT /api/students/me
+const updateMyProfile = async (req, res) => {
+    try {
+        // SEC-001 / SEC-002 / SEC-003: Derive identity from authenticated JWT userId
+        const userId = req.user.userId;
+        const { email, phoneNumber } = req.body;
+
+        // FR-005 / SEC-006: Server-side validation
+        const validation = validateStudentProfileData(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({
+                success: false,
+                message: validation.firstError,
+                errors: validation.errors
+            });
+        }
+
+        // Verify that student profile exists for this authenticated user
+        const existingStudent = await getStudentByUserId(userId);
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        const trimmedEmail = email.trim();
+        const trimmedPhone = phoneNumber.trim();
+
+        // Check if email already registered to another user
+        const [existingEmail] = await pool.execute(
+            `SELECT student_id
+             FROM students
+             WHERE email = ? AND user_id != ?
+             LIMIT 1`,
+            [trimmedEmail, userId]
+        );
+
+        if (existingEmail.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+        // FR-006: Update only the authenticated student's existing record
+        const result = await updateStudentProfile(
+            userId,
+            trimmedEmail,
+            trimmedPhone
+        );
+
+        // FR-007: Retrieve updated profile
+        const updatedStudent = await getStudentByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            student: updatedStudent,
+            affectedRows: result.affectedRows
+        });
+
+    } catch (error) {
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+        console.error("Update my profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile"
+        });
+    }
+};
+
+
 // CHANGE OWN PASSWORD (CR-020)
 // PUT /api/students/me/change-password
 const changeMyPassword = async (req, res) => {
@@ -681,6 +763,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     changeMyPassword,
     editStudent,
     removeStudent,

@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     changeMyPassword,
     editStudent,
     removeStudent,
@@ -31,6 +32,15 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+
+// Update current student's own profile (CR-019)
+// Student must be logged in; self-update identified by JWT userId
+router.put(
+    "/me",
+    authenticate,
+    updateMyProfile
 );
 
 
