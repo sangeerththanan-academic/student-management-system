@@ -7,9 +7,15 @@ const {
     getAllStudents,
     getStudentById,
     getStudentByUserId,
+    updateStudentProfileByUserId,
     updateStudent,
     deleteStudent
 } = require("../models/studentModel");
+
+const {
+    validateEmail,
+    validatePhoneNumber
+} = require("../utils/validation");
 
 
 // ============================================================
@@ -650,6 +656,76 @@ const getMyProfile = async (req, res) => {
 
 
 // ============================================================
+// UPDATE CURRENT STUDENT PROFILE
+// PUT /api/students/me
+// ============================================================
+
+const updateMyProfile = async (req, res) => {
+
+    const { email, phoneNumber } = req.body || {};
+    const cleanEmail = typeof email === "string" ? email.trim() : "";
+    const cleanPhoneNumber = typeof phoneNumber === "string"
+        ? phoneNumber.trim()
+        : "";
+
+    const emailError = validateEmail(cleanEmail);
+    if (emailError) {
+        return res.status(400).json({
+            success: false,
+            message: emailError
+        });
+    }
+
+    const phoneError = validatePhoneNumber(cleanPhoneNumber);
+    if (phoneError) {
+        return res.status(400).json({
+            success: false,
+            message: phoneError
+        });
+    }
+
+    try {
+        const existingStudent = await getStudentByUserId(req.user.userId);
+
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        await updateStudentProfileByUserId(
+            req.user.userId,
+            cleanEmail,
+            cleanPhoneNumber
+        );
+
+        const student = await getStudentByUserId(req.user.userId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            student
+        });
+    } catch (error) {
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "That email address is already in use"
+            });
+        }
+
+        console.error("Update my profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile"
+        });
+    }
+};
+
+
+// ============================================================
 // EXPORTS
 // ============================================================
 
@@ -658,6 +734,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 };

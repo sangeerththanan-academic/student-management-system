@@ -13,10 +13,18 @@ import "../styles/studentDashboard.css";
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const user = getStoredUser();
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [formData, setFormData] = useState({
+        email: "",
+        phoneNumber: ""
+    });
+    const [validationError, setValidationError] = useState("");
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -58,6 +66,87 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const handleEditProfile = () => {
+        setFormData({
+            email: student.email || "",
+            phoneNumber: student.phone_number || ""
+        });
+        setValidationError("");
+        setError("");
+        setSuccess("");
+        setIsEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setValidationError("");
+    };
+
+    const handleProfileSubmit = async (event) => {
+        event.preventDefault();
+
+        const email = formData.email.trim();
+        const phoneNumber = formData.phoneNumber.trim();
+
+        if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
+            setValidationError("Please enter a valid email address.");
+            return;
+        }
+
+        if (!/^\d{10}$/.test(phoneNumber)) {
+            setValidationError("Phone number must contain exactly 10 digits.");
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            setError("");
+            setValidationError("");
+            setSuccess("");
+
+            const result = await apiRequest(
+                "/api/students/me",
+                {
+                    method: "PUT",
+                    body: JSON.stringify({ email, phoneNumber })
+                }
+            );
+
+            if (result.student) {
+                setStudent(result.student);
+            }
+
+            setIsEditing(false);
+            setSuccess(result.message || "Profile updated successfully.");
+
+            try {
+                const refreshedProfile = await apiRequest(
+                    "/api/students/me",
+                    { method: "GET" }
+                );
+
+                if (refreshedProfile.student) {
+                    setStudent(refreshedProfile.student);
+                }
+            } catch (refreshError) {
+                console.error("Failed to refresh updated profile:", refreshError);
+                setError("Your profile was saved, but the latest details could not be refreshed.");
+            }
+        } catch (err) {
+            console.error("Failed to update profile:", err);
+
+            if (err.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
+            }
+
+            setError(err.message || "Failed to update your profile.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <div className="student-dashboard-page">
 
@@ -90,6 +179,12 @@ function StudentDashboardPage() {
                     </div>
                 )}
 
+                {success && (
+                    <div className="student-success" role="status">
+                        {success}
+                    </div>
+                )}
+
                 {loading ? (
                     <div className="student-loading">
                         Loading your profile...
@@ -108,58 +203,129 @@ function StudentDashboardPage() {
                                 </h3>
                                 <p>{student.registration_no}</p>
                             </div>
+                            {!isEditing && (
+                                <button
+                                    className="edit-profile-button"
+                                    type="button"
+                                    onClick={handleEditProfile}
+                                >
+                                    Edit Profile
+                                </button>
+                            )}
                         </div>
 
-                        <div className="profile-details">
+                        {isEditing ? (
+                            <form
+                                className="profile-edit-form"
+                                onSubmit={handleProfileSubmit}
+                                noValidate
+                            >
+                                <label className="profile-form-field">
+                                    <span>Email address</span>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(event) => setFormData({
+                                            ...formData,
+                                            email: event.target.value
+                                        })}
+                                        autoComplete="email"
+                                        required
+                                    />
+                                </label>
 
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Registration No
-                                </span>
-                                <span className="detail-value">
-                                    {student.registration_no}
-                                </span>
+                                <label className="profile-form-field">
+                                    <span>Phone number</span>
+                                    <input
+                                        type="tel"
+                                        value={formData.phoneNumber}
+                                        onChange={(event) => setFormData({
+                                            ...formData,
+                                            phoneNumber: event.target.value
+                                        })}
+                                        autoComplete="tel"
+                                        inputMode="numeric"
+                                        maxLength={10}
+                                        required
+                                    />
+                                </label>
+
+                                {validationError && (
+                                    <p className="profile-validation-error" role="alert">
+                                        {validationError}
+                                    </p>
+                                )}
+
+                                <div className="profile-form-actions">
+                                    <button
+                                        className="save-profile-button"
+                                        type="submit"
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving ? "Saving..." : "Save Changes"}
+                                    </button>
+                                    <button
+                                        className="cancel-profile-button"
+                                        type="button"
+                                        onClick={handleCancelEdit}
+                                        disabled={isSaving}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="profile-details">
+
+                                <div className="detail-row">
+                                    <span className="detail-label">
+                                        Registration No
+                                    </span>
+                                    <span className="detail-value">
+                                        {student.registration_no}
+                                    </span>
+                                </div>
+
+                                <div className="detail-row">
+                                    <span className="detail-label">
+                                        Full Name
+                                    </span>
+                                    <span className="detail-value">
+                                        {student.first_name} {student.last_name}
+                                    </span>
+                                </div>
+
+                                <div className="detail-row">
+                                    <span className="detail-label">
+                                        Email
+                                    </span>
+                                    <span className="detail-value">
+                                        {student.email}
+                                    </span>
+                                </div>
+
+                                <div className="detail-row">
+                                    <span className="detail-label">
+                                        Phone
+                                    </span>
+                                    <span className="detail-value">
+                                        {student.phone_number}
+                                    </span>
+                                </div>
+
+                                <div className="detail-row">
+                                    <span className="detail-label">
+                                        Member Since
+                                    </span>
+                                    <span className="detail-value">
+                                        {new Date(
+                                            student.created_at
+                                        ).toLocaleDateString()}
+                                    </span>
+                                </div>
+
                             </div>
-
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Full Name
-                                </span>
-                                <span className="detail-value">
-                                    {student.first_name} {student.last_name}
-                                </span>
-                            </div>
-
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Email
-                                </span>
-                                <span className="detail-value">
-                                    {student.email}
-                                </span>
-                            </div>
-
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Phone
-                                </span>
-                                <span className="detail-value">
-                                    {student.phone_number}
-                                </span>
-                            </div>
-
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Member Since
-                                </span>
-                                <span className="detail-value">
-                                    {new Date(
-                                        student.created_at
-                                    ).toLocaleDateString()}
-                                </span>
-                            </div>
-
-                        </div>
+                        )}
 
                     </div>
                 ) : (
