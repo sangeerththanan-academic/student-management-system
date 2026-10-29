@@ -8,12 +8,13 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
-
 import StudentFormModal from "../components/StudentFormModal";
 
 import "../styles/dashboard.css";
 
-// Normalizes text for case-insensitive search with space handling.
+// =====================================================
+// NORMALIZE SEARCH VALUE
+// =====================================================
 const normalizeSearchValue = (value) => {
     return String(value ?? "")
         .toLowerCase()
@@ -21,23 +22,75 @@ const normalizeSearchValue = (value) => {
         .replace(/\s+/g, " ");
 };
 
+// =====================================================
+// BUILD STUDENT PROFILE IMAGE URL
+// =====================================================
+const getProfileImageUrl = (profileImage) => {
+    if (!profileImage) {
+        return null;
+    }
+
+    const imagePath = String(profileImage).replace(/\\/g, "/");
+
+    if (/^https?:\/\//i.test(imagePath)) {
+        return imagePath;
+    }
+
+    const filename = imagePath.split("/").filter(Boolean).pop();
+
+    if (!filename) {
+        return null;
+    }
+
+    const apiBaseUrl = (
+        import.meta.env.VITE_API_URL || "http://localhost:5000"
+    ).replace(/\/+$/, "");
+
+    return `${apiBaseUrl}/uploads/students/${encodeURIComponent(filename)}`;
+};
+
+// =====================================================
+// CR033: FORMAT LAST LOGIN
+// =====================================================
+const formatLastLogin = (lastLogin) => {
+    if (!lastLogin) {
+        return "Never logged in";
+    }
+
+    // MySQL DATETIME is normally returned as
+    // YYYY-MM-DD HH:mm:ss.
+    const value = String(lastLogin);
+
+    const date = new Date(
+        value.includes("T") ? value : value.replace(" ", "T")
+    );
+
+    if (Number.isNaN(date.getTime())) {
+        return "Invalid date";
+    }
+
+    return date.toLocaleString();
+};
+
+// =====================================================
+// ADMIN DASHBOARD
+// =====================================================
 function DashboardPage() {
     const navigate = useNavigate();
 
     const [user, setUser] = useState(getStoredUser());
-
     const [students, setStudents] = useState([]);
-
     const [searchTerm, setSearchTerm] = useState("");
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     const [showForm, setShowForm] = useState(false);
-
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // Load current user
+    // =================================================
+    // LOAD CURRENT USER
+    // =================================================
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -50,15 +103,12 @@ function DashboardPage() {
                         role: data.user.role
                     });
                 }
-
             } catch (error) {
                 console.error("Failed to load current user:", error);
 
                 if (error.status === 401) {
                     logout();
-                    navigate("/login", {
-                        replace: true
-                    });
+                    navigate("/login", { replace: true });
                 }
             }
         };
@@ -66,64 +116,47 @@ function DashboardPage() {
         loadUser();
     }, [navigate]);
 
-
-    // Load students
+    // =================================================
+    // LOAD STUDENTS
+    // =================================================
     const loadStudents = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const data = await apiRequest(
-                "/api/students/",
-                {
-                    method: "GET"
-                }
-            );
+            const data = await apiRequest("/api/students/", {
+                method: "GET"
+            });
 
             setStudents(data.students || []);
-
         } catch (error) {
             console.error("Failed to load students:", error);
 
             if (error.status === 401) {
                 logout();
-
-                navigate("/login", {
-                    replace: true
-                });
-
+                navigate("/login", { replace: true });
                 return;
             }
 
             if (error.status === 403) {
-                setError(
-                    "You do not have permission to access students."
-                );
-
+                setError("You do not have permission to access students.");
                 return;
             }
 
-            setError(
-                error.message ||
-                "Failed to retrieve students."
-            );
-
+            setError(error.message || "Failed to retrieve students.");
         } finally {
             setLoading(false);
         }
     };
 
-
     useEffect(() => {
         loadStudents();
     }, []);
 
-
-    // Client-side search (CR-001)
-    // Filters the already-loaded students only.
-    // No API request is made for search keystrokes.
+    // =================================================
+    // SEARCH STUDENTS
+    // =================================================
     const normalizedSearchTerm = normalizeSearchValue(searchTerm);
-
     const isSearching = normalizedSearchTerm !== "";
 
     const filteredStudents = useMemo(() => {
@@ -148,9 +181,7 @@ function DashboardPage() {
                 `${student.first_name ?? ""} ${student.last_name ?? ""}`
             );
 
-            const email = normalizeSearchValue(
-                student.email
-            );
+            const email = normalizeSearchValue(student.email);
 
             return (
                 registrationNo.includes(normalizedSearchTerm) ||
@@ -162,38 +193,48 @@ function DashboardPage() {
         });
     }, [students, normalizedSearchTerm, isSearching]);
 
-
+    // =================================================
+    // CLEAR SEARCH
+    // =================================================
     const handleClearSearch = () => {
         setSearchTerm("");
     };
 
-
-    // Form handling
+    // =================================================
+    // OPEN ADD STUDENT FORM
+    // =================================================
     const openAddForm = () => {
         setEditingStudent(null);
         setShowForm(true);
     };
 
-
+    // =================================================
+    // OPEN EDIT STUDENT FORM
+    // =================================================
     const openEditForm = (student) => {
         setEditingStudent(student);
         setShowForm(true);
     };
 
-
+    // =================================================
+    // CLOSE STUDENT FORM
+    // =================================================
     const handleFormClose = () => {
         setShowForm(false);
         setEditingStudent(null);
     };
 
-
+    // =================================================
+    // HANDLE AUTHENTICATION ERROR
+    // =================================================
     const handleFormAuthError = () => {
         logout();
         navigate("/login", { replace: true });
     };
 
-
-    // Delete student
+    // =================================================
+    // DELETE STUDENT
+    // =================================================
     const handleDelete = async (studentId) => {
         const confirmed = window.confirm(
             "Are you sure you want to delete this student?"
@@ -206,79 +247,47 @@ function DashboardPage() {
         try {
             setError("");
 
-            await apiRequest(
-                `/api/students/${studentId}`,
-                {
-                    method: "DELETE"
-                }
-            );
+            await apiRequest(`/api/students/${studentId}`, {
+                method: "DELETE"
+            });
 
             await loadStudents();
-
         } catch (error) {
-            console.error(
-                "Delete student error:",
-                error
-            );
+            console.error("Delete student error:", error);
 
             if (error.status === 401) {
                 logout();
-
-                navigate("/login", {
-                    replace: true
-                });
-
+                navigate("/login", { replace: true });
                 return;
             }
 
-            setError(
-                error.message ||
-                "Failed to delete student."
-            );
+            setError(error.message || "Failed to delete student.");
         }
     };
 
-
-    // Logout
+    // =================================================
+    // LOGOUT
+    // =================================================
     const handleLogout = () => {
         logout();
-
-        navigate(
-            "/login",
-            {
-                replace: true
-            }
-        );
+        navigate("/login", { replace: true });
     };
 
-
-    // Render
+    // =================================================
+    // RENDER DASHBOARD
+    // =================================================
     return (
         <div className="dashboard-page">
-
             <header className="dashboard-header">
-
                 <div>
-                    <h1>
-                        Student Management System
-                    </h1>
-
-                    <p>
-                        Administrator Dashboard
-                    </p>
+                    <h1>Student Management System</h1>
+                    <p>Administrator Dashboard</p>
                 </div>
 
-
                 <div className="dashboard-header-actions">
-
                     <div className="admin-info">
-                        <strong>
-                            {user?.username}
-                        </strong>
-
-                        <span>
-                            {user?.role}
-                        </span>
+                        <strong>{user?.username}</strong>
+                        <span>{user?.role}</span>
                     </div>
 
                     <button
@@ -287,28 +296,15 @@ function DashboardPage() {
                     >
                         Logout
                     </button>
-
                 </div>
-
             </header>
 
-
             <main className="dashboard-content">
-
-                {/* Page heading */}
-
                 <div className="students-heading">
-
                     <div>
-                        <h2>
-                            Students
-                        </h2>
-
-                        <p>
-                            Manage student accounts and profiles.
-                        </p>
+                        <h2>Students</h2>
+                        <p>Manage student accounts and profiles.</p>
                     </div>
-
 
                     <button
                         className="add-student-button"
@@ -316,20 +312,13 @@ function DashboardPage() {
                     >
                         + Add Student
                     </button>
-
                 </div>
-
-
-                {/* Error */}
 
                 {error && (
                     <div className="dashboard-error">
                         {error}
                     </div>
                 )}
-
-
-                {/* Student form modal */}
 
                 <StudentFormModal
                     show={showForm}
@@ -338,9 +327,6 @@ function DashboardPage() {
                     onSuccess={loadStudents}
                     onAuthError={handleFormAuthError}
                 />
-
-
-                {/* Students */}
 
                 <div className="students-search">
                     <input
@@ -368,40 +354,35 @@ function DashboardPage() {
                 {!loading && students.length > 0 && (
                     <p className="students-result-count">
                         {isSearching
-                            ? `${filteredStudents.length} ${filteredStudents.length === 1 ? "student" : "students"} found`
-                            : `${students.length} ${students.length === 1 ? "student" : "students"}`}
+                            ? `${filteredStudents.length} ${
+                                  filteredStudents.length === 1
+                                      ? "student"
+                                      : "students"
+                              } found`
+                            : `${students.length} ${
+                                  students.length === 1
+                                      ? "student"
+                                      : "students"
+                              }`}
                     </p>
                 )}
 
                 <div className="students-card">
-
                     {loading ? (
-
                         <div className="students-loading">
                             Loading students...
                         </div>
-
                     ) : students.length === 0 ? (
-
                         <div className="students-empty">
-                            <h3>
-                                No students found
-                            </h3>
-
-                            <p>
-                                Add your first student to get started.
-                            </p>
+                            <h3>No students found</h3>
+                            <p>Add your first student to get started.</p>
                         </div>
-
                     ) : filteredStudents.length === 0 ? (
-
                         <div className="students-empty">
-                            <h3>
-                                No matching students found
-                            </h3>
+                            <h3>No matching students found</h3>
 
                             <p>
-                                No students match &quot;{searchTerm.trim()}&quot;.
+                                No students match "{searchTerm.trim()}".
                             </p>
 
                             <button
@@ -412,109 +393,117 @@ function DashboardPage() {
                                 Clear Search
                             </button>
                         </div>
-
                     ) : (
-
                         <div className="students-table-wrapper">
-
                             <table className="students-table">
-
                                 <thead>
                                     <tr>
-                                        <th>
-                                            Registration No.
-                                        </th>
-
-                                        <th>
-                                            Name
-                                        </th>
-
-                                        <th>
-                                            Email
-                                        </th>
-
-                                        <th>
-                                            Phone
-                                        </th>
-
-                                        <th>
-                                            Actions
-                                        </th>
+                                        <th>Photo</th>
+                                        <th>Registration No.</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Last Login</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
 
-
                                 <tbody>
+                                    {filteredStudents.map((student) => {
+                                        const imageUrl = getProfileImageUrl(
+                                            student.profile_image
+                                        );
 
-                                    {filteredStudents.map((student) => (
-                                        <tr
-                                            key={student.student_id}
-                                        >
+                                        return (
+                                            <tr key={student.student_id}>
+                                                <td>
+                                                    {imageUrl ? (
+                                                        <img
+                                                            className="student-profile-thumbnail"
+                                                            src={imageUrl}
+                                                            alt={`${student.first_name} ${student.last_name}`}
+                                                            onError={(event) => {
+                                                                event.currentTarget.style.display =
+                                                                    "none";
 
-                                            <td>
-                                                <strong>
-                                                    {student.registration_no}
-                                                </strong>
-                                            </td>
+                                                                event.currentTarget.nextElementSibling?.classList.remove(
+                                                                    "student-profile-placeholder-hidden"
+                                                                );
+                                                            }}
+                                                        />
+                                                    ) : null}
 
-                                            <td>
-                                                {student.first_name}{" "}
-                                                {student.last_name}
-                                            </td>
-
-                                            <td>
-                                                {student.email}
-                                            </td>
-
-                                            <td>
-                                                {student.phone_number}
-                                            </td>
-
-                                            <td>
-
-                                                <div className="student-actions">
-
-                                                    <button
-                                                        className="edit-button"
-                                                        onClick={() =>
-                                                            openEditForm(
-                                                                student
-                                                            )
-                                                        }
+                                                    <div
+                                                        className={`student-profile-placeholder ${
+                                                            imageUrl
+                                                                ? "student-profile-placeholder-hidden"
+                                                                : ""
+                                                        }`}
+                                                        aria-label="No profile image"
+                                                        title="No profile image"
                                                     >
-                                                        Edit
-                                                    </button>
+                                                        {String(
+                                                            student.first_name || "S"
+                                                        )
+                                                            .charAt(0)
+                                                            .toUpperCase()}
+                                                    </div>
+                                                </td>
 
-                                                    <button
-                                                        className="delete-button"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                student.student_id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                <td>
+                                                    <strong>
+                                                        {student.registration_no}
+                                                    </strong>
+                                                </td>
 
-                                                </div>
+                                                <td>
+                                                    {student.first_name}{" "}
+                                                    {student.last_name}
+                                                </td>
 
-                                            </td>
+                                                <td>{student.email}</td>
 
-                                        </tr>
-                                    ))}
+                                                <td>{student.phone_number}</td>
 
+                                                {/* CR033: Last Login */}
+                                                <td className="last-login-cell">
+                                                    {formatLastLogin(
+                                                        student.last_login
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    <div className="student-actions">
+                                                        <button
+                                                            className="edit-button"
+                                                            onClick={() =>
+                                                                openEditForm(student)
+                                                            }
+                                                        >
+                                                            Edit
+                                                        </button>
+
+                                                        <button
+                                                            className="delete-button"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    student.student_id
+                                                                )
+                                                            }
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
-
                             </table>
-
                         </div>
-
                     )}
-
                 </div>
-
             </main>
-
         </div>
     );
 }

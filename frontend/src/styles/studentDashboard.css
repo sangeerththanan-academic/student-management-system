@@ -332,6 +332,7 @@
     border: 1px solid #fecaca;
 }
 
+<<<<<<< HEAD
 .student-success {
     background: #f0fdf4;
     color: #166534;
@@ -348,14 +349,20 @@
    Student Form Password Show / Hide
    Preserved from the existing stylesheet
    ========================================================= */
+=======
+>>>>>>> JFICT32/CR026
 
-.password-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+/* CR-010: Student profile photo */
+
+.student-profile-image {
+    display: block;
     width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
+<<<<<<< HEAD
 .password-input-wrapper input {
     width: 100%;
     padding-right: 45px;
@@ -367,9 +374,15 @@
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
+=======
+.profile-avatar-initials {
+>>>>>>> JFICT32/CR026
     display: flex;
+    width: 100%;
+    height: 100%;
     align-items: center;
     justify-content: center;
+<<<<<<< HEAD
     padding: 5px;
     border: none;
     outline: none;
@@ -524,3 +537,14 @@
         right: 8px;
     }
 }
+=======
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+>>>>>>> JFICT32/CR026

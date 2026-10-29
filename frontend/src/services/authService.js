@@ -1,6 +1,10 @@
+
 import apiRequest from "./api";
 
-// Login
+// ==========================================
+// LOGIN - Existing username/password login
+// ==========================================
+
 export const login = async (username, password) => {
     const data = await apiRequest("/api/auth/login", {
         method: "POST",
@@ -10,29 +14,127 @@ export const login = async (username, password) => {
         })
     });
 
-    // Store JWT
     if (data.token) {
         localStorage.setItem("token", data.token);
     }
 
-    // Store user information
     if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem(
+            "user",
+            JSON.stringify(data.user)
+        );
     }
 
     return data;
 };
 
+// ==========================================
+// STUDENT LOGIN - REQUEST OTP
+// ==========================================
 
-// Get currently logged-in user
-export const getCurrentUser = async () => {
-    return await apiRequest("/api/auth/me", {
-        method: "GET"
-    });
+export const requestStudentLoginOtp = async (email) => {
+    return await apiRequest(
+        "/api/auth/student/request-login-otp",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email: email.trim().toLowerCase()
+            })
+        }
+    );
 };
 
+// ==========================================
+// STUDENT LOGIN - VERIFY OTP
+// ==========================================
 
-// Get stored user
+export const verifyStudentLoginOtp = async (email, otp) => {
+    const data = await apiRequest(
+        "/api/auth/student/verify-login-otp",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email: email.trim().toLowerCase(),
+                otp: otp.trim()
+            })
+        }
+    );
+
+    if (
+        data.token &&
+        data.user &&
+        String(data.user.role).toUpperCase() === "STUDENT"
+    ) {
+        localStorage.setItem("token", data.token);
+
+        localStorage.setItem(
+            "user",
+            JSON.stringify(data.user)
+        );
+    } else if (data.token || data.user) {
+        throw new Error(
+            "Student login response is invalid."
+        );
+    }
+
+    return data;
+};
+
+// ==========================================
+// FORGOT PASSWORD - Existing function
+// ==========================================
+
+export const forgotPassword = async (email) => {
+    return await apiRequest(
+        "/api/auth/forgot-password",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email
+            })
+        }
+    );
+};
+
+// ==========================================
+// RESET PASSWORD - Existing function
+// ==========================================
+
+export const resetPassword = async (
+    token,
+    password,
+    confirmPassword
+) => {
+    return await apiRequest(
+        "/api/auth/reset-password",
+        {
+            method: "POST",
+            body: JSON.stringify({
+                token,
+                password,
+                confirmPassword
+            })
+        }
+    );
+};
+
+// ==========================================
+// GET CURRENT USER
+// ==========================================
+
+export const getCurrentUser = async () => {
+    return await apiRequest(
+        "/api/auth/me",
+        {
+            method: "GET"
+        }
+    );
+};
+
+// ==========================================
+// GET STORED USER
+// ==========================================
+
 export const getStoredUser = () => {
     const user = localStorage.getItem("user");
 
@@ -47,15 +149,19 @@ export const getStoredUser = () => {
     }
 };
 
+// ==========================================
+// LOGOUT
+// ==========================================
 
-// Logout
 export const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 };
 
+// ==========================================
+// AUTHENTICATION CHECK
+// ==========================================
 
-// Check whether a token exists
 export const isAuthenticated = () => {
     return Boolean(localStorage.getItem("token"));
 };
