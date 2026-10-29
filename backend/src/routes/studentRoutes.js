@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 } = require("../controllers/studentController");
@@ -24,6 +25,14 @@ router.get(
     "/me",
     authenticate,
     getMyProfile
+);
+
+// Update the authenticated student's own contact details
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
 );
 
 

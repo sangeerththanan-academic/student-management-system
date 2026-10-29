@@ -7,6 +7,8 @@ const {
     getAllStudents,
     getStudentById,
     getStudentByUserId,
+    emailBelongsToAnotherStudent,
+    updateStudentContactByUserId,
     updateStudent,
     deleteStudent
 } = require("../models/studentModel");
@@ -374,11 +376,85 @@ const getMyProfile = async (req, res) => {
 };
 
 
+// UPDATE THE CURRENT STUDENT'S CONTACT DETAILS
+const updateMyProfile = async (req, res) => {
+    const email = typeof req.body?.email === "string"
+        ? req.body.email.trim()
+        : "";
+    const phoneNumber = typeof req.body?.phoneNumber === "string"
+        ? req.body.phoneNumber.trim()
+        : "";
+
+    if (!email || email.length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({
+            success: false,
+            message: "A valid email address is required"
+        });
+    }
+
+    const phoneDigits = phoneNumber.replace(/\D/g, "");
+    if (
+        phoneNumber.length > 20 ||
+        !/^\+?[0-9().\s-]+$/.test(phoneNumber) ||
+        phoneDigits.length < 7 ||
+        phoneDigits.length > 15
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Enter a valid phone number"
+        });
+    }
+
+    try {
+        const userId = req.user.userId;
+        const student = await getStudentByUserId(userId);
+
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        if (await emailBelongsToAnotherStudent(email, userId)) {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+        await updateStudentContactByUserId(userId, email, phoneNumber);
+        const updatedStudent = await getStudentByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            student: updatedStudent
+        });
+    } catch (error) {
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+        console.error("Update my profile error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile"
+        });
+    }
+};
+
+
 module.exports = {
     addStudent,
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent
 };

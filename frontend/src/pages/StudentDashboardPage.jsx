@@ -13,10 +13,17 @@ import "../styles/studentDashboard.css";
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [editing, setEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [contactDetails, setContactDetails] = useState({
+        email: "",
+        phoneNumber: ""
+    });
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -58,6 +65,66 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const handleEdit = () => {
+        setContactDetails({
+            email: student.email || "",
+            phoneNumber: student.phone_number || ""
+        });
+        setError("");
+        setSuccess("");
+        setEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setEditing(false);
+        setError("");
+    };
+
+    const handleContactChange = (event) => {
+        const { name, value } = event.target;
+        setContactDetails((previous) => ({
+            ...previous,
+            [name]: value
+        }));
+    };
+
+    const handleSaveProfile = async (event) => {
+        event.preventDefault();
+        setError("");
+        setSuccess("");
+
+        try {
+            setSaving(true);
+            const data = await apiRequest("/api/students/me", {
+                method: "PUT",
+                body: JSON.stringify({
+                    email: contactDetails.email.trim(),
+                    phoneNumber: contactDetails.phoneNumber.trim()
+                })
+            });
+
+            setStudent(data.student);
+            setEditing(false);
+            setSuccess("Your profile has been updated.");
+        } catch (err) {
+            console.error("Failed to update profile:", err);
+
+            if (err.status === 401) {
+                logout();
+                navigate("/login", { replace: true });
+                return;
+            }
+
+            if (err.status === 403) {
+                setError("You do not have permission to update this profile.");
+            } else {
+                setError(err.message || "Failed to update your profile.");
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <div className="student-dashboard-page">
 
@@ -85,8 +152,14 @@ function StudentDashboardPage() {
                 <h2 className="section-title">My Profile</h2>
 
                 {error && (
-                    <div className="student-error">
+                    <div className="student-error" role="alert">
                         {error}
+                    </div>
+                )}
+
+                {success && (
+                    <div className="student-success" role="status">
+                        {success}
                     </div>
                 )}
 
@@ -130,23 +203,92 @@ function StudentDashboardPage() {
                                 </span>
                             </div>
 
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Email
-                                </span>
-                                <span className="detail-value">
-                                    {student.email}
-                                </span>
-                            </div>
+                            {editing ? (
+                                <form
+                                    className="profile-contact-form"
+                                    onSubmit={handleSaveProfile}
+                                >
+                                    <div className="detail-row">
+                                        <label
+                                            className="detail-label"
+                                            htmlFor="profile-email"
+                                        >
+                                            Email
+                                        </label>
+                                        <input
+                                            className="profile-input"
+                                            id="profile-email"
+                                            type="email"
+                                            name="email"
+                                            value={contactDetails.email}
+                                            onChange={handleContactChange}
+                                            maxLength={150}
+                                            autoComplete="email"
+                                            required
+                                            disabled={saving}
+                                        />
+                                    </div>
 
-                            <div className="detail-row">
-                                <span className="detail-label">
-                                    Phone
-                                </span>
-                                <span className="detail-value">
-                                    {student.phone_number}
-                                </span>
-                            </div>
+                                    <div className="detail-row">
+                                        <label
+                                            className="detail-label"
+                                            htmlFor="profile-phone"
+                                        >
+                                            Phone
+                                        </label>
+                                        <input
+                                            className="profile-input"
+                                            id="profile-phone"
+                                            type="tel"
+                                            name="phoneNumber"
+                                            value={contactDetails.phoneNumber}
+                                            onChange={handleContactChange}
+                                            maxLength={20}
+                                            autoComplete="tel"
+                                            required
+                                            disabled={saving}
+                                        />
+                                    </div>
+
+                                    <div className="profile-actions">
+                                        <button
+                                            className="profile-save-button"
+                                            type="submit"
+                                            disabled={saving}
+                                        >
+                                            {saving ? "Saving..." : "Save changes"}
+                                        </button>
+                                        <button
+                                            className="profile-cancel-button"
+                                            type="button"
+                                            onClick={handleCancelEdit}
+                                            disabled={saving}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <>
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Email
+                                        </span>
+                                        <span className="detail-value">
+                                            {student.email}
+                                        </span>
+                                    </div>
+
+                                    <div className="detail-row">
+                                        <span className="detail-label">
+                                            Phone
+                                        </span>
+                                        <span className="detail-value">
+                                            {student.phone_number}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
 
                             <div className="detail-row">
                                 <span className="detail-label">
@@ -159,6 +301,17 @@ function StudentDashboardPage() {
                                 </span>
                             </div>
 
+                            {!editing && (
+                                <div className="profile-actions">
+                                    <button
+                                        className="profile-edit-button"
+                                        type="button"
+                                        onClick={handleEdit}
+                                    >
+                                        Edit contact details
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                     </div>

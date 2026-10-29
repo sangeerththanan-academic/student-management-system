@@ -2,6 +2,21 @@
 
 All notable changes to the Student Management System are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+#### CR-019: Student Profile Editing
+
+- Added authenticated student self-service updates for email and phone number.
+- Added server-side email and phone validation and duplicate-email handling.
+- Kept registration number, full name, and member-since date read-only.
+
+### Technical Notes
+
+- Added `PUT /api/students/me`, which scopes updates to the authenticated student's user ID.
+- The endpoint does not use a client-supplied student ID or modify other profile fields.
+
 ## [1.1.0] - 2026-10-05
 
 ### Added

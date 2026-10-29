@@ -152,11 +152,44 @@ const getStudentByUserId = async (userId) => {
 };
 
 
+// CHECK WHETHER AN EMAIL IS USED BY ANOTHER STUDENT
+const emailBelongsToAnotherStudent = async (email, userId) => {
+    const [rows] = await pool.execute(
+        `SELECT student_id
+        FROM students
+        WHERE email = ? AND user_id <> ?
+        LIMIT 1`,
+        [email, userId]
+    );
+
+    return rows.length > 0;
+};
+
+
+// UPDATE THE CURRENT STUDENT'S CONTACT DETAILS
+const updateStudentContactByUserId = async (
+    userId,
+    email,
+    phoneNumber
+) => {
+    const [result] = await pool.execute(
+        `UPDATE students
+        SET email = ?, phone_number = ?
+        WHERE user_id = ?`,
+        [email, phoneNumber, userId]
+    );
+
+    return result;
+};
+
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
+    emailBelongsToAnotherStudent,
+    updateStudentContactByUserId,
     updateStudent,
     deleteStudent
 };

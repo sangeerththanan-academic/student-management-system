@@ -162,6 +162,59 @@
     font-weight: 600;
 }
 
+.profile-input {
+    width: min(60%, 320px);
+    min-width: 180px;
+    padding: 9px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.profile-input:focus {
+    border-color: #2563eb;
+    outline: 3px solid #dbeafe;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+}
+
+.profile-edit-button,
+.profile-save-button,
+.profile-cancel-button {
+    padding: 9px 16px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-edit-button,
+.profile-save-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.profile-edit-button:hover,
+.profile-save-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.profile-cancel-button {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}
+
+.profile-cancel-button:hover:not(:disabled) {
+    background: #f1f5f9;
+}
+
 
 /* =========================================================
    Loading & Error
@@ -182,4 +235,35 @@
     margin-bottom: 20px;
     font-size: 14px;
     border: 1px solid #fecaca;
+}
+
+.student-success {
+    background: #f0fdf4;
+    color: #166534;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #bbf7d0;
+}
+
+@media (max-width: 520px) {
+    .profile-details {
+        padding: 10px 20px 24px;
+    }
+
+    .detail-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .profile-input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .profile-actions {
+        flex-wrap: wrap;
+    }
 }
