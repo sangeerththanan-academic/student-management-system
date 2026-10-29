@@ -5,6 +5,7 @@ const {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent,
     changeMyPassword
@@ -27,6 +28,15 @@ router.get(
     authenticate,
     authorizeRoles("STUDENT"),
     getMyProfile
+);
+
+// CR-019: Update the logged-in student's own email and phone number.
+// Must stay above the admin PUT "/:id" route so "me" is not treated as an id.
+router.put(
+    "/me",
+    authenticate,
+    authorizeRoles("STUDENT"),
+    updateMyProfile
 );
 
 // CR-020: Change the logged-in student's password

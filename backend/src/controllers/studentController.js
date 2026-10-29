@@ -7,6 +7,7 @@ const {
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    updateStudentContactByUserId,
     deleteStudent
 } = require("../models/studentModel");
 
@@ -15,7 +16,11 @@ const {
     updatePasswordHash
 } = require("../models/userModel");
 
-const { validateStudentData } = require("../utils/validation");
+const {
+    validateStudentData,
+    validateEmail: validateEmailFormat,
+    validatePhoneNumber: validatePhoneFormat
+} = require("../utils/validation");
 
 // =====================================================
 // VALIDATION HELPERS
@@ -611,6 +616,87 @@ const changeMyPassword = async (req, res) => {
 };
 
 // =====================================================
+// CR-019: UPDATE LOGGED-IN STUDENT PROFILE
+// PUT /api/students/me
+// Updates ONLY email and phone number of the authenticated student.
+// =====================================================
+
+const updateMyProfile = async (req, res) => {
+    try {
+        // Only these two fields are read from the body. Any other
+        // property (studentId, userId, registrationNo, names, etc.)
+        // is ignored, so another student's record cannot be targeted.
+        const { email, phoneNumber } = req.body || {};
+
+        const emailValue =
+            typeof email === "string" ? email.trim() : email;
+
+        const phoneValue =
+            typeof phoneNumber === "number"
+                ? String(phoneNumber)
+                : typeof phoneNumber === "string"
+                    ? phoneNumber.trim()
+                    : phoneNumber;
+
+        const errors = {};
+
+        const emailError = validateEmailFormat(emailValue);
+        if (emailError) errors.email = emailError;
+
+        const phoneError = validatePhoneFormat(phoneValue);
+        if (phoneError) errors.phoneNumber = phoneError;
+
+        if (Object.keys(errors).length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: errors.email || errors.phoneNumber,
+                errors
+            });
+        }
+
+        // Identity comes from the verified JWT, never from the client.
+        const userId = req.user.userId;
+
+        const existingStudent = await getStudentByUserId(userId);
+
+        if (!existingStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        await updateStudentContactByUserId(
+            userId,
+            emailValue,
+            phoneValue
+        );
+
+        const updatedStudent = await getStudentByUserId(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            student: updatedStudent
+        });
+    } catch (error) {
+        console.error("Update my profile error:", error.message);
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "This email address is already registered to another student"
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile"
+        });
+    }
+};
+
+// =====================================================
 // EXPORT CONTROLLERS
 // =====================================================
 
@@ -619,6 +705,7 @@ module.exports = {
     getStudents,
     getStudent,
     getMyProfile,
+    updateMyProfile,
     editStudent,
     removeStudent,
     changeMyPassword

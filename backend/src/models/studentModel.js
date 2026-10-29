@@ -155,11 +155,37 @@ const getStudentByUserId = async (userId) => {
     return rows[0];
 };
 
+// CR-019: UPDATE LOGGED-IN STUDENT'S CONTACT DETAILS
+// Only email and phone_number are updated, and the record is
+// selected by the authenticated user_id (never by a client-supplied id).
+const updateStudentContactByUserId = async (
+    userId,
+    email,
+    phoneNumber
+) => {
+
+    const [result] = await pool.execute(
+        `UPDATE students
+        SET
+            email = ?,
+            phone_number = ?
+        WHERE user_id = ?`,
+        [
+            email,
+            phoneNumber,
+            userId
+        ]
+    );
+
+    return result;
+};
+
 module.exports = {
     createStudent,
     getAllStudents,
     getStudentById,
     getStudentByUserId,
     updateStudent,
+    updateStudentContactByUserId,
     deleteStudent
 };
