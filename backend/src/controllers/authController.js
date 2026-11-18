@@ -3,7 +3,9 @@ const jwt = require("jsonwebtoken");
 
 const {
     findUserByUsername,
-    findUserById
+    findUserById,
+    findUserByIdWithPassword,
+    updatePasswordHash
 } = require("../models/userModel");
 
 const login = async (req, res) => {
@@ -101,7 +103,64 @@ const getCurrentUser = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "All password fields are required"
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New passwords do not match"
+            });
+        }
+
+        const user = await findUserByIdWithPassword(req.user.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const oldPasswordMatch = await bcrypt.compare(
+            oldPassword,
+            user.password_hash
+        );
+
+        if (!oldPasswordMatch) {
+            return res.status(400).json({
+                success: false,
+                message: "Current password is incorrect"
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        await updatePasswordHash(user.user_id, passwordHash);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully"
+        });
+    } catch (error) {
+        console.error("Change password error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 module.exports = {
     login,
-    getCurrentUser
+    getCurrentUser,
+    changePassword
 };

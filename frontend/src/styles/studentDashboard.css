@@ -162,6 +162,125 @@
     font-weight: 600;
 }
 
+.profile-security {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 28px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.profile-security span {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.change-password-button,
+.profile-back-button {
+    padding: 9px 14px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.change-password-button:hover,
+.profile-back-button:hover {
+    background: #eff6ff;
+}
+
+.password-card {
+    padding: 26px 28px 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.password-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.password-card-header h3 {
+    margin: 0 0 5px;
+    color: #0f172a;
+    font-size: 18px;
+}
+
+.password-card-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.password-form {
+    display: grid;
+    gap: 9px;
+}
+
+.password-form label {
+    margin-top: 8px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.password-form input {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #0f172a;
+    font: inherit;
+}
+
+.password-form input:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 1px;
+    border-color: #2563eb;
+}
+
+.password-submit-button {
+    justify-self: start;
+    margin-top: 14px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.password-submit-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.password-submit-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.password-success {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 14px;
+}
+
 
 /* =========================================================
    Loading & Error
@@ -182,4 +301,20 @@
     margin-bottom: 20px;
     font-size: 14px;
     border: 1px solid #fecaca;
+}
+
+@media (max-width: 520px) {
+    .password-card {
+        padding: 22px 18px;
+    }
+
+    .password-card-header {
+        flex-direction: column;
+    }
+
+    .profile-security {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+    }
 }

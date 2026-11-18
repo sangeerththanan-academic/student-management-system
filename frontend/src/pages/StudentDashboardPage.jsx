@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import {
     getStoredUser,
-    logout
+    logout,
+    changePassword
 } from "../services/authService";
 
 import apiRequest from "../services/api";
@@ -13,10 +14,19 @@ import "../styles/studentDashboard.css";
 function StudentDashboardPage() {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [passwordFields, setPasswordFields] = useState({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [passwordMessage, setPasswordMessage] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [passwordSubmitting, setPasswordSubmitting] = useState(false);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -58,6 +68,43 @@ function StudentDashboardPage() {
         navigate("/login", { replace: true });
     };
 
+    const handlePasswordChange = async (event) => {
+        event.preventDefault();
+        setPasswordMessage("");
+        setPasswordError("");
+
+        if (passwordFields.newPassword !== passwordFields.confirmPassword) {
+            setPasswordError("New passwords do not match.");
+            return;
+        }
+
+        try {
+            setPasswordSubmitting(true);
+            const data = await changePassword(
+                passwordFields.oldPassword,
+                passwordFields.newPassword,
+                passwordFields.confirmPassword
+            );
+            setPasswordFields({
+                oldPassword: "",
+                newPassword: "",
+                confirmPassword: ""
+            });
+            setPasswordMessage(data.message || "Password changed successfully.");
+        } catch (err) {
+            setPasswordError(err.message || "Failed to change password.");
+        } finally {
+            setPasswordSubmitting(false);
+        }
+    };
+
+    const handlePasswordFieldChange = (event) => {
+        const { name, value } = event.target;
+        setPasswordFields((fields) => ({ ...fields, [name]: value }));
+        setPasswordMessage("");
+        setPasswordError("");
+    };
+
     return (
         <div className="student-dashboard-page">
 
@@ -90,7 +137,77 @@ function StudentDashboardPage() {
                     </div>
                 )}
 
-                {loading ? (
+                {showPasswordForm ? (
+                    <section className="password-card">
+                        <div className="password-card-header">
+                            <div>
+                                <h3>Change password</h3>
+                                <p>Enter your current password and choose a new one.</p>
+                            </div>
+                            <button
+                                className="profile-back-button"
+                                type="button"
+                                onClick={() => setShowPasswordForm(false)}
+                            >
+                                Back to profile
+                            </button>
+                        </div>
+
+                        {passwordMessage && (
+                            <div className="password-success" role="status">
+                                {passwordMessage}
+                            </div>
+                        )}
+                        {passwordError && (
+                            <div className="student-error" role="alert">
+                                {passwordError}
+                            </div>
+                        )}
+
+                        <form className="password-form" onSubmit={handlePasswordChange}>
+                            <label htmlFor="oldPassword">Old password</label>
+                            <input
+                                id="oldPassword"
+                                name="oldPassword"
+                                type="password"
+                                autoComplete="current-password"
+                                value={passwordFields.oldPassword}
+                                onChange={handlePasswordFieldChange}
+                                required
+                            />
+
+                            <label htmlFor="newPassword">New password</label>
+                            <input
+                                id="newPassword"
+                                name="newPassword"
+                                type="password"
+                                autoComplete="new-password"
+                                value={passwordFields.newPassword}
+                                onChange={handlePasswordFieldChange}
+                                required
+                            />
+
+                            <label htmlFor="confirmPassword">Re-enter new password</label>
+                            <input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type="password"
+                                autoComplete="new-password"
+                                value={passwordFields.confirmPassword}
+                                onChange={handlePasswordFieldChange}
+                                required
+                            />
+
+                            <button
+                                className="password-submit-button"
+                                type="submit"
+                                disabled={passwordSubmitting}
+                            >
+                                {passwordSubmitting ? "Updating..." : "Update password"}
+                            </button>
+                        </form>
+                    </section>
+                ) : loading ? (
                     <div className="student-loading">
                         Loading your profile...
                     </div>
@@ -159,6 +276,21 @@ function StudentDashboardPage() {
                                 </span>
                             </div>
 
+                        </div>
+
+                        <div className="profile-security">
+                            <span>Account security</span>
+                            <button
+                                className="change-password-button"
+                                type="button"
+                                onClick={() => {
+                                    setShowPasswordForm(true);
+                                    setPasswordMessage("");
+                                    setPasswordError("");
+                                }}
+                            >
+                                Change password
+                            </button>
                         </div>
 
                     </div>

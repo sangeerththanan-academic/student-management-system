@@ -31,6 +31,17 @@ export const getCurrentUser = async () => {
     });
 };
 
+export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
+    return await apiRequest("/api/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+            oldPassword,
+            newPassword,
+            confirmPassword
+        })
+    });
+};
+
 
 // Get stored user
 export const getStoredUser = () => {
