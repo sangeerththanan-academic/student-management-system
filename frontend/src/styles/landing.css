@@ -436,3 +436,145 @@
         font-size: 28px;
     }
 }
+
+/* =========================================================
+   Dark Mode - Landing Page (CR-012)
+   ========================================================= */
+
+.landing-page[data-theme="dark"],
+.landing-page.dark {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+.landing-page[data-theme="dark"] .hero-section,
+.landing-page.dark .hero-section {
+    background: linear-gradient(135deg, #0b1120 0%, #0f172a 55%, #1e293b 100%);
+}
+
+.landing-page[data-theme="dark"] .hero-badge,
+.landing-page.dark .hero-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.landing-page[data-theme="dark"] .hero-content h1,
+.landing-page.dark .hero-content h1 {
+    color: #f8fafc;
+}
+
+.landing-page[data-theme="dark"] .hero-content h1 span,
+.landing-page.dark .hero-content h1 span {
+    color: #60a5fa;
+}
+
+.landing-page[data-theme="dark"] .hero-content > p,
+.landing-page.dark .hero-content > p {
+    color: #94a3b8;
+}
+
+.landing-page[data-theme="dark"] .secondary-button,
+.landing-page.dark .secondary-button {
+    background: #1e293b;
+    color: #93c5fd;
+    border-color: #334155;
+}
+
+.landing-page[data-theme="dark"] .secondary-button:hover,
+.landing-page.dark .secondary-button:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.landing-page[data-theme="dark"] .hero-card,
+.landing-page.dark .hero-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+}
+
+.landing-page[data-theme="dark"] .hero-card-icon,
+.landing-page.dark .hero-card-icon {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.landing-page[data-theme="dark"] .hero-card h2,
+.landing-page.dark .hero-card h2 {
+    color: #f8fafc;
+}
+
+.landing-page[data-theme="dark"] .hero-card > p,
+.landing-page.dark .hero-card > p {
+    color: #94a3b8;
+}
+
+.landing-page[data-theme="dark"] .hero-card-stats > div,
+.landing-page.dark .hero-card-stats > div {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.landing-page[data-theme="dark"] .hero-card-stats strong,
+.landing-page.dark .hero-card-stats strong {
+    color: #60a5fa;
+}
+
+.landing-page[data-theme="dark"] .hero-card-stats span,
+.landing-page.dark .hero-card-stats span {
+    color: #94a3b8;
+}
+
+.landing-page[data-theme="dark"] .about-section,
+.landing-page.dark .about-section {
+    background: #0f172a;
+}
+
+.landing-page[data-theme="dark"] .features-section,
+.landing-page.dark .features-section {
+    background: #0b1120;
+}
+
+.landing-page[data-theme="dark"] .section-label,
+.landing-page.dark .section-label {
+    color: #60a5fa;
+}
+
+.landing-page[data-theme="dark"] .section-heading h2,
+.landing-page.dark .section-heading h2 {
+    color: #f8fafc;
+}
+
+.landing-page[data-theme="dark"] .section-heading p,
+.landing-page.dark .section-heading p {
+    color: #94a3b8;
+}
+
+.landing-page[data-theme="dark"] .feature-card,
+.landing-page.dark .feature-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.landing-page[data-theme="dark"] .feature-card:hover,
+.landing-page.dark .feature-card:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
+}
+
+.landing-page[data-theme="dark"] .feature-icon,
+.landing-page.dark .feature-icon {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.landing-page[data-theme="dark"] .feature-card h3,
+.landing-page.dark .feature-card h3 {
+    color: #f8fafc;
+}
+
+.landing-page[data-theme="dark"] .feature-card p,
+.landing-page.dark .feature-card p {
+    color: #94a3b8;
+}
+

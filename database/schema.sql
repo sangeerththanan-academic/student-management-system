@@ -31,7 +31,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    -- CR033: Tracks the most recent successful student login
+    last_login DATETIME NULL DEFAULT NULL
 );
 
 
@@ -55,6 +58,9 @@ CREATE TABLE IF NOT EXISTS students (
 
     phone_number VARCHAR(20) NOT NULL,
 
+    -- CR-010: Stores profile image file path (e.g., /uploads/students/student_xxx.jpg)
+    profile_photo VARCHAR(255) NULL DEFAULT NULL,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -69,5 +75,20 @@ CREATE TABLE IF NOT EXISTS students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- CR033 MIGRATION (run on existing databases)
 -- ============================================================
+
+-- ALTER TABLE users ADD COLUMN last_login DATETIME NULL DEFAULT NULL;
+
+
+-- ============================================================
+-- CR-010 MIGRATION (run on existing databases)
+-- ============================================================
+
+-- ALTER TABLE students ADD COLUMN profile_photo VARCHAR(255) NULL DEFAULT NULL;
+
+
+-- ============================================================
+-- DATABASE SCHEMA - VERSION 1.2 COMPLETE
+-- ============================================================
+

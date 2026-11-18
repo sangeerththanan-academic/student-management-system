@@ -26,6 +26,11 @@ function StudentFormModal({
     const [fieldErrors, setFieldErrors] = useState({});
     const [touched, setTouched] = useState({});
 
+    // CR-010: Profile image upload states
+    const [profileImage, setProfileImage] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [imageError, setImageError] = useState(null);
+
     // Reset form when editingStudent changes or modal opens
     useEffect(() => {
         if (!show) return;
@@ -39,6 +44,7 @@ function StudentFormModal({
                 phoneNumber: editingStudent.phone_number || "",
                 password: ""
             });
+            setPreviewUrl(editingStudent.profile_photo || null);
         } else {
             setFormData({
                 registrationNo: "",
@@ -48,13 +54,17 @@ function StudentFormModal({
                 phoneNumber: "",
                 password: ""
             });
+            setPreviewUrl(null);
         }
 
+        setProfileImage(null);
+        setImageError(null);
         setShowPassword(false);
         setFormError("");
         setFieldErrors({});
         setTouched({});
     }, [editingStudent, show]);
+
 
 
     // ── Validation helpers (CR-004) ─────────────────────────────
@@ -145,8 +155,78 @@ function StudentFormModal({
         setFieldErrors((prev) => ({ ...prev, [name]: err }));
     };
 
+    // CR-010: Profile image file selection and validation
+    const handleFileChange = (event) => {
+        setImageError(null);
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            setProfileImage(null);
+            if (previewUrl && previewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            setPreviewUrl(editingStudent?.profile_photo || null);
+            return;
+        }
+
+        // Validate file extension and MIME type (PNG, JPG, JPEG)
+        const allowedExtensions = ["png", "jpg", "jpeg"];
+        const allowedMimeTypes = ["image/png", "image/jpeg", "image/pjpeg"];
+        const fileExt = file.name.split(".").pop().toLowerCase();
+        const isExtValid = allowedExtensions.includes(fileExt);
+        const isMimeValid = !file.type || allowedMimeTypes.includes(file.type.toLowerCase());
+
+        if (!isExtValid || !isMimeValid) {
+            setImageError("Only PNG, JPG and JPEG images are allowed.");
+            setProfileImage(null);
+            if (previewUrl && previewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            setPreviewUrl(null);
+            event.target.value = "";
+            return;
+        }
+
+        // Validate file size limit (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setImageError("File size must not exceed 5MB.");
+            setProfileImage(null);
+            if (previewUrl && previewUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            setPreviewUrl(null);
+            event.target.value = "";
+            return;
+        }
+
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(previewUrl);
+        }
+
+        setProfileImage(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
+    const handleRemoveImage = () => {
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(previewUrl);
+        }
+        setProfileImage(null);
+        setPreviewUrl(null);
+        setImageError(null);
+        const fileInput = document.getElementById("sf-profilePhoto");
+        if (fileInput) {
+            fileInput.value = "";
+        }
+    };
 
     const handleClose = () => {
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(previewUrl);
+        }
+        setProfileImage(null);
+        setPreviewUrl(null);
+        setImageError(null);
         setShowPassword(false);
         setFormError("");
         setFieldErrors({});
@@ -159,6 +239,12 @@ function StudentFormModal({
         event.preventDefault();
 
         setFormError("");
+
+        // Check if there is an unresolved image error
+        if (imageError) {
+            setFormError(imageError);
+            return;
+        }
 
         // Mark all fields touched & run full validation
         const errors = validateAll();
@@ -199,24 +285,31 @@ function StudentFormModal({
                     }
                 );
             } else {
+                // CR-010: Use FormData to send student details and profile photo
+                const formDataPayload = new FormData();
+                formDataPayload.append("registrationNo", formData.registrationNo.trim());
+                formDataPayload.append("firstName", formData.firstName.trim());
+                formDataPayload.append("lastName", formData.lastName.trim());
+                formDataPayload.append("email", formData.email.trim());
+                formDataPayload.append("phoneNumber", formData.phoneNumber.trim());
+                formDataPayload.append("password", formData.password);
+
+                if (profileImage) {
+                    formDataPayload.append("profilePhoto", profileImage);
+                }
+
                 await apiRequest(
                     "/api/students/",
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            registrationNo: formData.registrationNo.trim(),
-                            firstName: formData.firstName.trim(),
-                            lastName: formData.lastName.trim(),
-                            email: formData.email.trim(),
-                            phoneNumber: formData.phoneNumber.trim(),
-                            password: formData.password
-                        })
+                        body: formDataPayload
                     }
                 );
             }
 
             onSuccess();
             handleClose();
+
 
         } catch (error) {
             console.error("Student save error:", error);
@@ -410,6 +503,58 @@ function StudentFormModal({
                     "password",
                     "Min 8 chars with uppercase, lowercase, number & special character."
                 )}
+
+                {/* CR-010: Profile Image field in Add Student form */}
+                {!editingStudent && (
+                    <div className={`form-group${imageError ? " field-error" : ""}`}>
+                        <label htmlFor="sf-profilePhoto">
+                            Profile Image
+                        </label>
+
+                        <div className="profile-image-upload-wrapper">
+                            <input
+                                id="sf-profilePhoto"
+                                type="file"
+                                name="profilePhoto"
+                                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                                onChange={handleFileChange}
+                                disabled={formLoading}
+                                aria-describedby="sf-profilePhoto-hint"
+                                aria-invalid={!!imageError}
+                            />
+
+                            {previewUrl && (
+                                <div className="profile-image-preview-item">
+                                    <img
+                                        src={previewUrl}
+                                        alt="Selected Profile Preview"
+                                        className="profile-preview-thumb"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="remove-preview-btn"
+                                        onClick={handleRemoveImage}
+                                        disabled={formLoading}
+                                        title="Remove selected image"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {imageError ? (
+                            <span id="sf-profilePhoto-hint" className="field-error-msg">
+                                {imageError}
+                            </span>
+                        ) : (
+                            <span id="sf-profilePhoto-hint" className="field-hint">
+                                Supported formats: PNG, JPG, JPEG
+                            </span>
+                        )}
+                    </div>
+                )}
+
 
 
                 <div className="form-actions">

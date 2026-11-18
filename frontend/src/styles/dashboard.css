@@ -136,6 +136,95 @@
     font-size: 14px;
 }
 
+.students-heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.export-student-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.export-student-button:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.export-student-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* CR-022: Import CSV Button */
+.import-student-button {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.import-student-button:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.import-student-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.dashboard-export-feedback {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.feedback-dismiss {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 0 4px;
+}
+
+.feedback-dismiss:hover {
+    opacity: 1;
+}
+
 .add-student-button {
     border: none;
 
@@ -764,3 +853,1188 @@
         max-height: 95vh;
     }
 }
+
+/* =========================================================
+   Dark Mode - Admin Dashboard & Modal (CR-012)
+   ========================================================= */
+
+.dashboard-page[data-theme="dark"],
+.dashboard-page.dark {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header,
+.dashboard-page.dark .dashboard-header {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header h1,
+.dashboard-page.dark .dashboard-header h1 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-header p,
+.dashboard-page.dark .dashboard-header p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .admin-info strong,
+.dashboard-page.dark .admin-info strong {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .admin-info span,
+.dashboard-page.dark .admin-info span {
+    color: #60a5fa;
+}
+
+.dashboard-page[data-theme="dark"] .logout-button,
+.dashboard-page.dark .logout-button {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .logout-button:hover,
+.dashboard-page.dark .logout-button:hover {
+    background: rgba(239, 68, 68, 0.35);
+}
+
+.dashboard-page[data-theme="dark"] .students-heading h2,
+.dashboard-page.dark .students-heading h2 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .students-heading p,
+.dashboard-page.dark .students-heading p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-input,
+.dashboard-page.dark .students-search-input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-input:focus,
+.dashboard-page.dark .students-search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-page[data-theme="dark"] .students-search-clear,
+.dashboard-page.dark .students-search-clear {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .students-search-clear:hover,
+.dashboard-page.dark .students-search-clear:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .students-result-count,
+.dashboard-page.dark .students-result-count {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-card,
+.dashboard-page.dark .students-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-page[data-theme="dark"] .students-table th,
+.dashboard-page.dark .students-table th {
+    background: #131c2e;
+    color: #94a3b8;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .students-table td,
+.dashboard-page.dark .students-table td {
+    color: #cbd5e1;
+    border-color: #243044;
+}
+
+.dashboard-page[data-theme="dark"] .students-table td strong,
+.dashboard-page.dark .students-table td strong {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .students-table tbody tr:hover,
+.dashboard-page.dark .students-table tbody tr:hover {
+    background: #182234;
+}
+
+.dashboard-page[data-theme="dark"] .edit-button,
+.dashboard-page.dark .edit-button {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.dashboard-page[data-theme="dark"] .edit-button:hover,
+.dashboard-page.dark .edit-button:hover {
+    background: rgba(59, 130, 246, 0.35);
+}
+
+.dashboard-page[data-theme="dark"] .delete-button,
+.dashboard-page.dark .delete-button {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .delete-button:hover,
+.dashboard-page.dark .delete-button:hover {
+    background: rgba(239, 68, 68, 0.35);
+}
+
+.dashboard-page[data-theme="dark"] .students-loading,
+.dashboard-page.dark .students-loading,
+.dashboard-page[data-theme="dark"] .students-empty p,
+.dashboard-page.dark .students-empty p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .students-empty h3,
+.dashboard-page.dark .students-empty h3 {
+    color: #f8fafc;
+}
+
+/* Modal Dark Mode in Admin Section */
+.dashboard-page[data-theme="dark"] .modal-overlay,
+.dashboard-page.dark .modal-overlay {
+    background: rgba(3, 7, 18, 0.75);
+}
+
+.dashboard-page[data-theme="dark"] .student-form-card,
+.dashboard-page.dark .student-form-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-page[data-theme="dark"] .form-card-header h3,
+.dashboard-page.dark .form-card-header h3 {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .form-card-header p,
+.dashboard-page.dark .form-card-header p {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .close-form-button,
+.dashboard-page.dark .close-form-button {
+    background: #0f172a;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+
+.dashboard-page[data-theme="dark"] .close-form-button:hover,
+.dashboard-page.dark .close-form-button:hover {
+    background: #334155;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .form-group label,
+.dashboard-page.dark .student-form .form-group label {
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .form-group input,
+.dashboard-page.dark .student-form .form-group input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .student-form .form-group input:focus,
+.dashboard-page.dark .student-form .form-group input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-page[data-theme="dark"] .cancel-button,
+.dashboard-page.dark .cancel-button {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .cancel-button:hover,
+.dashboard-page.dark .cancel-button:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-error,
+.dashboard-page.dark .dashboard-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+
+/* =========================================================
+   CR033: Last Login column
+   ========================================================= */
+
+.last-login-never {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.dashboard-page[data-theme="dark"] .last-login-never,
+.dashboard-page.dark .last-login-never {
+    color: #475569;
+}
+
+
+/* =========================================================
+   CR-010: Student Profile Image in Table and Form Modal
+   ========================================================= */
+
+.student-photo-cell {
+    width: 56px;
+    padding: 8px 12px !important;
+    text-align: center;
+}
+
+.student-table-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    display: block;
+}
+
+.student-table-photo-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    border: 2px solid #e0e7ff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.profile-image-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-image-upload-wrapper input[type="file"] {
+    font-size: 13px;
+    color: #475569;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.profile-image-upload-wrapper input[type="file"]:hover {
+    border-color: #3b82f6;
+    background: #f1f5f9;
+}
+
+.profile-image-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.profile-preview-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.remove-preview-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.remove-preview-btn:hover {
+    background: #fecaca;
+    color: #b91c1c;
+}
+
+/* Dark mode for CR-010 elements */
+.dashboard-page[data-theme="dark"] .student-table-photo,
+.dashboard-page.dark .student-table-photo {
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .student-table-photo-placeholder,
+.dashboard-page.dark .student-table-photo-placeholder {
+    background: linear-gradient(135deg, #1e293b 0%, #312e81 100%);
+    color: #a5b4fc;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .profile-image-upload-wrapper input[type="file"],
+.dashboard-page.dark .profile-image-upload-wrapper input[type="file"] {
+    background: #1e293b;
+    border-color: #475569;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .profile-image-upload-wrapper input[type="file"]:hover,
+.dashboard-page.dark .profile-image-upload-wrapper input[type="file"]:hover {
+    border-color: #60a5fa;
+    background: #0f172a;
+}
+
+.dashboard-page[data-theme="dark"] .profile-image-preview-item,
+.dashboard-page.dark .profile-image-preview-item {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .remove-preview-btn,
+.dashboard-page.dark .remove-preview-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .remove-preview-btn:hover,
+.dashboard-page.dark .remove-preview-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #ffffff;
+}
+
+/* Dark mode for CR-015 Export CSV */
+.dashboard-page[data-theme="dark"] .export-student-button,
+.dashboard-page.dark .export-student-button {
+    background: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+.dashboard-page[data-theme="dark"] .export-student-button:hover:not(:disabled),
+.dashboard-page.dark .export-student-button:hover:not(:disabled) {
+    background: #334155;
+    border-color: #64748b;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .dashboard-export-feedback,
+.dashboard-page.dark .dashboard-export-feedback {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
+}
+
+/* =========================================================
+   CR-022: Import CSV & Student Import Modal Styles
+   ========================================================= */
+
+/* Dark mode for Import CSV button */
+.dashboard-page[data-theme="dark"] .import-student-button,
+.dashboard-page.dark .import-student-button {
+    background: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+.dashboard-page[data-theme="dark"] .import-student-button:hover:not(:disabled),
+.dashboard-page.dark .import-student-button:hover:not(:disabled) {
+    background: #334155;
+    border-color: #64748b;
+    color: #ffffff;
+}
+
+/* Import Modal Card Layout */
+.student-import-modal-card {
+    max-width: 950px;
+    width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+.student-import-modal-card .form-card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.import-modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px;
+}
+
+.import-modal-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.modal-close-button {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.modal-close-button:hover:not(:disabled) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.import-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Template Bar */
+.import-template-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    gap: 12px;
+}
+
+.import-template-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.import-template-info .template-icon {
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.download-template-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #2563eb;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.download-template-button:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+/* Dropzone */
+.csv-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 36px 20px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.csv-dropzone:hover,
+.csv-dropzone.dragging {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.csv-file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+}
+
+.dropzone-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.dropzone-heading {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 6px;
+}
+
+.dropzone-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 10px;
+}
+
+.dropzone-browse-label {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.dropzone-format-info {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.dropzone-format-info code {
+    background: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #334155;
+    font-size: 11px;
+}
+
+/* Uploaded file bar */
+.uploaded-file-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.file-info-col {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-badge-icon {
+    color: #10b981;
+}
+
+.file-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.file-meta {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.change-file-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.change-file-button:hover:not(:disabled) {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+
+/* Alert Error */
+.import-alert-error {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.import-alert-error .alert-icon {
+    color: #dc2626;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Stats Row */
+.import-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.import-stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stat-total {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.stat-valid {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.stat-invalid {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.import-warning-note {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Preview Table */
+.import-table-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+    overflow-x: auto;
+    background: #ffffff;
+}
+
+.import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.import-preview-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    white-space: nowrap;
+}
+
+.import-preview-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.import-preview-table tr.row-invalid {
+    background: #fffdfd;
+}
+
+.badge-valid {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #059669;
+    background: #ecfdf5;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-invalid {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #dc2626;
+    background: #fef2f2;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.cell-text {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.text-missing {
+    color: #ef4444;
+    font-style: italic;
+}
+
+.cell-pwd-text {
+    color: #64748b;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.cell-error-msg {
+    display: block;
+    color: #dc2626;
+    font-size: 11px;
+    margin-top: 3px;
+    line-height: 1.3;
+}
+
+.inline-edit-input {
+    width: 100%;
+    min-width: 90px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid #3b82f6;
+    border-radius: 4px;
+    outline: none;
+    background: #ffffff;
+    color: #0f172a;
+}
+
+.td-actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.row-action-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+}
+
+.btn-edit-inline {
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+}
+
+.btn-edit-inline:hover {
+    background: #eff6ff;
+}
+
+.btn-delete-inline {
+    background: transparent;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+}
+
+.btn-delete-inline:hover {
+    background: #fef2f2;
+}
+
+.btn-save-inline {
+    background: #10b981;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+}
+
+.btn-cancel-inline {
+    background: #64748b;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+}
+
+/* Modal Footer */
+.import-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+}
+
+.modal-cancel-button {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-cancel-button:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.modal-import-submit-button {
+    background: #2563eb;
+    border: none;
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.modal-import-submit-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.modal-import-submit-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   Dark Mode for CR-022 Import Modal
+   ========================================================= */
+
+.dashboard-page[data-theme="dark"] .student-import-modal-card,
+.dashboard-page.dark .student-import-modal-card {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .student-import-modal-card .form-card-header,
+.dashboard-page.dark .student-import-modal-card .form-card-header {
+    border-bottom-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .import-modal-title,
+.dashboard-page.dark .import-modal-title {
+    color: #f8fafc;
+}
+
+.dashboard-page[data-theme="dark"] .import-modal-subtitle,
+.dashboard-page.dark .import-modal-subtitle {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .modal-close-button,
+.dashboard-page.dark .modal-close-button {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .modal-close-button:hover:not(:disabled),
+.dashboard-page.dark .modal-close-button:hover:not(:disabled) {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .import-template-bar,
+.dashboard-page.dark .import-template-bar {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .import-template-info,
+.dashboard-page.dark .import-template-info {
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .download-template-button,
+.dashboard-page.dark .download-template-button {
+    background: #0f172a;
+    border-color: #475569;
+    color: #60a5fa;
+}
+
+.dashboard-page[data-theme="dark"] .download-template-button:hover,
+.dashboard-page.dark .download-template-button:hover {
+    background: #1e293b;
+    border-color: #3b82f6;
+}
+
+.dashboard-page[data-theme="dark"] .csv-dropzone,
+.dashboard-page.dark .csv-dropzone {
+    background: #1e293b;
+    border-color: #475569;
+}
+
+.dashboard-page[data-theme="dark"] .csv-dropzone:hover,
+.dashboard-page.dark .csv-dropzone:hover,
+.dashboard-page[data-theme="dark"] .csv-dropzone.dragging,
+.dashboard-page.dark .csv-dropzone.dragging {
+    border-color: #60a5fa;
+    background-color: #0f172a;
+}
+
+.dashboard-page[data-theme="dark"] .dropzone-icon-wrapper,
+.dashboard-page.dark .dropzone-icon-wrapper {
+    background: #312e81;
+    color: #93c5fd;
+}
+
+.dashboard-page[data-theme="dark"] .dropzone-heading,
+.dashboard-page.dark .dropzone-heading {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .dropzone-sub,
+.dashboard-page.dark .dropzone-sub {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .dropzone-browse-label,
+.dashboard-page.dark .dropzone-browse-label {
+    color: #60a5fa;
+}
+
+.dashboard-page[data-theme="dark"] .dropzone-format-info code,
+.dashboard-page.dark .dropzone-format-info code {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .uploaded-file-bar,
+.dashboard-page.dark .uploaded-file-bar {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .file-name,
+.dashboard-page.dark .file-name {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .file-meta,
+.dashboard-page.dark .file-meta {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .change-file-button,
+.dashboard-page.dark .change-file-button {
+    background: #0f172a;
+    border-color: #475569;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .change-file-button:hover:not(:disabled),
+.dashboard-page.dark .change-file-button:hover:not(:disabled) {
+    background: #334155;
+    color: #ffffff;
+}
+
+.dashboard-page[data-theme="dark"] .import-alert-error,
+.dashboard-page.dark .import-alert-error {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+.dashboard-page[data-theme="dark"] .stat-total,
+.dashboard-page.dark .stat-total {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .stat-valid,
+.dashboard-page.dark .stat-valid {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.dashboard-page[data-theme="dark"] .stat-invalid,
+.dashboard-page.dark .stat-invalid {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dashboard-page[data-theme="dark"] .import-warning-note,
+.dashboard-page.dark .import-warning-note {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fde68a;
+}
+
+.dashboard-page[data-theme="dark"] .import-table-container,
+.dashboard-page.dark .import-table-container {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .import-preview-table th,
+.dashboard-page.dark .import-preview-table th {
+    background: #1e293b;
+    color: #94a3b8;
+    border-bottom-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .import-preview-table td,
+.dashboard-page.dark .import-preview-table td {
+    border-bottom-color: #1e293b;
+}
+
+.dashboard-page[data-theme="dark"] .import-preview-table tr.row-invalid,
+.dashboard-page.dark .import-preview-table tr.row-invalid {
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.dashboard-page[data-theme="dark"] .cell-text,
+.dashboard-page.dark .cell-text {
+    color: #f1f5f9;
+}
+
+.dashboard-page[data-theme="dark"] .cell-pwd-text,
+.dashboard-page.dark .cell-pwd-text {
+    color: #94a3b8;
+}
+
+.dashboard-page[data-theme="dark"] .inline-edit-input,
+.dashboard-page.dark .inline-edit-input {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #3b82f6;
+}
+
+.dashboard-page[data-theme="dark"] .btn-edit-inline,
+.dashboard-page.dark .btn-edit-inline {
+    color: #60a5fa;
+}
+
+.dashboard-page[data-theme="dark"] .btn-edit-inline:hover,
+.dashboard-page.dark .btn-edit-inline:hover {
+    background: #1e293b;
+}
+
+.dashboard-page[data-theme="dark"] .import-modal-footer,
+.dashboard-page.dark .import-modal-footer {
+    background: #1e293b;
+    border-top-color: #334155;
+}
+
+.dashboard-page[data-theme="dark"] .modal-cancel-button,
+.dashboard-page.dark .modal-cancel-button {
+    background: #0f172a;
+    border-color: #475569;
+    color: #cbd5e1;
+}
+
+.dashboard-page[data-theme="dark"] .modal-cancel-button:hover:not(:disabled),
+.dashboard-page.dark .modal-cancel-button:hover:not(:disabled) {
+    background: #334155;
+    color: #ffffff;
+}
+
+

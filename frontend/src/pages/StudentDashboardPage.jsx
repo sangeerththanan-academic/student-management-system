@@ -7,13 +7,17 @@ import {
 } from "../services/authService";
 
 import apiRequest from "../services/api";
+import ThemeToggle from "../components/ThemeToggle";
+import ChangeStudentPassword from "../components/ChangeStudentPassword";
+import { useTheme } from "../context/ThemeContext";
 
 import "../styles/studentDashboard.css";
 
 function StudentDashboardPage() {
     const navigate = useNavigate();
+    const { theme } = useTheme("student");
 
-    const [user, setUser] = useState(getStoredUser());
+    const [user] = useState(getStoredUser());
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -59,7 +63,7 @@ function StudentDashboardPage() {
     };
 
     return (
-        <div className="student-dashboard-page">
+        <div className={`student-dashboard-page ${theme}`} data-theme={theme}>
 
             {/* Header */}
             <header className="student-dashboard-header">
@@ -70,6 +74,7 @@ function StudentDashboardPage() {
 
                 <div className="student-header-actions">
                     <span className="role-badge">STUDENT</span>
+                    <ThemeToggle section="student" showLabel={true} />
                     <button
                         className="logout-button"
                         onClick={handleLogout}
@@ -98,7 +103,23 @@ function StudentDashboardPage() {
                     <div className="profile-card">
 
                         <div className="profile-header">
-                            <div className="profile-avatar">
+                            {/* CR-010: Display student profile image or initials avatar */}
+                            {student.profile_photo ? (
+                                <img
+                                    src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${student.profile_photo}`}
+                                    alt={`${student.first_name} ${student.last_name}`}
+                                    className="profile-avatar-img"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                        const fallback = e.currentTarget.parentElement?.querySelector(".profile-avatar");
+                                        if (fallback) fallback.style.display = "flex";
+                                    }}
+                                />
+                            ) : null}
+                            <div
+                                className="profile-avatar"
+                                style={{ display: student.profile_photo ? "none" : "flex" }}
+                            >
                                 {student.first_name?.charAt(0)}
                                 {student.last_name?.charAt(0)}
                             </div>
@@ -109,6 +130,7 @@ function StudentDashboardPage() {
                                 <p>{student.registration_no}</p>
                             </div>
                         </div>
+
 
                         <div className="profile-details">
 
@@ -169,6 +191,9 @@ function StudentDashboardPage() {
                         </div>
                     )
                 )}
+
+                {/* CR-020: Change Password section */}
+                <ChangeStudentPassword />
 
             </main>
 
