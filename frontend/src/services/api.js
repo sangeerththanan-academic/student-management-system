@@ -56,3 +56,13 @@ const apiRequest = async (endpoint, options = {}) => {
 };
 
 export default apiRequest;
+
+// CR006: Course management API functions.
+export const getCourses = () => apiRequest("/api/courses", {
+    method: "GET"
+});
+
+export const createCourse = (course) => apiRequest("/api/courses", {
+    method: "POST",
+    body: JSON.stringify(course)
+});

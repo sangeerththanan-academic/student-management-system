@@ -4,6 +4,8 @@ const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+// CR006: Register course-management API routes.
+const courseRoutes = require("./routes/courseRoutes");
 
 const app = express();
 
@@ -45,6 +47,9 @@ app.use("/api/auth", authRoutes);
 
 // Student routes
 app.use("/api/students", studentRoutes);
+
+// CR006: Course routes (administrator access is enforced in courseRoutes).
+app.use("/api/courses", courseRoutes);
 
 // Keep multipart upload errors in the same JSON format as the API responses.
 app.use((error, req, res, next) => {

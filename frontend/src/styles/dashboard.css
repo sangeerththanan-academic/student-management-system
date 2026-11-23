@@ -1280,3 +1280,90 @@ html[data-theme="dark"] .password-cancel-button:hover {
     margin-top: 10px;
     overflow-wrap: anywhere;
 }
+
+/* CR006: Course management form and table styles */
+.course-form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 25px;
+}
+
+.course-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.course-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.course-form .course-description {
+    grid-column: 1 / -1;
+}
+
+.course-form .form-group label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.course-form .form-group input,
+.course-form .form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: none;
+    color: #0f172a;
+    background: #ffffff;
+    font-family: inherit;
+}
+
+.course-form .form-group textarea {
+    resize: vertical;
+}
+
+.course-form .form-group input:focus,
+.course-form .form-group textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.course-form .form-group.field-error input,
+.course-form .form-group.field-error textarea {
+    border-color: #dc2626;
+}
+
+.courses-table {
+    min-width: 600px;
+}
+
+:root[data-theme="dark"] .course-form-card {
+    background: #172033;
+    border-color: #334155;
+}
+
+:root[data-theme="dark"] .course-form .form-group label {
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .course-form .form-group input,
+:root[data-theme="dark"] .course-form .form-group textarea {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+@media (max-width: 600px) {
+    .course-form {
+        grid-template-columns: 1fr;
+    }
+
+    .course-form .course-description {
+        grid-column: auto;
+    }
+}
