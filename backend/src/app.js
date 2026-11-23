@@ -3,46 +3,38 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const courseRoutes = require("./routes/courseRoutes");
 
 const app = express();
 
-// Middleware
 app.use(cors());
+
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 
-// Health check route
 app.get("/", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Student Management System API is running"
-    });
+    res.send("Student Management System API");
 });
 
-// API health check
 app.get("/api/health", (req, res) => {
-    res.status(200).json({
+    res.json({
         success: true,
-        message: "API is healthy"
+        message: "API is running"
     });
 });
 
-// Authentication routes
 app.use("/api/auth", authRoutes);
-
-// Student routes
 app.use("/api/students", studentRoutes);
 
+// CR06: Course Management
+app.use("/api/courses", courseRoutes);
 
-// 404 Handler
 app.use((req, res) => {
-
     res.status(404).json({
         success: false,
         message: "API endpoint not found"
     });
-
 });
-
 
 module.exports = app;
