@@ -1,6 +1,6 @@
 -- ============================================================
 -- Student Management System
--- Database Schema - Version 1.0
+-- Database Schema - Version 1.1 (CR06)
 -- Organization: ABC Institute
 -- Database: MySQL
 -- ============================================================
@@ -69,5 +69,28 @@ CREATE TABLE IF NOT EXISTS students (
 
 
 -- ============================================================
--- DATABASE SCHEMA - VERSION 1.0 COMPLETE
+-- 3. COURSES TABLE (CR06)
+-- Stores course information
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS courses (
+    course_id INT AUTO_INCREMENT PRIMARY KEY,
+
+    course_code VARCHAR(50) NOT NULL UNIQUE,
+
+    course_name VARCHAR(150) NOT NULL,
+
+    description TEXT,
+
+    credits INT NOT NULL DEFAULT 0,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+-- ============================================================
+-- DATABASE SCHEMA COMPLETE
 -- ============================================================

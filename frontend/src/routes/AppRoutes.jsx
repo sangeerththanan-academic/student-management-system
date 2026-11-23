@@ -1,23 +1,23 @@
 import {
     BrowserRouter,
     Routes,
-    Route
+    Route,
+    Navigate
 } from "react-router-dom";
 
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import StudentDashboardPage from "../pages/StudentDashboardPage";
+import StudentsView from "../pages/admin/StudentsView";
+import CoursesView from "../pages/admin/CoursesView";
 
 import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
-
     return (
         <BrowserRouter>
-
             <Routes>
-
                 <Route
                     path="/"
                     element={<LandingPage />}
@@ -28,6 +28,7 @@ function AppRoutes() {
                     element={<LoginPage />}
                 />
 
+                {/* Admin Dashboard with Sidebar & Nested Module Routes (CR06) */}
                 <Route
                     path="/dashboard"
                     element={
@@ -35,7 +36,20 @@ function AppRoutes() {
                             <DashboardPage />
                         </ProtectedRoute>
                     }
-                />
+                >
+                    <Route
+                        index
+                        element={<Navigate to="students" replace />}
+                    />
+                    <Route
+                        path="students"
+                        element={<StudentsView />}
+                    />
+                    <Route
+                        path="courses"
+                        element={<CoursesView />}
+                    />
+                </Route>
 
                 <Route
                     path="/student-dashboard"
@@ -45,9 +59,7 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
-
             </Routes>
-
         </BrowserRouter>
     );
 }

@@ -1,6 +1,6 @@
 -- ============================================================
 -- Student Management System
--- Database Seed Data - Version 1.0
+-- Database Seed Data - Version 1.1 (CR06)
 -- Organization: ABC Institute
 -- Database: MySQL
 -- ============================================================
@@ -75,7 +75,32 @@ VALUES
 
 
 -- ============================================================
--- 3. VERIFICATION QUERIES
+-- 3. COURSES (CR06)
+-- ============================================================
+
+INSERT INTO courses (
+    course_code,
+    course_name,
+    description,
+    credits
+)
+VALUES
+(
+    'CS101',
+    'Introduction to Computer Science',
+    'Fundamental concepts of computer science and programming principles.',
+    3
+),
+(
+    'SE201',
+    'Software Engineering Principles',
+    'Software development life cycle, design patterns, and engineering methodologies.',
+    4
+);
+
+
+-- ============================================================
+-- 4. VERIFICATION QUERIES
 -- ============================================================
 
 -- View users
@@ -118,6 +143,18 @@ LEFT JOIN students s
     ON u.user_id = s.user_id;
 
 
+-- View courses (CR06)
+SELECT
+    course_id,
+    course_code,
+    course_name,
+    description,
+    credits,
+    created_at,
+    updated_at
+FROM courses;
+
+
 -- ============================================================
--- DATABASE SEED DATA - VERSION 1.0 COMPLETE
+-- DATABASE SEED DATA COMPLETE
 -- ============================================================

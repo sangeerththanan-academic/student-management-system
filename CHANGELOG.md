@@ -2,6 +2,38 @@
 
 All notable changes to the Student Management System are documented in this file.
 
+## [1.2.0] - 2026-10-28
+
+### Added
+
+#### CR-006: Dashboard Sidebar & Course Management
+
+- Added `DashboardSidebar.jsx` component with navigation links to Students and Courses.
+- Added active-state styling and responsive side-by-side navigation layout (`dashboard-sidebar.css`).
+- Implemented nested routing under `/dashboard`:
+  - `/dashboard` automatically renders the default `/dashboard/students` module.
+  - `/dashboard/students` for student management.
+  - `/dashboard/courses` for course management.
+- Extracted student fetching, search, filter, and table responsibilities into a dedicated `StudentsView.jsx` component.
+- Implemented `CoursesView.jsx` with section heading, "+ Add Course" button, course count, empty state, and responsive table.
+- Implemented `CourseFormModal.jsx` modal dialog with Course Code, Course Name, Description, and Credits fields.
+- Added client-side input validation for course creation preventing invalid or negative inputs.
+- Created `courseService.js` frontend API service providing `getCourses`, `createCourse`, and `getCourseById`.
+- Added `courses` table definition to `database/schema.sql` and development seed data to `database/seed.sql`.
+- Added backend `courseModel.js` for course database queries and transactions.
+- Added backend `courseController.js` with validation, duplicate detection, creation, and retrieval logic.
+- Added backend `courseRoutes.js` implementing `POST /api/courses` and `GET /api/courses` protected by administrator authentication and authorization.
+- Registered `/api/courses` routes in `backend/src/app.js`.
+- Added automated unit and route verification tests in `backend/test/courseController.test.js`.
+
+### Changed
+
+- Refactored `DashboardPage.jsx` from a monolithic student view into a clean layout container with header, sidebar, and React Router `<Outlet />`.
+- Updated `frontend/src/routes/AppRoutes.jsx` to configure nested child routes under `/dashboard`.
+- Preserved existing student management features, client-side search (CR-001), modal operations, and CRUD functionality without regression.
+
+---
+
 ## [1.1.0] - 2026-10-05
 
 ### Added

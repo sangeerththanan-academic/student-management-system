@@ -673,3 +673,58 @@
         max-height: 95vh;
     }
 }
+
+
+/* =========================================================
+   Layout & Course Module Enhancements (CR06)
+   ========================================================= */
+
+.dashboard-layout {
+    display: flex;
+    min-height: calc(100vh - 81px);
+}
+
+.dashboard-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 800px) {
+    .dashboard-layout {
+        flex-direction: column;
+    }
+}
+
+.student-form .form-group textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: none;
+    color: #0f172a;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.student-form .form-group textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.student-form .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.course-credits-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+}
