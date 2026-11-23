@@ -1,8 +1,8 @@
-
 import {
     BrowserRouter,
     Routes,
-    Route
+    Route,
+    Navigate
 } from "react-router-dom";
 
 import LandingPage from "../pages/LandingPage";
@@ -12,37 +12,36 @@ import StudentDashboardPage from "../pages/StudentDashboardPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 
+import StudentsView from "../pages/admin/StudentsView";
+import CoursesView from "../pages/admin/CoursesView";
+
 import ProtectedRoute from "./ProtectedRoute";
 
 function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Landing Page */}
+
                 <Route
                     path="/"
                     element={<LandingPage />}
                 />
 
-                {/* Login Page */}
                 <Route
                     path="/login"
                     element={<LoginPage />}
                 />
 
-                {/* Forgot Password - Email OTP */}
                 <Route
                     path="/forgot-password"
                     element={<ForgotPasswordPage />}
                 />
 
-                {/* Reset Password - New Password */}
                 <Route
                     path="/reset-password"
                     element={<ResetPasswordPage />}
                 />
 
-                {/* Admin Dashboard */}
                 <Route
                     path="/dashboard"
                     element={
@@ -50,9 +49,30 @@ function AppRoutes() {
                             <DashboardPage />
                         </ProtectedRoute>
                     }
-                />
+                >
 
-                {/* Student Dashboard */}
+                    <Route
+                        index
+                        element={
+                            <Navigate
+                                to="/dashboard/students"
+                                replace
+                            />
+                        }
+                    />
+
+                    <Route
+                        path="students"
+                        element={<StudentsView />}
+                    />
+
+                    <Route
+                        path="courses"
+                        element={<CoursesView />}
+                    />
+
+                </Route>
+
                 <Route
                     path="/student-dashboard"
                     element={
@@ -61,6 +81,7 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
+
             </Routes>
         </BrowserRouter>
     );

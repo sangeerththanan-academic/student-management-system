@@ -1,0 +1,145 @@
+/* =========================================================
+   CR06: Dashboard Sidebar
+   ========================================================= */
+
+.dashboard-main {
+    display: flex;
+
+    min-height: calc(100vh - 80px);
+}
+
+.dashboard-sidebar {
+    width: 230px;
+
+    flex-shrink: 0;
+
+    padding: 30px 18px;
+
+    background: #ffffff;
+
+    border-right: 1px solid #e2e8f0;
+}
+
+.dashboard-sidebar h2 {
+    color: #0f172a;
+
+    font-size: 18px;
+
+    margin: 0 0 25px;
+}
+
+.dashboard-sidebar-nav {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.dashboard-sidebar-link {
+    display: block;
+
+    padding: 13px 15px;
+
+    border-radius: 8px;
+
+    color: #475569;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.dashboard-sidebar-link:hover {
+    background: #f1f5f9;
+
+    color: #2563eb;
+}
+
+.dashboard-sidebar-link.active {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+
+/* =========================================================
+   Dashboard Main Content
+   ========================================================= */
+
+.dashboard-page-content {
+    flex: 1;
+
+    min-width: 0;
+}
+
+
+/* =========================================================
+   Dark Mode
+   ========================================================= */
+
+.dashboard-sidebar {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.dashboard-sidebar h2 {
+    color: var(--text-primary);
+}
+
+.dashboard-sidebar-link {
+    color: var(--text-secondary);
+}
+
+.dashboard-sidebar-link:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.dashboard-sidebar-link.active {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    .dashboard-main {
+        flex-direction: column;
+    }
+
+    .dashboard-sidebar {
+        width: 100%;
+
+        padding: 15px 5%;
+
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .dashboard-sidebar h2 {
+        margin-bottom: 12px;
+    }
+
+    .dashboard-sidebar-nav {
+        flex-direction: row;
+
+        flex-wrap: wrap;
+    }
+
+    .dashboard-sidebar-link {
+        min-width: 110px;
+
+        text-align: center;
+    }
+
+}

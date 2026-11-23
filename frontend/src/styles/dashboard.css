@@ -1043,3 +1043,185 @@ color: var(--text-secondary);
         font-size: 13px;
     }
 }
+
+
+/* =========================================================
+   CR06: Course Management
+   ========================================================= */
+
+.course-form-card {
+    background: var(--bg-secondary);
+
+    color: var(--text-primary);
+
+    border: 1px solid var(--border-color);
+
+    padding: 25px;
+
+    box-shadow:
+        0 8px 25px rgba(15, 23, 42, 0.05);
+}
+
+.course-form {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 20px;
+}
+
+.course-form .form-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.course-form .form-group label {
+    color: var(--text-secondary);
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.course-form .form-group input,
+.course-form .form-group textarea {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 7px;
+
+    outline: none;
+
+    color: var(--input-text);
+
+    background: var(--input-bg);
+
+    font-family: inherit;
+
+    box-sizing: border-box;
+}
+
+.course-form .form-group textarea {
+    resize: vertical;
+
+    min-height: 100px;
+}
+
+.course-form .form-group input:focus,
+.course-form .form-group textarea:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.course-form .form-group input::placeholder,
+.course-form .form-group textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+.course-description-group {
+    grid-column: 1 / -1;
+}
+
+.course-form .form-actions {
+    grid-column: 1 / -1;
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding-top: 5px;
+}
+
+.course-form .cancel-button,
+.course-form .save-button {
+    border: none;
+
+    padding: 11px 18px;
+
+    border-radius: 7px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.course-form .cancel-button {
+    background: var(--bg-tertiary);
+
+    color: var(--text-primary);
+}
+
+.course-form .cancel-button:hover {
+    background: var(--hover-bg);
+}
+
+.course-form .save-button {
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+.course-form .save-button:hover {
+    background: #1d4ed8;
+}
+
+.course-form button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   CR06: Course Table
+   ========================================================= */
+
+.students-table td {
+    vertical-align: middle;
+}
+
+
+/* =========================================================
+   CR06: Responsive Course Form
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    .course-form {
+        grid-template-columns: 1fr;
+    }
+
+    .course-description-group {
+        grid-column: auto;
+    }
+
+    .course-form .form-actions {
+        grid-column: auto;
+
+        justify-content: stretch;
+    }
+
+    .course-form .cancel-button,
+    .course-form .save-button {
+        flex: 1;
+    }
+
+}
+
+@media (max-width: 500px) {
+
+    .course-form-card {
+        padding: 18px;
+    }
+
+}
