@@ -1,13 +1,16 @@
 import {
     BrowserRouter,
     Routes,
-    Route
+    Route,
+    Navigate
 } from "react-router-dom";
 
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import StudentDashboardPage from "../pages/StudentDashboardPage";
+import StudentsView from "../pages/admin/StudentsView";
+import CoursesView from "../pages/admin/CoursesView";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -35,7 +38,11 @@ function AppRoutes() {
                             <DashboardPage />
                         </ProtectedRoute>
                     }
-                />
+                >
+                    <Route index element={<Navigate to="students" replace />} />
+                    <Route path="students" element={<StudentsView />} />
+                    <Route path="courses" element={<CoursesView />} />
+                </Route>
 
                 <Route
                     path="/student-dashboard"

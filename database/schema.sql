@@ -67,6 +67,22 @@ CREATE TABLE IF NOT EXISTS students (
         ON DELETE RESTRICT
 );
 
+-- ============================================================
+-- 3. COURSES TABLE
+-- Stores courses managed from the administrator dashboard
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS courses (
+    course_id INT AUTO_INCREMENT PRIMARY KEY,
+    course_code VARCHAR(30) NOT NULL UNIQUE,
+    course_name VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    credits TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
 
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 1.0 COMPLETE
