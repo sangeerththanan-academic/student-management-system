@@ -1,11 +1,5 @@
 -- ============================================================
 -- Student Management System
-<<<<<<< HEAD
--- Database Schema - Version 1.1
--- Organization: ABC Institute
--- Database: MySQL
--- CR-033: Last Login Tracking
-=======
 -- Database Schema - Version 2.0
 -- Organization: ABC Institute
 -- Database: MySQL
@@ -15,12 +9,14 @@
 --   - Role-based access
 --   - Student management
 --   - Password reset / Forgot Password
+--   - Last login tracking (CR-033)
+--   - Student profile photos (CR-010)
+--   - Password reset OTPs (CR-026)
 -- ============================================================
 
 
 -- ============================================================
 -- 1. DATABASE
->>>>>>> origin/JFICT26/CR026
 -- ============================================================
 
 DROP DATABASE IF EXISTS student_management;
@@ -31,8 +27,6 @@ USE student_management;
 
 -- ============================================================
 -- 1. USERS TABLE
-
--- 2. USERS TABLE
 -- ============================================================
 -- Stores authentication and account information.
 --
@@ -47,7 +41,6 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('ADMIN', 'STUDENT') NOT NULL,
     last_login DATETIME NULL DEFAULT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL
         DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL
@@ -57,8 +50,6 @@ CREATE TABLE users (
 
 -- ============================================================
 -- 2. STUDENTS TABLE
--- ============================================================
--- 3. STUDENTS TABLE
 -- ============================================================
 -- Stores student profile information.
 -- ============================================================
@@ -72,6 +63,7 @@ CREATE TABLE students (
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     phone_number VARCHAR(20) NOT NULL,
+    profile_photo VARCHAR(255) NULL,
 
     created_at TIMESTAMP NOT NULL
         DEFAULT CURRENT_TIMESTAMP,
@@ -88,9 +80,45 @@ CREATE TABLE students (
 );
 
 
+-- ============================================================
+-- 4. PASSWORD RESET OTPs TABLE
+-- ============================================================
+-- Stores hashed, temporary password-reset OTPs.
+-- ============================================================
+
+CREATE TABLE password_reset_otps (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    otp_hash CHAR(64) NOT NULL,
+
+    expires_at DATETIME NOT NULL,
+
+    attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+
+    verified_at DATETIME NULL DEFAULT NULL,
+
+    used_at DATETIME NULL DEFAULT NULL,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_password_reset_otp_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+
+    INDEX idx_password_reset_otp_user (user_id),
+
+    INDEX idx_password_reset_otp_expiry (expires_at)
+);
+
 
 -- ============================================================
--- 4. PASSWORD RESET TOKENS TABLE
+-- 5. PASSWORD RESET TOKENS TABLE
 -- ============================================================
 -- Stores hashed temporary password-reset tokens.
 --
@@ -121,7 +149,7 @@ CREATE TABLE password_reset_tokens (
 
 
 -- ============================================================
--- 5. INDEXES
+-- 6. INDEXES
 -- ============================================================
 
 CREATE INDEX idx_users_email
@@ -139,10 +167,16 @@ CREATE INDEX idx_password_reset_user
 CREATE INDEX idx_password_reset_expires
     ON password_reset_tokens(expires_at);
 
+CREATE INDEX idx_password_reset_otps_user
+    ON password_reset_otps(user_id);
+
+CREATE INDEX idx_password_reset_otps_expires
+    ON password_reset_otps(expires_at);
+
 
 -- ============================================================
 -- DATABASE SCHEMA - VERSION 2.0 COMPLETE
 -- ============================================================
--- SCHEMA VERSION 1.1
--- CR-033: last_login added to users
+-- Includes CR-010 profile photos, CR-026 password reset OTPs,
+-- and CR-033 last_login tracking.
 -- ============================================================
