@@ -185,21 +185,35 @@
 }
 
 /* =========================================================
+<<<<<<< HEAD
    CR-016 Password Visibility Toggle
+=======
+   Password Visibility Toggle
+>>>>>>> origin/JFICT06/CR016
    ========================================================= */
 
 .password-input-wrapper {
     position: relative;
+<<<<<<< HEAD
     width: 100%;
 }
 
 .password-input-wrapper input {
     width: 100%;
     padding-right: 48px;
+=======
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    padding-right: 45px;
+>>>>>>> origin/JFICT06/CR016
 }
 
 .password-toggle-button {
     position: absolute;
+<<<<<<< HEAD
     top: 50%;
     right: 12px;
     transform: translateY(-50%);
@@ -228,16 +242,41 @@
 .password-toggle-button:hover:not(:disabled) {
     color: #2563eb;
     background: #eff6ff;
+=======
+    right: 12px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-button:hover:not(:disabled) {
+    color: #475569;
+>>>>>>> origin/JFICT06/CR016
 }
 
 .password-toggle-button:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
+<<<<<<< HEAD
+=======
+    border-radius: 4px;
+    color: #2563eb;
+>>>>>>> origin/JFICT06/CR016
 }
 
 .password-toggle-button:disabled {
     cursor: not-allowed;
+<<<<<<< HEAD
     opacity: 0.5;
+=======
+    opacity: 0.65;
+>>>>>>> origin/JFICT06/CR016
 }
 
 /* =========================================================

@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 
 .env
 node_modules/
 uploads/*
 !uploads/.gitkeep
+=======
+.env
+node_modules
+>>>>>>> origin/JFICT06/CR016

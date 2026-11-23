@@ -198,6 +198,7 @@ const addStudent = async (req, res) => {
   } catch (error) {
     if (connection) await connection.rollback();
 
+<<<<<<< HEAD
     console.error("Add student error:", error);
 
     if (error.code === "ER_DUP_ENTRY") {
@@ -205,6 +206,157 @@ const addStudent = async (req, res) => {
         success: false,
         message: "A student with the provided details already exists.",
       });
+=======
+        // Validate required fields
+        if (!registrationNo || !registrationNo.trim()) return res.status(400).json({ success: false, message: "Registration Number is required." });
+        
+        if (!firstName || !firstName.trim()) return res.status(400).json({ success: false, message: "First Name is required." });
+        if (firstName.trim().length < 3) return res.status(400).json({ success: false, message: "First Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(firstName.trim())) return res.status(400).json({ success: false, message: "First Name must contain valid alphabetic characters only." });
+        
+        if (!lastName || !lastName.trim()) return res.status(400).json({ success: false, message: "Last Name is required." });
+        if (lastName.trim().length < 3) return res.status(400).json({ success: false, message: "Last Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(lastName.trim())) return res.status(400).json({ success: false, message: "Last Name must contain valid alphabetic characters only." });
+
+        if (!email || !email.trim()) return res.status(400).json({ success: false, message: "Email is required." });
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ success: false, message: "Email must follow a valid email format." });
+
+        if (!phoneNumber || !phoneNumber.trim()) return res.status(400).json({ success: false, message: "Phone Number is required." });
+        if (!/^\d+$/.test(phoneNumber.trim())) return res.status(400).json({ success: false, message: "Phone Number must contain numeric characters only." });
+        if (phoneNumber.trim().length < 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain fewer than 10 digits." });
+        if (phoneNumber.trim().length > 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain more than 10 digits." });
+
+        if (!password) return res.status(400).json({ success: false, message: "Password is required for a new student." });
+        if (password.length < 8) return res.status(400).json({ success: false, message: "Password must contain at least 8 characters." });
+        if (!/[A-Z]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one uppercase letter." });
+        if (!/[a-z]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one lowercase letter." });
+        if (!/[0-9]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one number." });
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return res.status(400).json({ success: false, message: "Password must contain at least one special character." });
+
+
+        // Get database connection
+        connection = await pool.getConnection();
+
+
+        // Start transaction
+        await connection.beginTransaction();
+
+
+        // Check duplicate username
+        const [existingUser] = await connection.execute(
+            `SELECT user_id
+             FROM users
+             WHERE username = ?
+             LIMIT 1`,
+            [registrationNo]
+        );
+
+        if (existingUser.length > 0) {
+
+            await connection.rollback();
+
+            return res.status(409).json({
+                success: false,
+                message: "Registration number is already registered"
+            });
+        }
+
+
+        // Check duplicate email
+        const [existingStudent] = await connection.execute(
+            `SELECT student_id
+             FROM students
+             WHERE email = ?
+             LIMIT 1`,
+            [email]
+        );
+
+        if (existingStudent.length > 0) {
+
+            await connection.rollback();
+
+            return res.status(409).json({
+                success: false,
+                message: "Email address is already registered"
+            });
+        }
+
+
+        // Hash student password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+
+        // Create user account
+        const [userResult] = await connection.execute(
+            `INSERT INTO users
+            (
+                username,
+                password_hash,
+                role
+            )
+            VALUES (?, ?, 'STUDENT')`,
+            [
+                registrationNo,
+                passwordHash
+            ]
+        );
+
+        const userId = userResult.insertId;
+
+
+        // Create student profile
+        const studentId = await createStudent(
+            connection,
+            userId,
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
+        );
+
+
+        // Commit transaction
+        await connection.commit();
+
+
+        // Success response
+        return res.status(201).json({
+            success: true,
+            message: "Student account and profile created successfully",
+            student: {
+                studentId,
+                userId,
+                registrationNo,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                role: "STUDENT"
+            }
+        });
+
+    } catch (error) {
+
+        // Rollback if transaction started
+        if (connection) {
+            await connection.rollback();
+        }
+
+        console.error("Create student error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to create student"
+        });
+
+    } finally {
+
+        // Release connection
+        if (connection) {
+            connection.release();
+        }
+>>>>>>> origin/JFICT06/CR016
     }
 
     return res.status(500).json({
@@ -273,7 +425,131 @@ const getStudentById = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // Get logged-in student's profile
+=======
+
+// UPDATE STUDENT
+// PUT /api/students/:id
+const editStudent = async (req, res) => {
+
+    try {
+
+        const studentId = req.params.id;
+
+        const {
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
+        } = req.body;
+
+
+        // Validate input
+        if (!registrationNo || !registrationNo.trim()) return res.status(400).json({ success: false, message: "Registration Number is required." });
+        
+        if (!firstName || !firstName.trim()) return res.status(400).json({ success: false, message: "First Name is required." });
+        if (firstName.trim().length < 3) return res.status(400).json({ success: false, message: "First Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(firstName.trim())) return res.status(400).json({ success: false, message: "First Name must contain valid alphabetic characters only." });
+        
+        if (!lastName || !lastName.trim()) return res.status(400).json({ success: false, message: "Last Name is required." });
+        if (lastName.trim().length < 3) return res.status(400).json({ success: false, message: "Last Name must contain at least 3 characters." });
+        if (!/^[A-Za-z]+$/.test(lastName.trim())) return res.status(400).json({ success: false, message: "Last Name must contain valid alphabetic characters only." });
+
+        if (!email || !email.trim()) return res.status(400).json({ success: false, message: "Email is required." });
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ success: false, message: "Email must follow a valid email format." });
+
+        if (!phoneNumber || !phoneNumber.trim()) return res.status(400).json({ success: false, message: "Phone Number is required." });
+        if (!/^\d+$/.test(phoneNumber.trim())) return res.status(400).json({ success: false, message: "Phone Number must contain numeric characters only." });
+        if (phoneNumber.trim().length < 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain fewer than 10 digits." });
+        if (phoneNumber.trim().length > 10) return res.status(400).json({ success: false, message: "Phone Number cannot contain more than 10 digits." });
+
+
+        // Check student exists
+        const existingStudent = await getStudentById(studentId);
+
+        if (!existingStudent) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Student not found"
+            });
+        }
+
+
+        // Update student
+        const result = await updateStudent(
+            studentId,
+            registrationNo,
+            firstName,
+            lastName,
+            email,
+            phoneNumber
+        );
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Student updated successfully",
+            affectedRows: result.affectedRows
+        });
+
+    } catch (error) {
+
+        console.error("Update student error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update student"
+        });
+    }
+};
+
+
+// DELETE STUDENT
+// DELETE /api/students/:id
+const removeStudent = async (req, res) => {
+
+    try {
+
+        const studentId = req.params.id;
+
+        // Check student exists
+        const student = await getStudentById(studentId);
+
+        if (!student) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Student not found"
+            });
+        }
+
+
+        // Delete student
+        const result = await deleteStudent(studentId);
+
+        return res.status(200).json({
+            success: true,
+            message: "Student deleted successfully",
+            affectedRows: result.affectedRows
+        });
+
+    } catch (error) {
+
+        console.error("Delete student error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete student"
+        });
+    }
+};
+
+
+// GET CURRENT STUDENT'S OWN PROFILE
+>>>>>>> origin/JFICT06/CR016
 const getMyProfile = async (req, res) => {
   try {
     const student = await getStudentByUserId(req.user.userId);

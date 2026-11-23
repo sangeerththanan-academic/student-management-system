@@ -1,5 +1,9 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { useNavigate } from "react-router-dom";
+=======
+import { Eye, EyeOff } from "lucide-react";
+>>>>>>> origin/JFICT06/CR016
 
 function LoginFormSection({
     onSubmit,
@@ -76,11 +80,15 @@ function LoginFormSection({
                         <div className="password-input-wrapper">
                             <input
                                 id="password"
+<<<<<<< HEAD
                                 type={
                                     showPassword
                                         ? "text"
                                         : "password"
                                 }
+=======
+                                type={showPassword ? "text" : "password"}
+>>>>>>> origin/JFICT06/CR016
                                 value={password}
                                 onChange={(event) =>
                                     setPassword(event.target.value)
@@ -90,6 +98,24 @@ function LoginFormSection({
                                 disabled={loading}
                                 required
                             />
+<<<<<<< HEAD
+=======
+                            <button
+                                type="button"
+                                className="password-toggle-button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                aria-pressed={showPassword}
+                                disabled={loading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={20} strokeWidth={2} />
+                                ) : (
+                                    <Eye size={20} strokeWidth={2} />
+                                )}
+                            </button>
+                        </div>
+>>>>>>> origin/JFICT06/CR016
 
                             <button
                                 type="button"
