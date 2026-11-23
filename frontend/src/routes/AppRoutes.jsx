@@ -1,7 +1,8 @@
 import {
     BrowserRouter,
     Routes,
-    Route
+    Route,
+    Navigate
 } from "react-router-dom";
 
 import LandingPage from "../pages/LandingPage";
@@ -10,6 +11,8 @@ import DashboardPage from "../pages/DashboardPage";
 import StudentDashboardPage from "../pages/StudentDashboardPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import StudentsView from "../pages/admin/StudentsView";
+import CoursesView from "../pages/admin/CoursesView";
 
 
 import ProtectedRoute from "./ProtectedRoute";
@@ -49,7 +52,11 @@ function AppRoutes() {
                             <DashboardPage />
                         </ProtectedRoute>
                     }
-                />
+                >
+                    <Route index element={<Navigate to="students" replace />} />
+                    <Route path="students" element={<StudentsView />} />
+                    <Route path="courses" element={<CoursesView />} />
+                </Route>
 
                 <Route
                     path="/student-dashboard"

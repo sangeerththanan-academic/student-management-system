@@ -20,9 +20,7 @@
 -- ============================================================
 
 DROP DATABASE IF EXISTS student_management;
-
 CREATE DATABASE student_management;
-
 USE student_management;
 
 -- ============================================================
@@ -77,6 +75,31 @@ CREATE TABLE students (
         REFERENCES users(user_id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
+);
+
+-- ============================================================
+-- 3. COURSES TABLE
+-- ============================================================
+-- Stores course records managed by administrators.
+-- ============================================================
+
+CREATE TABLE courses (
+
+    course_id INT AUTO_INCREMENT PRIMARY KEY,
+    course_code VARCHAR(50) NOT NULL UNIQUE,
+    course_name VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    credits TINYINT UNSIGNED NOT NULL,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT chk_course_credits
+        CHECK (credits BETWEEN 1 AND 30)
 );
 
 
