@@ -1,57 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/dashboard.css";
-
-import {
-    getStoredUser,
-    getCurrentUser,
-    logout
-} from "../services/authService";
-
-import apiRequest from "../services/api";
-import StudentFormModal from "../components/StudentFormModal";
-import ThemeToggle from "../components/ThemeToggle";
+import "../../styles/dashboard.css";
+import apiRequest from "../../services/api";
+import StudentFormModal from "../../components/StudentFormModal";
 
 const DashboardPage = () => {
-    const navigate = useNavigate();
-
-    const [user, setUser] = useState(null);
     const [students, setStudents] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
-
-    // ==================================================
-    // LOAD CURRENT USER
-    // ==================================================
-
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const storedUser = getStoredUser();
-
-                if (!storedUser) {
-                    navigate("/login");
-                    return;
-                }
-
-                const response = await getCurrentUser();
-
-                if (response?.success) {
-                    setUser(response.user);
-                } else {
-                    setUser(storedUser);
-                }
-            } catch (err) {
-                console.error("Failed to load user:", err);
-                navigate("/login");
-            }
-        };
-
-        loadUser();
-    }, [navigate]);
 
     // ==================================================
     // LOAD STUDENTS
@@ -213,15 +171,6 @@ const DashboardPage = () => {
     };
 
     // ==================================================
-    // LOGOUT
-    // ==================================================
-
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
-
-    // ==================================================
     // FORM SUCCESS
     // ==================================================
 
@@ -268,50 +217,7 @@ const DashboardPage = () => {
     // ==================================================
 
     return (
-        <div className="dashboard-page">
-
-            {/* ==================================================
-                HEADER
-            ================================================== */}
-
-            <header className="dashboard-header">
-
-                <div>
-                    <h1>
-                        Student Management System
-                    </h1>
-
-                    <p>
-                        Administrator Dashboard
-                    </p>
-                </div>
-
-                <div className="dashboard-header-actions">
-
-                    {user && (
-                        <div className="admin-info">
-
-                            <strong>
-                                Welcome, {user.username}
-                            </strong>
-
-                            <span>
-                                ADMINISTRATOR
-                            </span>
-
-                        </div>
-                    )}
-
-                    <button
-                        className="logout-button"
-                        onClick={handleLogout}
-                    >
-                        Logout
-                    </button>
-
-                </div>
-
-            </header>
+        <div className="students-view">
 
             {/* ==================================================
                 MAIN CONTENT

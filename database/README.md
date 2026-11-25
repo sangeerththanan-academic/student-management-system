@@ -13,6 +13,7 @@ The database currently supports:
 - Student registration
 - Student record management
 - Student profile viewing
+- Administrator-managed course records
 
 ---
 
@@ -32,6 +33,7 @@ The database currently supports:
 database/
 ├── README.md
 ├── schema.sql
+├── courses_table.sql
 └── seed.sql
 ````
 
@@ -64,7 +66,7 @@ database/
 
  ## 4\. Current Database Structure
 
- The current database contains two main tables:
+ The current database contains three tables:
 
 ```
 users
@@ -74,6 +76,8 @@ users
   | 0..1
   |
 students
+
+courses (independent course catalog)
 ```
 
  A user may have zero or one associated student record.
@@ -123,7 +127,22 @@ Supported roles:
 
 ---
 
- ## 7\. Database Relationship
+ ## 7\. Courses Table
+
+ The `courses` table stores courses managed by administrators.
+
+ | Field | Description |
+ | --- | --- |
+ | `id` | Unique course identifier |
+ | `course_code` | Unique course code |
+ | `course_name` | Course name |
+ | `description` | Optional course description |
+ | `credits` | Course credits |
+ | `created_at` | Record creation date |
+
+ ---
+
+ ## 8\. Database Relationship
 
  The `students.user_id` column references `users.user_id`.
 
@@ -141,7 +160,7 @@ students.user_id
 
 ---
 
- ## 8\. Database Setup
+ ## 9\. Database Setup
 
  ### Prerequisites
 
@@ -176,7 +195,7 @@ mysql -u root -p student_management < seed.sql
 
 ---
 
- ## 9\. Verify the Database
+ ## 10\. Verify the Database
 
  Connect to MySQL and run:
 
@@ -191,6 +210,7 @@ SHOW TABLES;
 ```
 users
 students
+courses
 ```
 
  To view the sample users:
@@ -207,7 +227,7 @@ SELECT * FROM students;
 
 ---
 
- ## 10\. Database Constraints
+ ## 11\. Database Constraints
 
  The current database applies the following important constraints.
 
@@ -227,9 +247,15 @@ SELECT * FROM students;
 - `email` must be unique.
 - Required student information cannot be `NULL`.
 
+ ### Courses
+
+ - `id` is the primary key.
+- `course_code` must be unique.
+- Course code, name, and credits are required.
+
 ---
 
- ## 11\. Security
+ ## 12\. Security
 
  Database credentials should not be hard-coded into application source code.
 
@@ -251,7 +277,7 @@ DB_PORT=3306
 
 ---
 
- ## 12\. Application Architecture
+ ## 13\. Application Architecture
 
  The React frontend does not connect directly to MySQL.
 
@@ -280,7 +306,7 @@ MySQL
 
 ---
 
- ## 13\. Development Guidelines
+ ## 14\. Development Guidelines
 
  When modifying the database:
 
@@ -293,13 +319,13 @@ MySQL
 
 ---
 
- ## 14\. Current Version
+ ## 15\. Current Version
 
  | Item | Value |
 | --- | --- |
 | Database Version | 1.0 |
 | Database Name | `student_management` |
 | Database Technology | MySQL |
-| Tables | `users`, `students` |
+| Tables | `users`, `students`, `courses` |
 | Schema File | `schema.sql` |
 | Seed File | `seed.sql` |
